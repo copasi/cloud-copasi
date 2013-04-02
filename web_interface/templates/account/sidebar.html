@@ -1,0 +1,43 @@
+{% if access_keys.count > 0 %}
+<section>
+    <header class="major">
+        <h2>Dashboard</h2>
+    </header>
+    <ul class="style2">
+        <li><a href="" class="button button-narrow button-alt button-icon button-icon-info">Dashboard home</a></li>
+    </ul>
+</section>
+
+<section>
+    <header class="major">
+        <h2>COPASI Jobs</h2>
+    </header>
+    <ul class="style2">
+        <li><a href="{% url 'my_account_job_new' %}" class="button button-narrow button-alt button-icon button-icon-check">Submit new job</a></li>
+        <li><a href="">Running jobs</a></li>
+        <li><a href="">Complted jobs</a></li>
+        <li><a href="">Job archive</a></li>
+    </ul>
+</section>
+
+<section>
+    <header class="major">
+        <h2>Cloud configuration</h2>
+    </header>
+    <ul class="style2">
+        <li><a href="{% url 'pool_status' %}"> Compute pool settings</a></li>
+        <li><a href="{% url 'vpc_status' %}"> VPC status</a></li>
+
+    </ul>
+</section>
+{% endif %}
+<section>
+    <header class="major">
+        <h2>Account Options</h2>
+    </header>
+    <ul class="style2">
+        <li><a href="{% url 'my_account_keys' %}">Manage AWS keys</a></li>
+        <li><a href="{% url 'my_account_keys_add' %}">Add new AWS key</a></li>
+        <li><a href="{% url 'my_account_password_change' %}">Change your password</a></li>
+    </ul>
+</section>

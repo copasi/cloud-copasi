@@ -1,0 +1,33 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>VPC Configuration</h2>
+        <span class="byline">Manage VPC configuration for <span style="font-weight:bolder">{{key.name}}</span></span>
+    </header>
+    
+    <p>All keys must have an associated Virtual Private Cloud (VPC) before computing jobs can be launched. At present a single VPC can be associated with each key.</p>
+    
+    {% if key.vpc == "NULL" %}    
+    <p style="font-weight: bold">This key currently has no associated VPC.</p>
+    
+    <p><a class="button button-icon button-icon-check" href="{% url 'vpc_add' key_id=key.id %}">Add VPC</a></p>
+    
+    {% else %}
+    <p>VPC status: <span style="font-weight: bold">{{ key.vpc.get_status }}</span>. </p>
+    
+    <p>If you are experiencing problems, try removing the VPC and then creating a new one. Note that it can take several minutes for a newly created VPC to become available</p>
+    
+    <h4>Warning - removing a VPC will stop any running jobs that are using this VPC</h4>
+    
+    <p><a class="button button-icon button-icon-check" href="{% url 'vpc_remove' key_id=key.id %}">Remove VPC</a></p>
+    {% endif %}
+        
+</article>
+{% endblock %}

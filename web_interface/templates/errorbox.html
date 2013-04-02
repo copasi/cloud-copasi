@@ -1,0 +1,11 @@
+<section>
+    <h3>Warning!</h3>
+    <span class='byline'>One or more errors were encountered when performing the requested action</span>
+    
+        {% for error in errors %}
+        <div class='errorbox'>
+            <h4>{{error.0}}</h4>
+            {% if error.1 %}{{error.1}}{% endif %}
+        </div>
+        {% endfor %}
+            </section>

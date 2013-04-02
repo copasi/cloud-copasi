@@ -1,0 +1,31 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Confirm delete</h2>
+        <span class="byline">Are you sure you want to delete this keypair?</span>
+    </header>
+    
+     <div class="tablelist">
+        <table>
+            <tr>
+                <th>Key name</th>
+                <th>Access key ID</th>
+                <th>Secret access key</th>
+            </tr>
+            <tr>
+                <td>{{ key.name }}</td>
+                <td>{{ key.access_key_id}}</td>
+                <td style="font-style:italic;">**Hidden**</td>
+            </tr>
+        </table>
+    </div>
+    <a href="{% url 'my_account_keys_delete_confirmed' key_id=key.id %}" class="button button-icon button-icon-check button-hspace">Delete</a><a href="{% url 'my_account_keys' %}" class="button button-alt button-hspace">Cancel</a>
+</article>
+{% endblock %}

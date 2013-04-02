@@ -1,0 +1,30 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Confirm termination</h2>
+        <span class="byline">Are you sure you want to terminate this compute pool?</span>
+    </header>
+    <h3>This action will terminate all computing node instances on this pool, and cannot be undone!</h3>
+     <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                <th>Number of nodes*</th>
+            </tr>
+            <tr>
+                <td>{{ condor_pool.name }}</td>
+                <td>{{ condor_pool.get_count}}</td>
+            </tr>
+        </table>
+        <p>*Includes Master node</p>
+    </div>
+    <a href="{% url 'pool_terminate_confirmed' pool_id=condor_pool.id %}" class="button button-icon button-icon-check button-hspace">Terminate pool</a><a href="{% url 'pool_details' pool_id=condor_pool.id %}" class="button button-alt button-hspace">Cancel</a>
+</article>
+{% endblock %}

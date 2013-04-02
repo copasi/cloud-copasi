@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block bodyclass %}right-sidebar{% endblock %}
+
+{% block main_content %}
+
+<!-- Main Wrapper -->
+<div id="main-wrapper">
+    <div class="main-wrapper-style2">
+        <div class="inner">
+            <div class="5grid-layout">
+                <div class="row">
+                    <div class="8u">
+                        <div id="content mobileUI-main-content">
+
+                            <!-- Content -->
+
+                            {%block content %}
+
+                            {% endblock %}
+
+                        </div>
+                    </div>
+                    <div class="4u">
+                        <div id="sidebar">
+
+                            <!-- Sidebar -->
+
+                            {% block sidebar %}
+                            {% endblock %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

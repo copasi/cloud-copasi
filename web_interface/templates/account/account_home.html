@@ -1,0 +1,18 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>My account</h2>
+    </header>
+
+    <p>{{ access_keys.count }} access keys associated with this account.</p>
+
+    
+</article>
+{% endblock %}

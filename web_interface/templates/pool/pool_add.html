@@ -1,0 +1,24 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Launch pool</h2>
+        <span class="byline">Launch a new compute pool</span>
+    </header>
+    
+    {% if access_keys.count == 0 %}
+    <h4>You must add an AWS access key to continue</h4>
+    {% endif %}
+    
+    {% include 'form.html' with submit_text="Launch pool"%}
+
+    
+</article>
+{% endblock %}

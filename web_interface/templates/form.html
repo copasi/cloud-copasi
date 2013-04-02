@@ -1,0 +1,39 @@
+<p>Required fields are listed in <span class="required">bold</span></p>
+{% if form.errors %}
+    <h4 class="formerror">There were errors in the form below!</h4>
+{% endif %}
+    <form action="" method="post" id="form1">{% csrf_token %}
+        {% if form.non_field_errors %}
+            <table class="formtable">
+                <tr>
+                    <td class="fielderror"> {{ form.non_field_errors }} </td>
+                </tr>
+            </table>
+        {%endif %}
+        
+        <table class="formtable">
+            
+            {% for hidden in form.hidden_fields%}
+                {{ hidden }}
+            {% endfor %}
+            {% for field in form.visible_fields %}
+                {% if not forloop.first %}
+                    <tr><td class="topline" colspan="2"> </td></tr>
+                {% endif %}
+                <tr class="formrow">
+                    <th class="fieldlabel{% if field.field.required %} reqired{%endif %}">{{ field.label_tag}}:</th>
+                    <td class="fielddata">{{field}}</td>
+                </tr>
+                {% if field.help_text %}
+                <tr><td> </td><td class="fieldhelp">{{ field.help_text | safe}}</td></tr>
+                {% endif %}
+                {% if field.errors %}<tr><td> </td><td class="fielderror">{{ field.errors }}</td></tr>{% endif %}
+                    <tr><td class="bottomline" colspan="2"> </td></tr>
+        
+            {% endfor %}
+        
+        </table>
+        <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
+        <a class="form-button button button-icon button-icon-check" onclick="formSubmit('form1')">{{ submit_text }}</a>
+        
+    </form>

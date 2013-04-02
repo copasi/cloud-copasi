@@ -1,0 +1,19 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Submit new job</h2>
+        <span class="byline">Submit a new job</span>
+    </header>
+    {% include 'form.html' with submit_text="Add key"%}
+
+    
+</article>
+{% endblock %}

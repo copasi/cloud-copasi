@@ -1,0 +1,47 @@
+{% extends "left_sidebar.html" %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Compute Pools</h2>
+        <span class="byline">Your Compute Pools</span>
+    </header>
+    
+    <p>Compute pools consist of a Master node, and one or more Compute nodes. Click 'Launch Pool' below to launch a new compute pool.</p>
+    
+    <p><a class="button button-icon button-icon-check" href="{% url 'pool_add' %}">Launch pool</a></p>
+    
+    {%if pools %}
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                <th>Access key</th>
+                <th>Active nodes*</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+        {% for pool in pools %}
+            <tr>
+                <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{ pool.name }}</a></td>
+                <td>{{pool.vpc.access_key.name }}</td>
+                <td >{{pool.get_count}}</td>
+                <td> Fixed price </td>
+                <td> {{ pool.get_status }}</td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=pool.id %}">Details</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+        <p>*Includes Master node</p>
+    </div>
+    {% else %}
+    <p>You currently have no active compute pools.</p>
+    {% endif %}
+</article>
+{% endblock %}
