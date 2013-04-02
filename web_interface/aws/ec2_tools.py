@@ -30,7 +30,9 @@ def create_key_pair(pool):
     name = pool.name + '_keypair'
     key = ec2_connection.create_key_pair(name)
     
-    filepath = '/home/ed/workspace/cloud_copasi'
+    #The directory where we store the ssh keypairs. Must be writable
+    filepath = settings.KEYPAIR_FILEPATH
+    
     path=os.path.join(filepath, name + '.pem')
     key.save(filepath)
     

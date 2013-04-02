@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 # Create your models here.
 from django.core.validators import RegexValidator, MinValueValidator
 from boto.s3.connection import S3Connection
-from web_interface.aws import aws_tools, ec2_config, s3_tools
+from aws import aws_tools, ec2_config, s3_tools
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
@@ -231,8 +231,8 @@ class Task(models.Model):
     
     task_type = models.CharField(max_length=30, choices=TASK_CHOICES)
     
-    min_runs = models.PositiveIntegerField(min_value='1', verbose_name = 'The minimum number of repeats to perform')
-    max_runs = models.PositiveIntegerField(min_value='1', verbose_name = 'The maximum number of repeats to perform')
+    min_runs = models.PositiveIntegerField(verbose_name = 'The minimum number of repeats to perform')
+    max_runs = models.PositiveIntegerField(verbose_name = 'The maximum number of repeats to perform')
     
     original_model = models.CharField(max_length=200)
     

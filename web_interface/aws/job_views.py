@@ -105,3 +105,5 @@ class NewTaskView(RestrictedFormView):
         
         return HttpResponseRedirect(reverse_lazy('my_account_job_new'))
     
+class JobNewView(RestrictedView):
+    pass

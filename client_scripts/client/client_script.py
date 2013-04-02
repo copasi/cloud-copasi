@@ -1,7 +1,7 @@
 import boto
 from boto.sqs import connection
 import sys
-import response, condor_tools
+from client_scripts.client import response, condor_tools
 
 def readline(path):
     return open(path, 'r').read().splitlines()[0]
