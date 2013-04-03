@@ -162,7 +162,7 @@ dl.contact dd {
 }
 
 .button {
-    display: inline-block;
+/*    display: inline-block; */
     background: #23749f;
     background-image: -moz-linear-gradient(top, #3b91b6, #23749f);
     background-image: -webkit-linear-gradient(top, #3b91b6, #23749f);
