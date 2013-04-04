@@ -9,7 +9,7 @@
 from django.conf.urls import patterns, include, url
 from cloud_copasi.web_interface import views
 from cloud_copasi.web_interface.account import account_views
-from cloud_copasi.web_interface.aws import job_views, pool_views
+from cloud_copasi.web_interface.aws import task_views, pool_views
 from cloud_copasi.web_interface.client_api import api_views
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -43,9 +43,14 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/(?P<pool_id>.+)/terminate/confirm/$', pool_views.PoolTerminateView.as_view(), {'confirmed':True}, name='pool_terminate_confirmed'),
 
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
-    url('^my_account/jobs/new/$', job_views.JobNewView.as_view(), name='my_account_job_new'),
+    
     url(r'^sign_in/$', views.LoginView.as_view(), name='sign_in'),
     url(r'^sign_out/$', views.LogoutView.as_view(), name='sign_out'),
+
+    
+    #Task views
+    url('^my_account/tasks/new/$', task_views.NewTaskView.as_view(), name='task_new'),
+
 
     #API views for updating condor job statuses
     url(r'^api/register_job/$', api_views.RegisterJobView.as_view(), name='api_register_job'),
