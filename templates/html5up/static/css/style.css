@@ -1,6 +1,7 @@
 /*
  ZeroFour 1.0 by HTML5 Up!
  html5up.net | @n33co
+ Modified by Edward Kent, 2013
  Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
  */
 
@@ -191,8 +192,8 @@ dl.contact dd {
     width: 90%;
 }
 .button-narrow {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
+    padding-top: 0.8em;
+    padding-bottom: 0.8em;
 }
 .button:hover {
     background-image: -moz-linear-gradient(top, #4ba1c6, #23749f);
