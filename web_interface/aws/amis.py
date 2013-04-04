@@ -1,3 +1,11 @@
+#-------------------------------------------------------------------------------
+# Cloud-COPASI
+# Copyright (c) 2013 Edward Kent.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the GNU Public License v3.0
+# which accompanies this distribution, and is available at
+# http://www.gnu.org/licenses/gpl.html
+#-------------------------------------------------------------------------------
 from boto.ec2.connection import EC2Connection
 AMI_OWNER = 389707735952 #That's me
 AMI_NAME_STRING = 'Condor AMI'
