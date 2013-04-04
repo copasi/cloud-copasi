@@ -12,16 +12,16 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
-from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance
+from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
+from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from web_interface.aws import vpc_tools, aws_tools, ec2_tools
-from web_interface import models
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
+from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
-from web_interface.models import VPC
+from cloud_copasi.web_interface.models import VPC
 
 class PoolStatusView(RestrictedView):
     """View to display active compute pools

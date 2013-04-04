@@ -12,18 +12,18 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
-from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from models import AWSAccessKey
+from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
+from cloud_copasi.web_interface.models import AWSAccessKey
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from web_interface.aws import vpc_tools, aws_tools
-from web_interface import models
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools
+from cloud_copasi.web_interface import models
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
-from web_interface.models import VPC, CondorPool
+from cloud_copasi.web_interface.models import VPC, CondorPool
 from django.http import HttpRequest
 import json
 from django.views.decorators.csrf import csrf_exempt

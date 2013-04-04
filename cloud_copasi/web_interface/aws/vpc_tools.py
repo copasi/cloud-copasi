@@ -9,8 +9,8 @@
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 from boto.s3.connection import S3Connection
-from web_interface import models
-from web_interface.aws import s3_tools
+from cloud_copasi.web_interface import models
+from cloud_copasi.web_interface.aws import s3_tools
 import boto.exception
 import sys, os
 IP_RANGE='10.0.0.0'

@@ -7,10 +7,10 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 from django.conf.urls import patterns, include, url
-from web_interface import views
-from web_interface.account import account_views
-from web_interface.aws import job_views, pool_views
-from web_interface.client_api import api_views
+from cloud_copasi.web_interface import views
+from cloud_copasi.web_interface.account import account_views
+from cloud_copasi.web_interface.aws import job_views, pool_views
+from cloud_copasi.web_interface.client_api import api_views
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()

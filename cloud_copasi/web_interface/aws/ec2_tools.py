@@ -9,13 +9,13 @@
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 from boto.ec2.instance import Instance
-from web_interface import models
-from web_interface.aws import aws_tools, ec2_config
-from web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP
+from cloud_copasi.web_interface import models
+from cloud_copasi.web_interface.aws import aws_tools, ec2_config
+from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP
 import sys, os
 from exceptions import Exception
 from time import sleep
-import settings
+from cloud_copasi import settings
 
 def get_ami(ec2_connection, ami):
     assert isinstance(ec2_connection, EC2Connection)

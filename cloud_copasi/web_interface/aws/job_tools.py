@@ -8,9 +8,9 @@
 #-------------------------------------------------------------------------------
 from boto import s3, sqs
 import json, s3_tools, os
-from models import Task, CondorJob
+from cloud_copasi.web_interface.models import Task, CondorJob
 from boto.s3.key import Key
-from web_interface.aws import aws_tools
+from cloud_copasi.web_interface.aws import aws_tools
 
 def store_to_outgoing_bucket(task, file_list, delete=True):
     """Copy the files in the list to the outgoing bucket of the task. By default

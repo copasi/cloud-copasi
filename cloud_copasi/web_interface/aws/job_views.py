@@ -12,17 +12,17 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
-from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from models import AWSAccessKey, VPC, CondorPool, CondorJob, Task
-import models
+from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
+from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task
+from cloud_copasi.web_interface import models
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
-from web_interface.account.account_views import MyAccountView
+from cloud_copasi.web_interface.account.account_views import MyAccountView
 from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from web_interface.aws import vpc_tools, job_tools
+from cloud_copasi.web_interface.aws import vpc_tools, job_tools
 
 
 class NewTaskForm(forms.Form):

@@ -24,7 +24,7 @@ from django import forms
 import sys
 from boto.exception import BotoServerError
 
-from web_interface.models import AWSAccessKey
+from cloud_copasi.web_interface.models import AWSAccessKey
 #Remember - class based views are not thread safe! Don't pass lists, dicts etc as args
 class DefaultView(TemplateView):
     page_title=''
