@@ -15,10 +15,7 @@ from cloud_copasi.web_interface.aws import aws_tools, ec2_config, s3_tools
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
-
-TASK_CHOICES = (
-                ('test', 'Test type'),
-                )
+from cloud_copasi import copasi
 
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
@@ -31,7 +28,7 @@ class AWSAccessKey(models.Model):
     
     secret_key = models.CharField(max_length=40, help_text='The 40-character secret access key associated with the access key ID', verbose_name='Secret access key', validators=[RegexValidator(regex='^.{40}$', message='Length has to be 40', code='nomatch')])
     
-    def __str__(self):
+    def __unicode__(self):
         return "%s, %s" % (self.name, self.access_key_id)
     
     class Meta:
@@ -62,8 +59,8 @@ class VPC(models.Model):
     class Meta:
         app_label = 'web_interface'
         
-    def __str__(self):
-        return self.vpc_id
+    def __unicode__(self):
+        return "VPC %s (keypair %s)" % (self.vpc_id, self.access_key.name)
         
     def get_vpc(self, vpc_connection):
         """Returns the boto vpc object
@@ -164,6 +161,9 @@ class EC2Instance(models.Model):
     class Meta:
         app_label = 'web_interface'
         
+    def __unicode__(self):
+        return "EC2 instance %s" % self.instance_id
+    
     def get_instance(self):
         ec2_connection = self.get_ec2_connection()
         instance_reservation = ec2_connection.get_all_instances(instance_ids=[self.instance_id])
@@ -201,7 +201,7 @@ class AMI(models.Model):
     class Meta:
         app_label = 'web_interface'
         
-    def __str__(self):
+    def __unicode__(self):
         return self.name
     
 class EC2KeyPair(models.Model):
@@ -212,6 +212,9 @@ class EC2KeyPair(models.Model):
     class Meta:
         app_label = 'web_interface'
         
+    def __unicode__(self):
+        return self.name
+    
 class ElasticIP(models.Model):
     public_ip = models.IPAddressField()
     
@@ -237,10 +240,10 @@ class Task(models.Model):
      
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
-    task_type = models.CharField(max_length=30, choices=TASK_CHOICES)
+    task_type = models.CharField(max_length=30, choices=copasi.task_types)
     
-    min_runs = models.PositiveIntegerField(verbose_name = 'The minimum number of repeats to perform')
-    max_runs = models.PositiveIntegerField(verbose_name = 'The maximum number of repeats to perform')
+    min_runs = models.PositiveIntegerField(verbose_name = 'The minimum number of repeats to perform', blank=True, null=True)
+    max_runs = models.PositiveIntegerField(verbose_name = 'The maximum number of repeats to perform', blank=True, null=True)
     
     original_model = models.CharField(max_length=200)
     
@@ -271,6 +274,9 @@ class Task(models.Model):
     class Meta:
         app_label = 'web_interface'
         
+    def __unicode__(self):
+        return self.name
+    
 class CondorJob(models.Model):
     
    #The parent job
@@ -287,6 +293,7 @@ class CondorJob(models.Model):
     job_output = models.FilePathField(max_length=255)
     #The status of the job in the queue
     QUEUE_CHOICES = (
+        ('C', 'Not copied'),
         ('N', 'Not queued'),
         ('Q', 'Queued'),
         ('I', 'Idle'),
@@ -303,9 +310,13 @@ class CondorJob(models.Model):
     #The amount of computation time in seconds that the condor job took to finish. Note, this does not include any interrupted runs. Will not be set until the condor job finishes.
     run_time = models.FloatField(null=True)
     
-    runs = models.PositiveIntegerField(verbose_name='The number of runs this particular job is performing')
+    runs = models.PositiveIntegerField(verbose_name='The number of runs this particular job is performing', blank=True, null=True)
+    
+    #The copasi file that is to be copied over with this condor job
+    copasi_file = models.FilePathField(max_length=255)
+    
     def __unicode__(self):
-        return unicode(self.queue_id)
+        return "%s (task %s)" % (unicode(self.queue_id), self.task.name)
         
         
     def getDirectory(self):

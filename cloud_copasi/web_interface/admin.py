@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 from django.contrib import admin
-from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, EC2Instance, AMI, EC2KeyPair, ElasticIP
+from cloud_copasi.web_interface.models import *
 
 admin.site.register(AWSAccessKey)
 admin.site.register(VPC)
@@ -16,3 +16,5 @@ admin.site.register(EC2Instance)
 admin.site.register(AMI)
 admin.site.register(EC2KeyPair)
 admin.site.register(ElasticIP)
+admin.site.register(Task)
+admin.site.register(CondorJob)

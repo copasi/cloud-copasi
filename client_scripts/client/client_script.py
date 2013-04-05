@@ -39,8 +39,8 @@ def main():
         #Go through all messages in the queue and process them
         try:
             #process message
-            #
-            message.delete()
+            print message.get_body()
+            #message.delete()
         except:
             pass
         #Reload the message

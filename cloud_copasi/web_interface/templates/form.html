@@ -10,7 +10,7 @@ http://www.gnu.org/licenses/gpl.html
 {% if form.errors %}
     <h4 class="formerror">There were errors in the form below!</h4>
 {% endif %}
-    <form action="" method="post" id="form1">{% csrf_token %}
+    <form {% if multipart %} enctype="multipart/form-data"{% endif %} method="post" id="form1">{% csrf_token %}
         {% if form.non_field_errors %}
             <table class="formtable">
                 <tr>
