@@ -89,3 +89,4 @@ class UpdateResponse(JSONResponder):
         output['condor_jobs'] = self.condor_jobs
         
         return super(UpdateResponse, self).send_response(address, output)
+

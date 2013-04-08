@@ -18,12 +18,12 @@ universe       = vanilla
 """
 
 #For normal jobs. All arguments to the COPASI binary are hardcoded here
-condor_string_args = """executable = ${copasiPath}/CopasiSE.$$$$(OpSys).$$$$(Arch)
+condor_string_args = """executable = /usr/local/bin/copasi/CopasiSE.$$$$(OpSys).$$$$(Arch)
 arguments = --nologo --home . ${copasiFile} --save ${copasiFile}
 """
 
 #For raw mode. Allows for custom arguments to be added
-condor_string_no_args = """executable = ${copasiPath}/CopasiSE.${OpSys}.${Arch}
+condor_string_no_args = """executable = /usr/local/bin/copasi/CopasiSE.${OpSys}.${Arch}
 arguments = $args
 """
 

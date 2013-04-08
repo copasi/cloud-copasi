@@ -17,9 +17,9 @@ def copy_to_bucket(filename, bucket, delete):
     key = Key(bucket)
     path, name = os.path.split(filename)
     key.name = name
-    #key.set_contents_from_filename(filename)
-    #if delete:
-        #os.remove(filename)
+    key.set_contents_from_filename(filename)
+    if delete:
+        os.remove(filename)
     return name
 
 def store_to_outgoing_bucket(task, delete=True, copy_original_model=True):

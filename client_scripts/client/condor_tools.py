@@ -7,9 +7,11 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 import subprocess, re
-
+import os.path
 
 CONDOR_Q = '/usr/bin/condor_q'
+CONDOR_SUBMIT = '/usr/bin/condor_submit'
+CONDOR_RM = '/usr/bin/condor_rm'
 
 def process_condor_q():
     condor_q_process = subprocess.Popen(CONDOR_Q, stdout=subprocess.PIPE)
@@ -39,3 +41,31 @@ def process_condor_q():
                 condor_q.append((id,status))
 
     return condor_q
+
+def condor_submit(condor_file):
+    """Submit the .job file condor_file to the condor system using the condor_submit command"""
+    #condor_file must be an absolute path to the condor job filename
+    (directory, filename) = os.path.split(condor_file)
+    
+    p = subprocess.Popen([CONDOR_SUBMIT, condor_file],stdout=subprocess.PIPE, cwd=directory)
+        
+    process_output = p.communicate()[0]
+    #Get condor_process number...
+#    process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
+    #use a regular expression to parse the process output
+    try:
+        r=re.compile(r'[\s\S]*submitted to cluster (?P<id>\d+).*')
+        process_id = int(r.match(process_output).group('id'))
+    except:
+        process_id = -1 #Return -1 if for some reason the submit failed
+        #logging.exception('Failed to submit job')
+    #TODO: Should we sleep here for a bit? 1s? 10s?
+    
+    return process_id
+
+def condor_rm(queue_id):
+    
+    p = subprocess.Popen([CONDOR_RM, str(queue_id)])
+    p.communicate()
+    
+

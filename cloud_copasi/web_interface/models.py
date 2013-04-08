@@ -126,6 +126,8 @@ class CondorPool(models.Model):
     class Meta:
         app_label = 'web_interface'
     
+    def __unicode__(self):
+        return "%s (User: %s)" % (self.name, self.vpc.access_key.user.username) 
     
     def get_status(self):
         return 'Not implemented'

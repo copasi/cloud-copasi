@@ -13,7 +13,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey
+from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -61,7 +61,11 @@ class RegisterJobView(APIView):
         #Validate that we trust this pool
         assert pool.secret_key == secret_key
         
-        print>>sys.stderr, data
+        #Update the Condor jobs with their new condor q id
+        for condor_job_id, queue_id in data['condor_jobs']:
+            condor_job = CondorJob.objects.get(id=condor_job_id)
+            condor_job.queue_id = queue_id
+            condor_job.save()
         
         
         #Construct a json response to send back
