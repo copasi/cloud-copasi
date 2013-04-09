@@ -84,7 +84,7 @@ class PoolAddView(RestrictedFormView):
         form=kwargs['form']
         
         try:
-            pool = form.save(commit=False)
+            pool = form.save()
             
             key_pair=ec2_tools.create_key_pair(pool)
             pool.key_pair = key_pair
@@ -94,11 +94,11 @@ class PoolAddView(RestrictedFormView):
         pool.save()
         
         #Launch the pool
-        try:
-            ec2_tools.launch_pool(pool)
-        except Exception, e:
-            self.request.session['errors'] = aws_tools.process_errors([e])
-            return HttpResponseRedirect(reverse_lazy('pool_add'))
+        #try:
+        ec2_tools.launch_pool(pool)
+        #except Exception, e:
+        #    self.request.session['errors'] = aws_tools.process_errors([e])
+        #    return HttpResponseRedirect(reverse_lazy('pool_add'))
         
         return super(PoolAddView, self).form_valid(*args, **kwargs)
 

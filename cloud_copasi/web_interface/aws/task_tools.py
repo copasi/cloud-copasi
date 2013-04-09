@@ -88,7 +88,7 @@ def notify_new_task(task, file_key_names, spec_key_names):
     output = {}
     output['notify_type'] = 'new_task'
     output['bucket_name'] = task.get_outgoing_bucket_name()
-    output['task_id'] = task.id
+    output['task_id'] = str(task.uuid)
     output['file_keys'] = file_key_names
     output['spec_keys'] = spec_key_names
     

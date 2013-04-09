@@ -16,6 +16,7 @@ import sys, os
 from exceptions import Exception
 from time import sleep
 from cloud_copasi import settings
+from boto import sqs
 
 def get_ami(ec2_connection, ami):
     assert isinstance(ec2_connection, EC2Connection)
@@ -35,7 +36,7 @@ def create_key_pair(pool):
     
     assert isinstance(pool, models.CondorPool)
     vpc_connection, ec2_connection = aws_tools.create_connections(pool.vpc.access_key)
-    name = pool.name + '_keypair'
+    name =  'keypair_%s' % pool.uuid
     key = ec2_connection.create_key_pair(name)
     
     #The directory where we store the ssh keypairs. Must be writable
@@ -65,7 +66,7 @@ def launch_pool(condor_pool):
     #Launch the master instance
     #Add the pool details to the launch string
     master_launch_string = ec2_config.MASTER_LAUNCH_STRING % (settings.HOST,
-                                                              condor_pool.id,
+                                                              condor_pool.uuid,
                                                               condor_pool.secret_key,
                                                               condor_pool.vpc.access_key.access_key_id,
                                                               condor_pool.vpc.access_key.secret_key)
@@ -79,6 +80,9 @@ def launch_pool(condor_pool):
                                                min_count=1,#Only 1 instance needed
                                                max_count=1,
                                                )
+    
+    sleep(2)
+    
     ec2_instances = []
 
     master_instance = master_reservation.instances[0]
@@ -98,12 +102,12 @@ def launch_pool(condor_pool):
     #wait until the master has a private ip address
     #sleep in beween
     sleep_time=2
-    max_retrys=10
+    max_retrys=20
     current_try=0
     while master_ec2_instance.get_private_ip() == None and current_try<max_retrys:
         sleep(sleep_time)
         current_try+=1
-    
+    sleep(2)
     if condor_pool.size > 0:
         worker_reservation = ec2_connection.run_instances(ami.id,
                                                    key_name=condor_pool.key_pair.name,
@@ -114,7 +118,7 @@ def launch_pool(condor_pool):
                                                    min_count=condor_pool.size,
                                                    max_count=condor_pool.size,
                                                    )
-
+        sleep(3)
         instances = worker_reservation.instances
         for instance in instances:
             ec2_instance = EC2Instance()
@@ -127,7 +131,14 @@ def launch_pool(condor_pool):
             
             ec2_instances.append(ec2_instance)
         
-        
+    
+    #Create an sqs queue
+    sqs_connection = aws_tools.create_sqs_connection(condor_pool.vpc.access_key)
+    if sqs_connection.get_queue(condor_pool.get_queue_name()) != None:
+        sqs_connection.delete_queue(condor_pool.get_queue_name())
+    
+    sqs_connection.create_queue(condor_pool.get_queue_name())
+    
     #Assign an elastic IP to the master instance
     assign_ip_address(master_ec2_instance)
     
@@ -183,7 +194,7 @@ def assign_ip_address(ec2_instance):
     """
     #Check to see if there are any unassigned IP addresses:    
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_instance.condor_pool.vpc.access_key)
-
+    sleep(2)
     assert isinstance(ec2_instance, EC2Instance)
     ips = ElasticIP.objects.filter(vpc=ec2_instance.condor_pool.vpc).filter(instance=None)
     

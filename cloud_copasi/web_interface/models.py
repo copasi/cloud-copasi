@@ -16,6 +16,7 @@ from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
 from cloud_copasi import copasi
+from fields import UUIDField
 
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
@@ -117,11 +118,13 @@ class CondorPool(models.Model):
     name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool')
     size=models.PositiveIntegerField(verbose_name='Number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
     
-    key_pair = models.OneToOneField('EC2KeyPair')
+    key_pair = models.OneToOneField('EC2KeyPair', null=True)
 
     initial_instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES, blank=False, default='t1.micro', help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
 
     secret_key = models.CharField(max_length=30, default=create_secret_key)
+    
+    uuid=UUIDField(auto=True)
     
     class Meta:
         app_label = 'web_interface'
@@ -140,7 +143,7 @@ class CondorPool(models.Model):
         return instances.count()
     
     def get_queue_name(self):
-        return "cloud-copasi-pool-" + str(self.id) 
+        return "cloud-copasi-" + str(self.uuid) 
     
 class EC2Instance(models.Model):
     
@@ -237,7 +240,8 @@ class ElasticIP(models.Model):
 class Task(models.Model):
     """High-level representation of a computing job
     """
-    
+    uuid=UUIDField(auto=True)
+
     condor_pool = models.ForeignKey(CondorPool)
      
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
@@ -249,15 +253,27 @@ class Task(models.Model):
     
     original_model = models.CharField(max_length=200)
     
+    
+    
+    status_choices = (
+                      ('N', 'New'),
+                      ('Q', 'Queued'),
+                      ('F', 'Finished'),
+                      ('E', 'Error'),
+                      ('D', 'Marked for deletion'),
+                      ('U', 'Unknown'),
+                      )
+    
+    
+    status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices)
+    
+    
+    
     def get_outgoing_bucket_name(self):
-        return "cloud-copasi-%s-%s-%s-out" % (self.condor_pool.vpc.vpc_id,
-                                              str(self.condor_pool.vpc.access_key.user.id),
-                                              self.name)
+        return "cloud-copasi-out-%s" % self.uuid
 
     def get_incoming_bucket_name(self):
-        return "cloud-copasi-%s-%s-%s-in" % (self.condor_pool.vpc.vpc_id,
-                                              str(self.condor_pool.vpc.access_key.user.id),
-                                              self.name)
+        return "cloud-copasi-in-%s" % self.uuid
 
         
     def get_outgoing_bucket(self):

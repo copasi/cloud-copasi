@@ -10,7 +10,7 @@ import json, urllib2
 
 URL='http://127.0.0.1:8000'
 REGISTER_JOB='/api/register_job/'
-UPDATE_STATUS='/api/register_job/'
+UPDATE_STATUS='/api/update_status/'
 
 class JSONResponder(object):
     

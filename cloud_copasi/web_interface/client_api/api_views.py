@@ -23,7 +23,7 @@ from cloud_copasi.web_interface import models
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
-from cloud_copasi.web_interface.models import VPC, CondorPool
+from cloud_copasi.web_interface.models import VPC, CondorPool, Task, CondorJob
 from django.http import HttpRequest
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -57,10 +57,9 @@ class RegisterJobView(APIView):
         pool_id = data['pool_id']
         secret_key = data['secret_key']
         
-        pool=CondorPool.objects.get(id=pool_id)
+        pool=CondorPool.objects.get(uuid=pool_id)
         #Validate that we trust this pool
         assert pool.secret_key == secret_key
-        
         #Update the Condor jobs with their new condor q id
         for condor_job_id, queue_id in data['condor_jobs']:
             condor_job = CondorJob.objects.get(id=condor_job_id)
@@ -85,8 +84,45 @@ class UpdateStatusView(APIView):
         assert request.META['CONTENT_TYPE'] == 'application/json'
         json_data=request.body
         data = json.loads(json_data)
-        
 
+        pool_id = data['pool_id']
+        secret_key = data['secret_key']
+        
+        pool=CondorPool.objects.get(uuid=pool_id)
+        assert pool.secret_key == secret_key
+        
+        
+        #Get the tasks associated with the condor pool which are still running
+        #Create a store for each task with count 0
+        #e.g. count={}, count['odigljdklfgjdhpshpj'] = 0...
+        count = {}
+        tasks = Task.objects.filter(condor_pool=pool).filter(status='Q')
+        for task in tasks:
+            count[task.id] = 0
+        
+        
+        
+        #Go through the condor jobs in the response
+        ##Update job statuses as required
+        #Increase the count for the task by 1
+        
+        #Any job with count 0 has finished running.
+        
+        for condor_queue_id, queue_status in data['condor_jobs']:
+            condor_job = CondorJob.objects.get(queue_id=condor_queue_id)
+            condor_job.queue_status = queue_status
+            condor_job.save()
+            
+            task = condor_job.task
+            count[task.id] += 1
+        
+        for task in tasks:
+            if count[task.id] == 0:
+                task.status = 'F'
+                task.save()
+        
+        
+        
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)

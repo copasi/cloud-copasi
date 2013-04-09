@@ -19,7 +19,7 @@ def readline(path):
 
 #Open the files storing the variables we need
 server_url = readline('/etc/cloud-config/server_url')
-pool_id = int(readline('/etc/cloud-config/pool_id'))
+pool_id = readline('/etc/cloud-config/pool_id')
 secret_key = readline('/etc/cloud-config/secret_key')
 aws_access_key = readline('/etc/cloud-config/aws_access_key')
 aws_secret_key = readline('/etc/cloud-config/aws_secret_key')
@@ -59,7 +59,7 @@ def main():
     sqs_connection = connection.SQSConnection(aws_access_key_id=aws_access_key,
                                              aws_secret_access_key=aws_secret_key)
     
-    queue_name = 'cloud-copasi-pool-' + str(pool_id)
+    queue_name = 'cloud-copasi-%s' % pool_id
     
     queue = sqs_connection.get_queue(queue_name)
     print 'reading queue'
