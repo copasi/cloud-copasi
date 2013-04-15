@@ -153,7 +153,9 @@ class NewTaskView(RestrictedFormView):
 #        ####################################################################
 
         task_tools.notify_new_task(task, file_keys, spec_keys)
-
+        
+        #Update the task queue status
+        task.status = 'Q'
         #except:
         #unto anything performed here and delete files
         

@@ -109,6 +109,7 @@ class UpdateStatusView(APIView):
         #Any job with count 0 has finished running.
         
         for condor_queue_id, queue_status in data['condor_jobs']:
+            #TODO: put in try, except blocks
             condor_job = CondorJob.objects.get(queue_id=condor_queue_id)
             condor_job.queue_status = queue_status
             condor_job.save()
