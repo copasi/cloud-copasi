@@ -73,7 +73,7 @@ def launch_pool(condor_pool):
     #And launch
     master_reservation = ec2_connection.run_instances(ami.id,
                                                key_name=condor_pool.key_pair.name,
-                                               instance_type=condor_pool.initial_instance_type,
+                                               instance_type=settings.MASTER_NODE_TYPE,
                                                subnet_id=condor_pool.vpc.subnet_id,
                                                security_group_ids=[condor_pool.vpc.master_group_id],
                                                user_data=master_launch_string,
