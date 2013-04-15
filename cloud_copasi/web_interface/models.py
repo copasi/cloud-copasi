@@ -237,6 +237,7 @@ class ElasticIP(models.Model):
     def __str__(self):
         return self.public_ip
     
+
 class Task(models.Model):
     """High-level representation of a computing job
     """
@@ -295,10 +296,37 @@ class Task(models.Model):
     def __unicode__(self):
         return self.name
     
+    
+class Subtask(models.Model):
+    
+    task = models.ForeignKey(Task, null=True)
+    
+    order = models.PositiveIntegerField(verbose_name = 'The order in this subtask is to be executed')
+    
+    type_choices = (
+                    ('benchmark', 'Benchmark'),
+                    ('main', 'Main task'),
+                    ('processing', 'Results processing'),
+                    ('other', 'Other'),
+                    )
+    
+    type = models.CharField(max_length=32, choices=type_choices)
+    
+    status_choices = (
+                      ('N', 'New'),
+                      ('Q', 'Queued'),
+                      ('F', 'Finished'),
+                      ('E', 'Error'),
+                      ('D', 'Marked for deletion'), #TODO: needed?
+                      ('U', 'Unknown'),
+                      )
+    status = models.CharField(max_length=32, choices = status_choices)
+
+    
 class CondorJob(models.Model):
     
    #The parent job
-    task = models.ForeignKey(Task, null=True)
+    subtask = models.ForeignKey(Subtask, null=True)
     #The .job condor specification file
     spec_file = models.FilePathField(max_length=255)
     #The std output file for the job
