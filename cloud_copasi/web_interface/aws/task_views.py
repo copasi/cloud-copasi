@@ -27,11 +27,11 @@ from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
-
+from cloud_copasi.web_interface import task_plugins
 
 class NewTaskForm(forms.Form):
     name = forms.CharField()
-    task_type = forms.ChoiceField(choices=copasi.task_types)
+    task_type = forms.ChoiceField(choices=task_plugins.task_types)
     access_key = form_tools.NameChoiceField(queryset=None, initial=0)
     model_file = forms.FileField()
     compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
@@ -105,17 +105,15 @@ class NewTaskView(RestrictedFormView):
         #submitting the condor jobs
 #------------------------------------------------------------------------------ 
         
-        if form.cleaned_data['task_type'] != 'SO':
-            raise Exception('Only the sensitivity optimisation task is currently implemented')
         
-        copasi_model = CopasiModel(full_filename)
-        isvalid = copasi_model.is_valid(form.cleaned_data['task_type'])
-        if isvalid != True:
-            raise Exception(isvalid)
+        #----------------------------- copasi_model = CopasiModel(full_filename)
+        #------- isvalid = copasi_model.is_valid(form.cleaned_data['task_type'])
+        #--------------------------------------------------- if isvalid != True:
+            #------------------------------------------ raise Exception(isvalid)
         
-        #If no load balancing step required:
-        model_files = copasi_model.prepare_so_task()
-        condor_job_info_list = copasi_model.prepare_so_condor_jobs()
+        #---------------------------------- #If no load balancing step required:
+        #-------------------------- model_files = copasi_model.prepare_so_task()
+        #---------- condor_job_info_list = copasi_model.prepare_so_condor_jobs()
         
         task = Task()
         task.name = form.cleaned_data['name']
@@ -126,39 +124,16 @@ class NewTaskView(RestrictedFormView):
         task.original_model = full_filename
         task.save()
         
-        for condor_job_info in condor_job_info_list:
-            condor_job = CondorJob()
-            condor_job.task = task
-            condor_job.spec_file = condor_job_info['spec_file']
-            condor_job.std_output_file = condor_job_info['std_output_file']
-            condor_job.std_error_file  = condor_job_info['std_error_file']
-            condor_job.log_file = condor_job_info['log_file']
-            condor_job.job_output = condor_job_info['job_output']
-            condor_job.copasi_file = condor_job_info['copasi_file']
-            condor_job.queue_status='C' # Not copied
-            
-            condor_job.save()
-            
-            
+        TaskClass = task_plugins.get_class(form.cleaned_data['task_type'])
         
-#------------------------------------------------------------------------------ 
-#Copy the files over to S3
-#------------------------------------------------------------------------------ 
+        task_instance = TaskClass(task)
         
-        file_keys, spec_keys = task_tools.store_to_outgoing_bucket(task)
+        task_instance.validate()
         
+        task_instance.initialize_subtasks()
         
-#        ####################################################################
-#        Notify the pool queue that a new task has been submitted
-#        ####################################################################
-
-        task_tools.notify_new_task(task, file_keys, spec_keys)
-        
-        #Update the task queue status
-        task.status = 'Q'
-        #except:
-        #unto anything performed here and delete files
-        
+        task_instance.process_subtask(0)
+                
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
 class JobNewView(RestrictedView):

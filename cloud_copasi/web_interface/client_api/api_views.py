@@ -13,7 +13,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob
+from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob, Subtask
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -96,9 +96,9 @@ class UpdateStatusView(APIView):
         #Create a store for each task with count 0
         #e.g. count={}, count['odigljdklfgjdhpshpj'] = 0...
         count = {}
-        tasks = Task.objects.filter(condor_pool=pool).filter(status='Q')
-        for task in tasks:
-            count[task.id] = 0
+        subtasks = Subtask.objects.filter(task__condor_pool=pool).filter(status='queued')
+        for subtask in subtasks:
+            count[subtask.id] = 0
         
         
         
@@ -114,13 +114,13 @@ class UpdateStatusView(APIView):
             condor_job.queue_status = queue_status
             condor_job.save()
             
-            task = condor_job.task
-            count[task.id] += 1
+            subtask = condor_job.subtask
+            count[subtask.id] += 1
         
-        for task in tasks:
-            if count[task.id] == 0:
-                task.status = 'F'
-                task.save()
+        for subtask in subtasks:
+            if count[subtask.id] == 0:
+                subtask.status = 'finished'
+                subtask.save()
         
         
         

@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 from boto import s3, sqs
 import json, s3_tools, os, sys
-from cloud_copasi.web_interface.models import Task, CondorJob
+from cloud_copasi.web_interface.models import Task, CondorJob, Subtask
 from boto.s3.key import Key
 from cloud_copasi.web_interface.aws import aws_tools
 from boto.sqs.message import Message
@@ -22,7 +22,7 @@ def copy_to_bucket(filename, bucket, delete):
         os.remove(filename)
     return name
 
-def store_to_outgoing_bucket(task, delete=True, copy_original_model=True):
+def store_to_outgoing_bucket(task, directory, file_list, delete=True):
     """Copy the files in the list to the outgoing bucket of the task. By default
     files will be deleted from the local drive after they have been copied over
     """
@@ -31,38 +31,36 @@ def store_to_outgoing_bucket(task, delete=True, copy_original_model=True):
     s3_connection = s3_tools.create_s3_connection(task.condor_pool.vpc.access_key)
     bucket_name = task.get_outgoing_bucket_name()
     
-    filepath, filename = os.path.split(task.original_model)
     
     #Create the bucket if it doesn't already exist?
     
     bucket = s3_connection.create_bucket(bucket_name)
     
-    #Get a list of the condor jobs we're going to copy over
-    #Filter jobs for only unsubmitted
-    condor_jobs = CondorJob.objects.filter(task=task, queue_status='C')
-    
-    file_keys = []
-    spec_keys = []
-    
-    if copy_original_model:
-        key_name = copy_to_bucket(task.original_model, bucket, delete)
+    for file in file_list:
+        full_path = os.path.join(directory, file)
+        copy_to_bucket(full_path, bucket, delete)
         
-        #Update the filepathfield so that it now only points to a key name on s3
-        task.original_model = key_name
-        task.save()
-        
-    for condor_job in condor_jobs:
-        model_key_name = copy_to_bucket(condor_job.copasi_file, bucket, delete)
-        condor_job.copasi_file = model_key_name
-        file_keys.append(model_key_name)
-        
-        spec_key_name = copy_to_bucket(condor_job.spec_file, bucket, delete)
-        condor_job.spec_file = spec_key_name
-        spec_keys.append(spec_key_name)
-        
-        condor_job.save()
+    if delete:
+        #Delete the parent folder of the last file
+        try:
+            os.rmdir(directory)
+        except:
+            #Most likely dir not empty
+            pass
 
-    return file_keys, spec_keys
+    
+    
+#    for condor_job in condor_jobs:
+#        model_key_name = copy_to_bucket(condor_job.copasi_file, bucket, delete)
+#        condor_job.copasi_file = model_key_name
+#        file_keys.append(model_key_name)
+#        
+#        spec_key_name = copy_to_bucket(condor_job.spec_file, bucket, delete)
+#        condor_job.spec_file = spec_key_name
+#        spec_keys.append(spec_key_name)
+#        
+#        condor_job.save()
+
     
     #Delete the folder that contained the files
     if delete:
@@ -73,12 +71,11 @@ def store_to_outgoing_bucket(task, delete=True, copy_original_model=True):
             #Most likely dir not empty
             pass
     
-    
-    return file_keys, spec_keys
 
-def notify_new_task(task, file_key_names, spec_key_names):
+def notify_new_condor_task(task, file_key_names, spec_key_names):
     """Notify the pool queue that there is a new task to run
     """
+    
     assert isinstance(task, Task)
     queue_name = task.condor_pool.get_queue_name()
     sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
@@ -92,7 +89,7 @@ def notify_new_task(task, file_key_names, spec_key_names):
     output['file_keys'] = file_key_names
     output['spec_keys'] = spec_key_names
     
-    condor_jobs = CondorJob.objects.filter(task=task).filter(queue_status='C')
+    condor_jobs = CondorJob.objects.filter(subtask__task=task).filter(queue_status='C')
     output_jobs = []
     for job in condor_jobs:
         output_jobs.append((job.id, job.spec_file))

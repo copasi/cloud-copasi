@@ -684,8 +684,9 @@ class CopasiModel:
             for max in ('min', 'max'):
                 copasi_file = Template('auto_copasi_${max}_$index.cps').substitute(index=i, max=max)
                 condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
-                condor_job_filename = os.path.join(self.path, Template('auto_condor_${max}_$index.job').substitute(index=i, max=max))
-                condor_file = open(condor_job_filename, 'w')
+                condor_job_filename = Template('auto_condor_${max}_$index.job').substitute(index=i, max=max)
+                condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+                condor_file = open(condor_job_full_filename, 'w')
                 condor_file.write(condor_job_string)
                 condor_file.close()
                 #Append a dict contining (job_filename, std_out, std_err, log_file, job_output and copasi file)
@@ -695,7 +696,7 @@ class CopasiModel:
                     'std_error_file': str(copasi_file) + '.err',
                     'log_file': str(copasi_file) + '.log',
                     'job_output': max + '_' + str(i) + '.txt',
-                    'copasi_file': os.path.join(self.path, copasi_file),
+                    'copasi_file': copasi_file,
                 })
 
         return condor_jobs

@@ -6,10 +6,13 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
+from cloud_copasi.web_interface.models import CondorJob, Subtask
 
 #===============================================================================
 # Base task plugin structure
 #===============================================================================
+
+
 
 class BaseTask:
     
@@ -24,9 +27,29 @@ class BaseTask:
     def validate(self):
         return True
     
-    def prepare_subtask(self, subtask=0):
+    def prepare_subtask(self, index=0):
         """Prepare a particular subtask to run
         """
         
         #Ensure the correct files are on the system
         return []
+    
+    def initialize_subtasks(self):
+        pass
+    
+    def create_new_subtask(self, type):
+        #Get a count of the number of existing subtasks
+        subtask_count = len(Subtask.objects.filter(task=self.task))
+        
+        subtask =  Subtask()
+        subtask.task = self.task
+        subtask.index = subtask_count
+        subtask.type = type
+        subtask.status = 'new'
+        subtask.save()
+    
+    def get_subtask(self, index):
+        #Get a particular subtask by index
+        subtasks = Subtask.objects.filter(task=self.task)
+        
+        return subtasks.get(index=index)

@@ -247,7 +247,9 @@ class Task(models.Model):
      
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
-    task_type = models.CharField(max_length=30, choices=copasi.task_types)
+
+    
+    task_type = models.CharField(max_length=128, )
     
     min_runs = models.PositiveIntegerField(verbose_name = 'The minimum number of repeats to perform', blank=True, null=True)
     max_runs = models.PositiveIntegerField(verbose_name = 'The maximum number of repeats to perform', blank=True, null=True)
@@ -258,7 +260,7 @@ class Task(models.Model):
     
     status_choices = (
                       ('N', 'New'),
-                      ('Q', 'Queued'),
+                      ('R', 'Running'),
                       ('F', 'Finished'),
                       ('E', 'Error'),
                       ('D', 'Marked for deletion'),
@@ -301,24 +303,25 @@ class Subtask(models.Model):
     
     task = models.ForeignKey(Task, null=True)
     
-    order = models.PositiveIntegerField(verbose_name = 'The order in this subtask is to be executed')
+    index = models.PositiveIntegerField(verbose_name = 'The order in this subtask is to be executed')
     
     type_choices = (
                     ('benchmark', 'Benchmark'),
                     ('main', 'Main task'),
-                    ('processing', 'Results processing'),
+                    ('process', 'Results processing'),
                     ('other', 'Other'),
                     )
     
     type = models.CharField(max_length=32, choices=type_choices)
     
     status_choices = (
-                      ('N', 'New'),
-                      ('Q', 'Queued'),
-                      ('F', 'Finished'),
-                      ('E', 'Error'),
-                      ('D', 'Marked for deletion'), #TODO: needed?
-                      ('U', 'Unknown'),
+                      ('new', 'New'),
+                      ('ready', 'Ready to queue'),
+                      ('queued', 'Queued'),
+                      ('finished', 'Finished'),
+                      ('error', 'Error'),
+                      ('delete', 'Marked for deletion'), #TODO: needed?
+                      ('unkown', 'Unknown'),
                       )
     status = models.CharField(max_length=32, choices = status_choices)
 
