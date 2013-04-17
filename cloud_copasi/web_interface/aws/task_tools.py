@@ -47,24 +47,8 @@ def store_to_outgoing_bucket(task, directory, file_list, delete=True):
         except:
             #Most likely dir not empty
             pass
-
-    
-    
-#    for condor_job in condor_jobs:
-#        model_key_name = copy_to_bucket(condor_job.copasi_file, bucket, delete)
-#        condor_job.copasi_file = model_key_name
-#        file_keys.append(model_key_name)
-#        
-#        spec_key_name = copy_to_bucket(condor_job.spec_file, bucket, delete)
-#        condor_job.spec_file = spec_key_name
-#        spec_keys.append(spec_key_name)
-#        
-#        condor_job.save()
-
-    
-    #Delete the folder that contained the files
     if delete:
-        #Delete the parent folder of the last file
+        #Delete the parent folder
         try:
             os.rmdir(directory)
         except:
