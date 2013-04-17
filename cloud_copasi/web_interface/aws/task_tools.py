@@ -66,7 +66,7 @@ def store_to_outgoing_bucket(task, directory, file_list, delete=True):
     if delete:
         #Delete the parent folder of the last file
         try:
-            os.rmdir(filepath)
+            os.rmdir(directory)
         except:
             #Most likely dir not empty
             pass
