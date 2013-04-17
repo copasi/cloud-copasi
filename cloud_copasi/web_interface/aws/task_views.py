@@ -94,26 +94,6 @@ class NewTaskView(RestrictedFormView):
 
         form_tools.handle_uploaded_file(model_file, full_filename)
         
-        print >> sys.stderr, full_filename
-        
-        ##TODO:Do this for any data files too
-        #Check the file is valid for the task type
-        #
-        
-#------------------------------------------------------------------------------ 
-        #Process the model file and create the neccesary files needed for
-        #submitting the condor jobs
-#------------------------------------------------------------------------------ 
-        
-        
-        #----------------------------- copasi_model = CopasiModel(full_filename)
-        #------- isvalid = copasi_model.is_valid(form.cleaned_data['task_type'])
-        #--------------------------------------------------- if isvalid != True:
-            #------------------------------------------ raise Exception(isvalid)
-        
-        #---------------------------------- #If no load balancing step required:
-        #-------------------------- model_files = copasi_model.prepare_so_task()
-        #---------- condor_job_info_list = copasi_model.prepare_so_condor_jobs()
         
         task = Task()
         task.name = form.cleaned_data['name']
@@ -132,7 +112,7 @@ class NewTaskView(RestrictedFormView):
         
         task_instance.initialize_subtasks()
         
-        task_instance.process_subtask(0)
+        task_instance.submit_subtask(0)
                 
         return HttpResponseRedirect(reverse_lazy('my_account'))
     

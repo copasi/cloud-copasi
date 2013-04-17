@@ -40,7 +40,7 @@ class TaskPlugin(BaseTask):
         #And a subtask to process any results
         self.create_new_subtask('process')
         
-    def process_subtask(self, index):
+    def submit_subtask(self, index):
         """Prepare the indexed subtask"""
         
         if index == 0:

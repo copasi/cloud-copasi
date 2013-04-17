@@ -73,7 +73,7 @@ class RegisterJobView(APIView):
         
         return HttpResponse(json_response, content_type="application/json", status=201)
     
-class UpdateStatusView(APIView):
+class UpdateCondorStatusView(APIView):
     """
     Update the queue ids of condor jobs
     """ 
@@ -121,7 +121,7 @@ class UpdateStatusView(APIView):
             if count[subtask.id] == 0:
                 subtask.status = 'finished'
                 subtask.save()
-        
+                #TODO:Is there another subtask to submit?
         
         
         #Construct a json response to send back

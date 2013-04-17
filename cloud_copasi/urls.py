@@ -54,7 +54,7 @@ urlpatterns = patterns('',
 
     #API views for updating condor job statuses
     url(r'^api/register_job/$', api_views.RegisterJobView.as_view(), name='api_register_job'),
-    url(r'^api/update_status/$', api_views.UpdateStatusView.as_view(), name='api_update_status'),
+    url(r'^api/update_status/$', api_views.UpdateCondorStatusView.as_view(), name='api_update_status'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
