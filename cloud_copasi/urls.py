@@ -53,11 +53,14 @@ urlpatterns = patterns('',
     url('^my_account/tasks/running/$', task_views.RunningTaskListView.as_view(), name='running_task_list'),
     url('^my_account/tasks/(?P<task_id>\d+)/details/$', task_views.TaskDetailsView.as_view(), name='task_details'),
     url('^my_account/tasks/subtask/(?P<subtask_id>\d+)/details/$', task_views.SubtaskDetailsView.as_view(), name='subtask_details'),
+    url('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
+    url('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete'),
 
 
     #API views for updating condor job statuses
     url(r'^api/register_job/$', api_views.RegisterJobView.as_view(), name='api_register_job'),
     url(r'^api/update_status/$', api_views.UpdateCondorStatusView.as_view(), name='api_update_status'),
+    url(r'^api/register_deleted_jobs/$', api_views.RegisterDeletedJobsView.as_view(), name='api_register_deleted_jobs'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

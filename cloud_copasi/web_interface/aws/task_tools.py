@@ -73,7 +73,7 @@ def notify_new_condor_task(task, file_key_names, spec_key_names):
     output['file_keys'] = file_key_names
     output['spec_keys'] = spec_key_names
     
-    condor_jobs = CondorJob.objects.filter(subtask__task=task).filter(queue_status='C')
+    condor_jobs = CondorJob.objects.filter(subtask__task=task).filter(queue_status='N')
     output_jobs = []
     for job in condor_jobs:
         output_jobs.append((job.id, job.spec_file))
@@ -85,3 +85,58 @@ def notify_new_condor_task(task, file_key_names, spec_key_names):
     message.set_body(json_output)
     
     print >>sys.stderr, queue.write(message)
+
+def notify_delete_task(task):
+    assert isinstance(task, Task)
+    queue_name = task.condor_pool.get_queue_name()
+    sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
+    queue = sqs_connection.get_queue(queue_name)
+    assert queue != None
+    
+    output = {}
+    output['notify_type'] = 'delete_jobs'
+    output['folder'] = str(task.uuid)
+    output['jobs'] = []
+    
+    task_jobs = CondorJob.objects.filter(subtask__task=task)
+    running_jobs = task_jobs.exclude(queue_status='N').exclude(queue_status='F')
+    
+    for job in running_jobs:
+        output['jobs'].append(job.queue_id)
+    
+    json_output = json.dumps(output)
+    message = Message()
+    message.set_body(json_output)
+    
+    print >>sys.stderr, queue.write(message)
+
+def delete_task(task):
+    assert isinstance(task, Task)
+    #Delete a task
+    #1 Send a message to the remote server that the task (and by definition all condor jobs associated are to be deleted)
+    notify_delete_task(task)
+    condorjobs = CondorJob.objects.filter(subtask__task=task)
+    for condorjob in condorjobs:
+        condorjob.queue_status='D'
+        condorjob.save()
+    #2 Delete the incoming and outgoing s3 buckets
+    try:
+        delete_bucket(task.get_incoming_bucket())
+    except:
+        pass
+    try:
+        delete_bucket(task.get_outgoing_bucket())
+    except:
+        pass
+    #3 Mark the task as deleted
+    task.status='deleted'
+    task.save()
+    
+def delete_bucket(bucket):
+    keys=bucket.get_all_keys()
+
+    for key in keys:
+        assert isinstance(key, Key)
+        key.delete()
+        
+    bucket.delete()

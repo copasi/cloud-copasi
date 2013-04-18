@@ -22,12 +22,16 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Running tasks</h2>
         <span class="byline">Tasks that are queued or running</span>
     </header>
-    
-        {%if running_tasks %}
+
+    {%if running_tasks %}
     <div class="tablelist">
         <table>
             <tr>
                 <th>Task name</th>
+                {% if user.is_staff %}
+                <th>Internal ID</th>
+                {% endif %}
+
                 <th>Submit time</th>
                 <th>Compute pool</th>
                 <th>Subtasks</th>
@@ -37,6 +41,10 @@ http://www.gnu.org/licenses/gpl.html
         {% for task in running_tasks %}
             <tr>
                 <td><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_task_change' task.id %}">{{task.id}}</a></th>
+                {% endif %}
+
                 <td>{{task.submit_time }}</td>
                 <td >{{task.condor_pool.name}}</td>
                 <td>{{ task.subtask_set.count }}</td>

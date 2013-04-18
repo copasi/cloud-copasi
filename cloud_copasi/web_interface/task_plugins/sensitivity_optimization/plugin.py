@@ -79,7 +79,7 @@ class TaskPlugin(BaseTask):
             condor_job.copasi_file = condor_job_info['copasi_file']
             other_files.append(condor_job_info['copasi_file'])
             
-            condor_job.queue_status='C' # Not copied
+            condor_job.queue_status='N' # Not queued
 
             condor_job.save()
         
@@ -90,8 +90,6 @@ class TaskPlugin(BaseTask):
         #Copy the necessary files over to S3
         task_tools.store_to_outgoing_bucket(self.task, model_path, file_list, delete=True)
         
-        
-        
         #Mark the subtask as ready to queue
         subtask.status = 'ready'
         subtask.save()
@@ -99,8 +97,9 @@ class TaskPlugin(BaseTask):
         #Notify the queue that we are submitting a new condor TASK
         task_tools.notify_new_condor_task(self.task, other_files, spec_files)
         
-        subtask.status = 'queued'
+        subtask.status = 'submitted'
+        subtask.active = True
         subtask.save()
         
-        self.task.status='ready'
+        self.task.status='running'
         self.task.save()

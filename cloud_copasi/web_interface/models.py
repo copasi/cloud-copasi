@@ -305,6 +305,8 @@ class Subtask(models.Model):
     
     index = models.PositiveIntegerField(verbose_name = 'The order in this subtask is to be executed')
     
+    active = models.BooleanField(default=False)
+    
     type_choices = (
                     ('benchmark', 'Benchmark'),
                     ('main', 'Main task'),
@@ -315,8 +317,9 @@ class Subtask(models.Model):
     type = models.CharField(max_length=32, choices=type_choices)
     
     status_choices = (
-                      ('new', 'New'),
-                      ('ready', 'Ready to queue'),
+                      ('inactive', 'Inactive'),
+                      ('ready', 'Ready to submit'),
+                      ('submitted', 'Submitted'),
                       ('queued', 'Queued'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
@@ -342,9 +345,7 @@ class CondorJob(models.Model):
     job_output = models.FilePathField(max_length=255)
     #The status of the job in the queue
     QUEUE_CHOICES = (
-        ('C', 'Not copied'),
         ('N', 'Not queued'),
-        ('Q', 'Queued'),
         ('I', 'Idle'),
         ('R', 'Running'),
         ('H', 'Held'),
@@ -365,7 +366,7 @@ class CondorJob(models.Model):
     copasi_file = models.FilePathField(max_length=255)
     
     def __unicode__(self):
-        return "%s (task %s)" % (unicode(self.queue_id), self.task.name)
+        return "%s (task %s)" % (unicode(self.queue_id), self.subtask.task.name)
         
         
     def getDirectory(self):

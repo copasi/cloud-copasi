@@ -35,7 +35,7 @@ def process_message(message):
     
     #Load the message as a json object
     data = json.loads(message_body)
-    
+    print data
     notify_type = data['notify_type']
     
     if notify_type == 'new_task':
@@ -52,6 +52,11 @@ def process_message(message):
             
         responder.send_response()
 
+    elif notify_type == 'delete_jobs':
+        deleted_jobs = task_tools.delete_jobs(data['jobs'], data['folder'])
+        responder = response.RegisterDeletedJobResponse(server_url, pool_id, secret_key, deleted_jobs)
+        responder.send_response()
+    
 def main():
     #################################################
     # Read the queue to check for new job updates   #

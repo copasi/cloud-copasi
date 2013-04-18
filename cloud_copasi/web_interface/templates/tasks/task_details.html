@@ -22,6 +22,11 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Task details</h2>
         <span class="byline">Details for task {{ task.name }}</span>
     </header>
+    
+    <p>
+        <a class="button button-alt button-hspace" href="{% url 'task_delete' task_id=task.id %}">Delete task</a>
+    </p>
+    
     <h3>
         Overview
     </h3>

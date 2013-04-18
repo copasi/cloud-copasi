@@ -128,7 +128,7 @@ class RunningTaskListView(RestrictedView):
         user_tasks = Task.objects.filter(condor_pool__vpc__access_key__user=request.user)
         running_tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
         
-        kwargs['running_tasks'] = running_tasks
+        kwargs['running_tasks'] =running_tasks
         
         return super(RunningTaskListView, self).dispatch(request, *args, **kwargs)
 
@@ -161,3 +161,27 @@ class SubtaskDetailsView(RestrictedView):
         
         kwargs['subtask'] = subtask
         return super(SubtaskDetailsView, self).dispatch(request, *args, **kwargs)
+    
+class TaskDeleteView(RestrictedView):
+    
+    template_name = 'tasks/task_delete.html'
+    page_title = 'Delete task'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        task = Task.objects.get(id=kwargs['task_id'])
+        assert task.condor_pool.vpc.access_key.user == request.user
+        
+        confirmed = kwargs['confirmed']
+        
+        if not confirmed:
+            kwargs['task']=task
+            return super(TaskDeleteView, self).dispatch(request, *args, **kwargs)
+        
+        else:
+            task_tools.delete_task(task)
+            task.status='delete'
+            task.save()
+            
+            return HttpResponseRedirect(reverse_lazy('running_task_list'))

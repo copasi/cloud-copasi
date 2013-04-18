@@ -11,6 +11,7 @@ import json, urllib2
 URL='http://127.0.0.1:8000'
 REGISTER_JOB='/api/register_job/'
 UPDATE_STATUS='/api/update_status/'
+REGISTER_DELETED_JOBS = '/api/register_deleted_jobs/'
 
 class JSONResponder(object):
     
@@ -89,4 +90,28 @@ class UpdateResponse(JSONResponder):
         output['condor_jobs'] = self.condor_jobs
         
         return super(UpdateResponse, self).send_response(address, output)
+
+class RegisterDeletedJobResponse(JSONResponder):
+    condor_jobs=[]
+    
+    def __init__(self, server_url, pool_id, secret_key, job_list):
+        self.job_list = job_list
+        self.server_url=server_url
+        self.pool_id=pool_id
+        self.secret_key=secret_key
+        
+    
+        
+    def send_response(self):
+        #Get the response address
+        address = 'http://' + self.server_url + REGISTER_DELETED_JOBS
+        #Construct a dict containing the response data
+        output={}
+        
+        output['pool_id']=self.pool_id
+        output['secret_key']=self.secret_key
+        
+        output['job_list'] = self.job_list
+        
+        return super(RegisterDeletedJobResponse, self).send_response(address, output)
 

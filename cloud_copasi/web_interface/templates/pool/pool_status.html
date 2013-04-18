@@ -31,6 +31,9 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
+                {% if user.is_staff %}
+                <th>Internal ID</th>
+                {% endif %}
                 <th>Access key</th>
                 <th>Active nodes*</th>
                 <th>Type</th>
@@ -40,6 +43,10 @@ http://www.gnu.org/licenses/gpl.html
         {% for pool in pools %}
             <tr>
                 <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{ pool.name }}</a></td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_condorpool_change' pool.id %}">{{pool.id}}</a></td>
+                {% endif %}
+
                 <td>{{pool.vpc.access_key.name }}</td>
                 <td >{{pool.get_count}}</td>
                 <td> Fixed price </td>

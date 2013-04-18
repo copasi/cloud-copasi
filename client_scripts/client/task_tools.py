@@ -63,3 +63,22 @@ def submit_new_task(task_data, aws_access_key, aws_secret_key):
     
     
     return job_store
+
+def delete_jobs(job_list, folder):
+    """Delete the following jobs from the Condor pool"""
+    deleted_jobs = []
+    for job_id in job_list:
+        try:
+            condor_tools.condor_rm(job_id)
+            deleted_jobs.append(job_id)
+        except:
+            print 'couldnt delete job %d' %job_id
+    working_dir = os.path.join(os.path.expanduser('~'), 'condor_files', str(folder))
+    
+    if len(deleted_jobs) == len(job_list):
+        try:
+            rmtree(working_dir)
+        except:
+            print 'couldnt delete task folder'
+
+    return deleted_jobs

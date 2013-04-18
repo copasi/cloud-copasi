@@ -45,7 +45,8 @@ class BaseTask:
         subtask.task = self.task
         subtask.index = subtask_count
         subtask.type = type
-        subtask.status = 'new'
+        subtask.status = 'inactive'
+        subtask.active = False
         subtask.save()
     
     def get_subtask(self, index):
