@@ -102,5 +102,5 @@ class TaskPlugin(BaseTask):
         subtask.status = 'queued'
         subtask.save()
         
-        self.task.status='R'
+        self.task.status='ready'
         self.task.save()

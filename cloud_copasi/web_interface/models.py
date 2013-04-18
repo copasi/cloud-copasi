@@ -247,7 +247,7 @@ class Task(models.Model):
      
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
-
+    #submit_time = models.DateTimeField()
     
     task_type = models.CharField(max_length=128, )
     
@@ -259,12 +259,12 @@ class Task(models.Model):
     
     
     status_choices = (
-                      ('N', 'New'),
-                      ('R', 'Running'),
-                      ('F', 'Finished'),
-                      ('E', 'Error'),
-                      ('D', 'Marked for deletion'),
-                      ('U', 'Unknown'),
+                      ('new', 'New'),
+                      ('running', 'Running'),
+                      ('finished', 'Finished'),
+                      ('error', 'Error'),
+                      ('delete', 'Marked for deletion'),
+                      ('unknown', 'Unknown'),
                       )
     
     

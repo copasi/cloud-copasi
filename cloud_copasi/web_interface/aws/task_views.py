@@ -13,7 +13,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task
+from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task, Subtask
 from cloud_copasi.web_interface import models, aws
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
@@ -116,5 +116,48 @@ class NewTaskView(RestrictedFormView):
                 
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
-class JobNewView(RestrictedView):
-    pass
+class RunningTaskListView(RestrictedView):
+    
+    template_name = 'tasks/running_task_list.html'
+    page_title = 'Running tasks'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        #Get a list of running tasks for this user
+        user_tasks = Task.objects.filter(condor_pool__vpc__access_key__user=request.user)
+        running_tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
+        
+        kwargs['running_tasks'] = running_tasks
+        
+        return super(RunningTaskListView, self).dispatch(request, *args, **kwargs)
+
+class TaskDetailsView(RestrictedView):
+    
+    template_name = 'tasks/task_details.html'
+    page_title = 'Task status'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        task_id = kwargs.pop('task_id')
+        task = Task.objects.get(id=task_id)
+        assert task.condor_pool.vpc.access_key.user == request.user
+        
+        kwargs['task'] = task
+        return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
+    
+class SubtaskDetailsView(RestrictedView):
+    
+    template_name = 'tasks/subtask_details.html'
+    page_title = 'Subtask details'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        subtask_id = kwargs.pop('subtask_id')
+        subtask = Subtask.objects.get(id=subtask_id)
+        assert subtask.task.condor_pool.vpc.access_key.user == request.user
+        
+        kwargs['subtask'] = subtask
+        return super(SubtaskDetailsView, self).dispatch(request, *args, **kwargs)
