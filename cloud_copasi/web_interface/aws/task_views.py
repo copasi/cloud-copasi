@@ -112,7 +112,7 @@ class NewTaskView(RestrictedFormView):
         
         task_instance.initialize_subtasks()
         
-        task_instance.submit_subtask(0)
+        task_instance.submit_subtask(1)
                 
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
@@ -160,6 +160,13 @@ class SubtaskDetailsView(RestrictedView):
         assert subtask.task.condor_pool.vpc.access_key.user == request.user
         
         kwargs['subtask'] = subtask
+        
+        kwargs['running_count'] = subtask.condorjob_set.filter(queue_status='R').count()
+        kwargs['finished_count'] = subtask.condorjob_set.filter(queue_status='F').count()
+        kwargs['idle_count'] = subtask.condorjob_set.filter(queue_status='I').count()
+        kwargs['held_count'] = subtask.condorjob_set.filter(queue_status='H').count()
+        
+        
         return super(SubtaskDetailsView, self).dispatch(request, *args, **kwargs)
     
 class TaskDeleteView(RestrictedView):

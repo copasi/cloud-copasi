@@ -32,6 +32,10 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Subtask index</th>
                 <th>Subtask type</th>
                 <th>Jobs (total)</th>
+                <th>Jobs (Finished)</th>
+                <th>Jobs (Running)</th>
+                <th>Jobs (Idle)</th>
+                <th>Jobs (Held)</th>
                 <th>Status</th>
             </tr>
 
@@ -40,6 +44,10 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{ subtask.index }}</td>
                 <td>{{ subtask.get_type_display}}</td>
                 <td>{{ subtask.condorjob_set.count }}</td>
+                <td>{{ finished_count }}</td>
+                <td>{{ running_count }}</td>
+                <td>{{ idle_count }}</td>
+                <td>{{ held_count }}</td>
                 <td> {{ subtask.get_status_display }}</td>
 
             </tr>
