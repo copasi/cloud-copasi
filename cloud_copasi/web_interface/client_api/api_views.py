@@ -68,11 +68,14 @@ class RegisterJobView(APIView):
             condor_job.queue_status = 'I'
             condor_job.save()
         
-        #Set the subtask status as active. Look at the last condor_jobn
-        subtask = condor_job.subtask
-        subtask.status = 'queued'
-        subtask.save()
-        
+        try:
+            #Set the subtask status as active. Look at the last condor_jobn
+            subtask = condor_job.subtask
+            subtask.status = 'queued'
+            subtask.save()
+        except:
+            #Test case - no condor jobs submitted, therefore we can't know which subtask was updated
+            pass
         
         #Construct a json response to send back
         response_data={'status':'created'}
@@ -158,11 +161,20 @@ class UpdateCondorStatusView(APIView):
                 
                 subtask_count = TaskClass.subtasks
                 
+                task_instance = TaskClass(subtask.task)
+                
                 if subtask.index < subtask_count:
                     #We have another subtask to run
-                    print sys.stderr, 'Another subtask to run!'
+                    print 'Another subtask to run!'
                     
+                    task_instance.submit_subtask(subtask.index + 1)
                     
+                else:
+                    #The task must have finished
+                    #Request the transfer of files
+                    task_instance.request_file_transfer(subtask.index, 'finished')
+                    
+        
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)
@@ -202,6 +214,47 @@ class RegisterDeletedJobsView(APIView):
                     subtask.delete()
             except:
                 print >>sys.stderr, "Couldn't delete job %d" % job_id
+        #Construct a json response to send back
+        response_data={'status':'created'}
+        json_response=json.dumps(response_data)
+        
+        return HttpResponse(json_response, content_type="application/json", status=201)
+
+class RegisterTransferredFilesView(APIView):
+    """
+    Respond to notificationt that files have been transferred
+    """ 
+    
+
+    def post(self, request, *args, **kwargs):
+        assert isinstance(request, HttpRequest)
+        assert request.META['CONTENT_TYPE'] == 'application/json'
+        json_data=request.body
+        data = json.loads(json_data)
+
+        pool_id = data['pool_id']
+        secret_key = data['secret_key']
+        
+        pool=CondorPool.objects.get(uuid=pool_id)
+        assert pool.secret_key == secret_key
+        
+        task = Task.objects.get(uuid=data['task_uuid'])
+        
+        for file_key in data['file_list']:
+            pass
+        
+        #After transferring files, look at why the transfer took place
+        
+        reason = data['reason']
+        
+        if reason=='error':
+            task.status = 'error'
+        elif reason=='finished':
+            task.status = 'finished'
+        elif reason=='cancelled':
+            task.status='cancelled'
+            
+        task.save()
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)

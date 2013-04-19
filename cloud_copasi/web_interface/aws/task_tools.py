@@ -33,7 +33,6 @@ def store_to_outgoing_bucket(task, directory, file_list, delete=True):
     
     
     #Create the bucket if it doesn't already exist?
-    
     bucket = s3_connection.create_bucket(bucket_name)
     
     for file in file_list:
@@ -140,3 +139,28 @@ def delete_bucket(bucket):
         key.delete()
         
     bucket.delete()
+    
+def notify_file_transfer(task, reason, file_list, zip, delete):
+    """Notify the queue that we want to transfer files back to s3
+    """
+    
+    assert isinstance(task, Task)
+    queue_name = task.condor_pool.get_queue_name()
+    sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
+    queue = sqs_connection.get_queue(queue_name)
+    assert queue != None
+    
+    output = {}
+    output['notify_type'] = 'file_transfer'
+    output['folder'] = str(task.uuid)
+    output['bucket_name'] = task.get_incoming_bucket_name()
+    output['file_list'] = file_list
+    output['zip'] = zip
+    output['delete']=delete
+    output['reason'] = reason
+    
+    json_output = json.dumps(output)
+    message = Message()
+    message.set_body(json_output)
+    
+    print >>sys.stderr, queue.write(message)

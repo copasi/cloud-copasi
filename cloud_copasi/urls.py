@@ -61,6 +61,7 @@ urlpatterns = patterns('',
     url(r'^api/register_job/$', api_views.RegisterJobView.as_view(), name='api_register_job'),
     url(r'^api/update_status/$', api_views.UpdateCondorStatusView.as_view(), name='api_update_status'),
     url(r'^api/register_deleted_jobs/$', api_views.RegisterDeletedJobsView.as_view(), name='api_register_deleted_jobs'),
+    url(r'^api/register_transferred_files/$', api_views.RegisterTransferredFilesView.as_view(), name='api_register_transferred_files'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

@@ -261,9 +261,11 @@ class Task(models.Model):
     status_choices = (
                       ('new', 'New'),
                       ('running', 'Running'),
+                      ('transfer', 'Transferring files'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
                       ('delete', 'Marked for deletion'),
+                      ('cancelled', 'Cancelled'),
                       ('unknown', 'Unknown'),
                       )
     

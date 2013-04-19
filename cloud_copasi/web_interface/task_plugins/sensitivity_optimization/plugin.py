@@ -45,8 +45,16 @@ class TaskPlugin(BaseTask):
         
         if index == 1:
             self.process_first_subtask()
+        elif index == 2:
+            self.process_second_subtask()
         else:
             raise Exception('No subtasks remaining')
+        
+    def request_file_transfer(self, index, reason):
+        """Request the transfer of files to be transfered from the master back to s3 for a particular subtask
+        """
+        if index == 2:
+            self.request_all_files(reason)
         
     def process_first_subtask(self):
         #Get the first subtask
@@ -89,17 +97,31 @@ class TaskPlugin(BaseTask):
         file_list = spec_files + other_files
         #Copy the necessary files over to S3
         task_tools.store_to_outgoing_bucket(self.task, model_path, file_list, delete=True)
+
+        self.notify_subtask(subtask, spec_files, other_files)
         
-        #Mark the subtask as ready to queue
-        subtask.status = 'ready'
-        subtask.save()
         
-        #Notify the queue that we are submitting a new condor TASK
-        task_tools.notify_new_condor_task(self.task, other_files, spec_files)
+    def process_second_subtask(self):
+        print "nothing to see here!"
+        subtask=self.get_subtask(2)
+        self.notify_subtask(subtask, [], [])
         
-        subtask.status = 'submitted'
-        subtask.active = True
-        subtask.save()
+    def request_all_files(self, reason):
+        #Get a list of all the files we would like to transfer back
         
-        self.task.status='running'
-        self.task.save()
+        #Get the number of condor jobs in the first subtask
+        subtask_1 = self.get_subtask(1)
+        job_count = subtask_1.condorjob_set.all().count()
+        parameter_count = job_count/2
+        
+        file_list=[]
+        
+        for i in range(parameter_count):
+            for min in ['min', 'max']:
+                file_list.append('auto_condor_%s_%d.job' % (min, i))
+                file_list.append('auto_copasi_%s_%d.cps' % (min, i))
+                file_list.append('auto_copasi_%s_%d.cps.log' % (min, i))
+                file_list.append('auto_copasi_%s_%d.cps.out' % (min, i))
+                file_list.append('auto_copasi_%s_%d.cps.err' % (min, i))
+        
+        self.notify_file_transfer(reason, file_list, zip=False, delete=False)

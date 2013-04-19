@@ -12,6 +12,7 @@ URL='http://127.0.0.1:8000'
 REGISTER_JOB='/api/register_job/'
 UPDATE_STATUS='/api/update_status/'
 REGISTER_DELETED_JOBS = '/api/register_deleted_jobs/'
+REGISTER_TRANSFERRED_FILES = '/api/register_transferred_files/'
 
 class JSONResponder(object):
     
@@ -115,3 +116,28 @@ class RegisterDeletedJobResponse(JSONResponder):
         
         return super(RegisterDeletedJobResponse, self).send_response(address, output)
 
+class RegisterTransferredFilesResponse(JSONResponder):
+    condor_jobs=[]
+    
+    def __init__(self, server_url, pool_id, secret_key, task_uuid, reason, file_list):
+        self.file_list = file_list
+        self.server_url=server_url
+        self.pool_id=pool_id
+        self.secret_key=secret_key
+        self.task_uuid = task_uuid
+        self.reason=reason
+    
+        
+    def send_response(self):
+        #Get the response address
+        address = 'http://' + self.server_url + REGISTER_TRANSFERRED_FILES
+        #Construct a dict containing the response data
+        output={}
+        
+        output['pool_id']=self.pool_id
+        output['secret_key']=self.secret_key
+        output['task_uuid']=self.task_uuid
+        output['reason']=self.reason
+        output['file_list'] = self.file_list
+        
+        return super(RegisterTransferredFilesResponse, self).send_response(address, output)

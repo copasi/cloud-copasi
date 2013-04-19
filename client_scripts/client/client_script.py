@@ -53,10 +53,17 @@ def process_message(message):
         responder.send_response()
 
     elif notify_type == 'delete_jobs':
+        print 'delete jobs'
         deleted_jobs = task_tools.delete_jobs(data['jobs'], data['folder'])
         responder = response.RegisterDeletedJobResponse(server_url, pool_id, secret_key, deleted_jobs)
         responder.send_response()
-    
+        
+    elif notify_type == 'file_transfer':
+        print 'file transfer'
+        transferred_jobs = task_tools.transfer_files(data, aws_access_key, aws_secret_key)
+        responder=response.RegisterTransferredFilesResponse(server_url, pool_id, secret_key, data['folder'], data['reason'], transferred_jobs)
+        responder.send_response()
+        
 def main():
     #################################################
     # Read the queue to check for new job updates   #

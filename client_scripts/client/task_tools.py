@@ -29,11 +29,11 @@ def submit_new_task(task_data, aws_access_key, aws_secret_key):
     
     working_dir = os.path.join(os.path.expanduser('~'), 'condor_files', str(task_id))
     
-    #Does the path already exist? If so delete whatever's in there
-    if os.path.exists(working_dir):
-        rmtree(working_dir)
+    #Does the path already exist?
+    if not os.path.exists(working_dir):
+        os.makedirs(working_dir)
     
-    os.makedirs(working_dir)
+    
     
     #First copy over the necessary files
     
@@ -82,3 +82,41 @@ def delete_jobs(job_list, folder):
             print 'couldnt delete task folder'
 
     return deleted_jobs
+
+def transfer_files(task_data, aws_access_key, aws_secret_key):
+    """Transfer a list of files to a particular s3 bucket
+    """
+    
+    bucket_name = task_data['bucket_name']
+    folder = task_data['folder']
+    file_list = task_data['file_list']
+    zip = task_data['zip']
+    delete = task_data['delete']
+    
+    if zip:
+        #We should zip up the files in file_list and transfer that too
+        pass
+    
+    s3_connection = S3Connection(aws_access_key, aws_secret_key)
+    #Create the bucket if it doesn't already exist?
+    bucket = s3_connection.create_bucket(bucket_name)
+
+    assert isinstance(bucket, Bucket)
+    
+    working_dir = os.path.join(os.path.expanduser('~'), 'condor_files', str(folder))
+    transferred_files = []
+    
+    for key_name in file_list:
+        try:
+            key=Key(bucket)
+            key.name = key_name
+            filename = os.path.join(working_dir, key_name)
+            key.set_contents_from_filename(filename)
+            transferred_files.append(key_name)
+            
+            if delete:
+                print 'deleting file'
+                os.remove(filename)
+        except:
+            print 'error transferring file %s' % key_name
+    return transferred_files
