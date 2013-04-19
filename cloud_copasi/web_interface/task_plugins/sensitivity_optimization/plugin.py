@@ -43,14 +43,14 @@ class TaskPlugin(BaseTask):
     def submit_subtask(self, index):
         """Prepare the indexed subtask"""
         
-        if index == 0:
+        if index == 1:
             self.process_first_subtask()
         else:
             raise Exception('No subtasks remaining')
         
     def process_first_subtask(self):
         #Get the first subtask
-        subtask = self.get_subtask(0)
+        subtask = self.get_subtask(1)
         
         #Construct the model files for this task
         copasi_model = CopasiModel(self.task.original_model)

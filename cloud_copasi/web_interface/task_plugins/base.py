@@ -43,7 +43,7 @@ class BaseTask:
         
         subtask =  Subtask()
         subtask.task = self.task
-        subtask.index = subtask_count
+        subtask.index = subtask_count + 1
         subtask.type = type
         subtask.status = 'inactive'
         subtask.active = False

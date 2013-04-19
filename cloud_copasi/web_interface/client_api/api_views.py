@@ -19,11 +19,11 @@ from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from cloud_copasi.web_interface.aws import vpc_tools, aws_tools
-from cloud_copasi.web_interface import models
+from cloud_copasi.web_interface import models, task_plugins
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
-from cloud_copasi.web_interface.models import VPC, CondorPool, Task, CondorJob
+from cloud_copasi.web_interface.models import VPC, CondorPool, Task, CondorJob, Subtask
 from django.http import HttpRequest
 import json
 from django.views.decorators.csrf import csrf_exempt
@@ -71,7 +71,7 @@ class RegisterJobView(APIView):
         #Set the subtask status as active. Look at the last condor_jobn
         subtask = condor_job.subtask
         subtask.status = 'queued'
-        
+        subtask.save()
         
         
         #Construct a json response to send back
@@ -99,42 +99,70 @@ class UpdateCondorStatusView(APIView):
         assert pool.secret_key == secret_key
         
         
-        #Get the tasks associated with the condor pool which are still running
-        #Create a store for each task with count 0
-        #e.g. count={}, count['odigljdklfgjdhpshpj'] = 0...
-        count = {}
-        subtasks = Subtask.objects.filter(task__condor_pool=pool).filter(active=True)
-        for subtask in subtasks:
-            count[subtask.id] = 0
+        #Get the condor jobs associated with the condor pool which we think are still running
+        pool_jobs = CondorJob.objects.filter(subtask__task__condor_pool=pool)
+        running_jobs = pool_jobs.filter(queue_status='R')
+        idle_jobs = pool_jobs.filter(queue_status='I')
+        held_jobs = pool_jobs.filter(queue_status='H')
         
+        queued_jobs = running_jobs | idle_jobs | held_jobs
         
-        
-        #Go through the condor jobs in the response
-        ##Update job statuses as required
-        #Increase the count for the task by 1
-        
-        #Any job with count 0 has finished running.
         
         for condor_queue_id, queue_status in data['condor_jobs']:
-            #TODO: put in try, except blocks
-            try:
-                condor_job = CondorJob.objects.get(queue_id=condor_queue_id)
-                condor_job.queue_status = queue_status
-                condor_job.save()
-                
-                subtask = condor_job.subtask
-                count[subtask.id] += 1
-            except:
-                print >>sys.stderr, 'Condor job not found ID: %d' % condor_queue_id
+            condor_job = queued_jobs.get(queue_id=condor_queue_id)
+            condor_job.queue_status=queue_status
+            condor_job.save()
+            
+            #Since this job appeared in the list, it's not finished
+            
+            queued_jobs = queued_jobs.exclude(id=condor_job.id)
         
-        for subtask in subtasks:
-            if count[subtask.id] == 0:
-                subtask.status = 'finished'
-                subtask.active = False
+        #Assume that everything left in queued_jobs has finished
+        for job in queued_jobs:
+            job.queue_status = 'F'
+            job.save()
+
+        
+        #Get all subtasks that are running on the pool
+        
+        active_subtasks = Subtask.objects.filter(task__condor_pool=pool).filter(active=True)
+        
+        for subtask in active_subtasks:
+            #Look at all the jobs. Are they all finished?
+            all_jobs_finished = True
+            errors = False
+            
+            for job in subtask.condorjob_set.all():
+                if job.queue_status != 'F':
+                    all_jobs_finished = False
+                elif job.queue_status == 'H':
+                    errors = True
+            
+            if errors:
+                print sys.stderr, 'Error!'
+                subtask.active=False
+                subtask.status='error'
                 subtask.save()
-                #TODO:Is there another subtask to submit?
-        
-        
+                subtask.task.status='error'
+                subtask.task.save()
+                
+            elif all_jobs_finished:
+                print >>sys.stderr, 'All jobs finished'
+                subtask.active = False
+                subtask.status = 'finished'
+                subtask.save()
+                
+                
+                #Is there another subtask to run?
+                TaskClass = task_plugins.get_class(subtask.task.task_type)
+                
+                subtask_count = TaskClass.subtasks
+                
+                if subtask.index < subtask_count:
+                    #We have another subtask to run
+                    print sys.stderr, 'Another subtask to run!'
+                    
+                    
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)
@@ -173,7 +201,7 @@ class RegisterDeletedJobsView(APIView):
                 if subtask.condorjob_set.count() == 0:
                     subtask.delete()
             except:
-                print >>sys.stderr, 'couldnt delete job %d' % job_id
+                print >>sys.stderr, "Couldn't delete job %d" % job_id
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)
