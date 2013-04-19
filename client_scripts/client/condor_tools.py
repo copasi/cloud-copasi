@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 import subprocess, re
-import os.path
+import os.path, time
 
 CONDOR_Q = '/usr/bin/condor_q'
 CONDOR_SUBMIT = '/usr/bin/condor_submit'
@@ -60,12 +60,12 @@ def condor_submit(condor_file):
         process_id = -1 #Return -1 if for some reason the submit failed
         #logging.exception('Failed to submit job')
     #TODO: Should we sleep here for a bit? 1s? 10s?
-    
+    time.sleep(0.5)
     return process_id
 
 def condor_rm(queue_id):
     
     p = subprocess.Popen([CONDOR_RM, str(queue_id)])
     p.communicate()
-    
+    time.sleep(0.5)
 
