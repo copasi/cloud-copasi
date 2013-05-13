@@ -1,0 +1,85 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Task details</h2>
+        <span class="byline">Details for task {{ task.name }}</span>
+    </header>
+    
+    <p>
+        <a class="button button-alt button-hspace" href="{% url 'task_delete' task_id=task.id %}">Delete task</a>
+    </p>
+    
+    <h3>
+        Overview
+    </h3>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Task name</th>
+                <th>Submit time</th>
+                <th>Compute pool</th>
+                <th>Subtasks</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>{{ task.name }}</td>
+                <td>{{task.submit_time }}</td>
+                <td >{{task.condor_pool.name}}</td>
+                <td>{{ task.subtask_set.count }}</td>
+                <td> {{ task.get_status_display }}</td>
+
+            </tr>
+        </table>
+    </div>
+
+    <h3>
+        Subtasks
+    </h3>
+        <div class="tablelist">
+        <table>
+            <tr>
+                <th>Subtask index</th>
+                {% if user.is_staff %}
+                <th>Internal id</th>
+                {% endif %}
+                <th>Subtask type</th>
+                <th>Status</th>
+                <th>Jobs</th>
+            </tr>
+
+            {% for subtask in task.subtask_set.all %}
+            <tr>
+                <td><a href="{% url 'subtask_details' subtask_id=subtask.id%}">{{ subtask.index }}</a></td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_subtask_change' subtask.id %}">{{subtask.id}}</a></td>
+                {% endif %}
+                <td>{{ subtask.get_type_display }}</td>
+                <td>{{subtask.get_status_display }}</td>
+                <td>{{subtask.condorjob_set.count}}</td>
+            </tr>
+
+            {% endfor %}
+        </table>
+    </div>
+
+</article>
+{% endblock %}

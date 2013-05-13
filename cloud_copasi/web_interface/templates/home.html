@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block bodyclass %}homepage{% endblock %}
+
+{% block header_content %}
+<!-- Banner -->
+<div id="banner">
+    <h2><strong>Cloud COPASI:</strong> 
+    Biochemical simulation and analysis using cloud computing</h2>
+    <p>Find out more and sign up up for a free account today</p>
+    <a href="#" class="button button-big button-icon button-icon-check">Learn more</a>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<!-- Main Wrapper -->
+<div id="main-wrapper">
+    <div class="main-wrapper-style1">
+        <div class="inner">
+    
+            <!-- Feature 1 -->
+                <section class="5grid-layout box-feature1">
+                    <div class="row">
+                        <div class="12u">
+                            <header class="first">
+                                <h2>Second heading</h2>
+                                <span class="byline">And a brief description <strong>to go here</strong> ...</span>
+                            </header>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="4u">
+                            <section>
+                                <span class="image image-full"><img src="{{ STATIC_URL }}images/AWS_Logo_PoweredBy_384px.png" alt=""/></span>
+                                <header class="second second-gear">
+                                    <h3>Powered by AWS</h3>
+                                    <span class="byline">Amazon Web Services</span>
+                                </header>
+                            </section>
+                        </div>
+                        <div class="4u">
+                            <section>
+                                <span class="image image-full"><img src="{{ STATIC_URL }}images/pic02.jpg" alt="" /></span>
+                                <header class="second second-gear">
+                                    <h3>Parallel computation</h3>
+                                    <span class="byline">And another description</span>
+                                </header>
+                            </section>
+                        </div>
+                        <div class="4u">
+                            <section>
+                                <span class="image image-full"><img src="{{ STATIC_URL }}images/pic03.jpg" alt="" /></span>
+                                <header class="second second-chart">
+                                    <h3>Amazing feature 3</h3>
+                                    <span class="byline">Final description</span>
+                                </header>
+                            </section>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="12u">
+                            <p>A pretty long description can go here. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                        </div>
+                    </div>
+                </section>
+
+        </div>
+    </div>
+    
+    {% comment %}
+                <div class="main-wrapper-style2">
+                    <div class="inner">
+                
+                            <section class="5grid-layout box-feature2">
+                                <div class="row">
+                                    <div class="6u">
+                                        <section class="pad-right">
+                                            <header class="major">
+                                                <h2>And this is a subheading</h2>
+                                                <span class="byline">It’s important but clearly not *that* important</span>
+                                            </header>
+                                            <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus. 
+                                            Praesent semper mod quis eget mi. Etiam eu ante risus. Aliquam erat volutpat. 
+                                            Aliquam luctus et mattis lectus sit amet pulvinar. Nam turpis nisi 
+                                            consequat etiam.</p>
+                                            <footer>
+                                                <a href="#" class="button button-medium button-icon button-icon-rarrow">Let's do this</a>
+                                            </footer>
+                                        </section>
+                                    </div>
+                                    <div class="6u">
+                                        <section class="pad-left">
+                                            <header class="major">
+                                                <h2>This is also a subheading</h2>
+                                                <span class="byline">And is as less important as the other one</span>
+                                            </header>
+                                            <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus. 
+                                            Praesent semper mod quis eget mi. Etiam eu ante risus. Aliquam erat volutpat. 
+                                            Aliquam luctus et mattis lectus sit amet pulvinar. Nam turpis nisi 
+                                            consequat etiam.</p>
+                                            <footer>
+                                                <a href="#" class="button button-medium button-alt button-icon button-icon-info">Wait, what?</a>
+                                            </footer>
+                                        </section>
+                                    </div>
+                                </div>
+                            </section>
+
+                        </div>
+                </div>
+                <div class="main-wrapper-style3">
+                    <div class="inner">
+                        <div class="5grid-layout">
+                            <div class="row">
+                                <div class="8u">
+
+                                        <section class="box-article-list">
+                                            <h2 class="icon icon-news">From the blog</h2>
+                                            
+                                                <article class="box-excerpt">
+                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic04.jpg" alt="" /></a>
+                                                    <div>
+                                                        <header>
+                                                            <span class="date">December 20, 2012</span>
+                                                            <h3><a href="#">On the eve of the Mayanocalypse</a></h3>
+                                                        </header>
+                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
+                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
+                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
+                                                    </div>
+                                                </article>
+
+                                                <article class="box-excerpt">
+                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic05.jpg" alt="" /></a>
+                                                    <div>
+                                                        <header>
+                                                            <span class="date">December 15, 2012</span>
+                                                            <h3><a href="#">Life as a self-aware meme</a></h3>
+                                                        </header>
+                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
+                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
+                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
+                                                    </div>
+                                                </article>
+
+                                                <article class="box-excerpt">
+                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic06.jpg" alt="" /></a>
+                                                    <div>
+                                                        <header>
+                                                            <span class="date">December 12, 2012</span>
+                                                            <h3><a href="#">Facepalm moments in history</a></h3>
+                                                        </header>
+                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
+                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
+                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
+                                                    </div>
+                                                </article>
+
+                                        </section>
+                                </div>
+                                <div class="4u">
+                                
+                                        <section class="box-spotlight pad-left">
+                                            <h2 class="icon icon-paper">Spotlight</h2>
+                                            <article>
+                                                <a href="#" class="image image-full"><img src="{{ STATIC_URL }}images/pic07.jpg" alt=""></a>
+                                                <header>
+                                                    <h3><a href="#">Why staplers matter</a></h3>
+                                                    <span class="byline">They hold things together</span>
+                                                </header>
+                                                <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus semper mod 
+                                                quisturpis nisi consequat ornare in, hendrerit in lectus semper mod quis eget mi quat etiam 
+                                                lorem. Phasellus quam turpis, feugiat sed et lorem ipsum dolor consequat dolor feugiat sed
+                                                et tempus consequat etiam.</p>
+                                                <p>Lorem ipsum dolor quam turpis, feugiat sit amet ornare in, hendrerit in lectus semper 
+                                                mod quisturpis nisi consequat etiam lorem sed amet quam turpis.</p>
+                                                <footer>
+                                                    <a href="#" class="button button-alt button-icon button-icon-paper">Continue Reading</a>
+                                                </footer>
+                                            </article>
+                                        </section>
+                                
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> -->
+            {% endcomment %}
+
+</div>
+{% endblock %}

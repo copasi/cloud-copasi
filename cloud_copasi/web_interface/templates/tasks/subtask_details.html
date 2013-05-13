@@ -1,0 +1,89 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Subtask details</h2>
+        <span class="byline">Details for subtask {{subtask.index}}, task {{ subtask.task.name }}</span>
+    </header>
+    <h3>
+        Subtask overview
+    </h3>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Task name</th>
+                <th>Subtask index</th>
+                <th>Subtask type</th>
+                <th>Jobs (total)</th>
+                <th>Jobs (Finished)</th>
+                <th>Jobs (Running)</th>
+                <th>Jobs (Idle)</th>
+                <th>Jobs (Held)</th>
+                <th>Status</th>
+            </tr>
+
+            <tr>
+                <td>{{subtask.task.name }}</td>
+                <td>{{ subtask.index }}</td>
+                <td>{{ subtask.get_type_display}}</td>
+                <td>{{ subtask.condorjob_set.count }}</td>
+                <td>{{ finished_count }}</td>
+                <td>{{ running_count }}</td>
+                <td>{{ idle_count }}</td>
+                <td>{{ held_count }}</td>
+                <td> {{ subtask.get_status_display }}</td>
+
+            </tr>
+        </table>
+    </div>
+
+    <h3>
+        Compute jobs
+    </h3>
+    {% if subtask.condorjob_set.count > 0 %}
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Job queue id</td>
+                    {% if user.is_staff %}
+                <th>Job internal id</th>
+                    {% endif %}
+                <th>Jobs</th>
+            </tr>
+
+        {% for job in subtask.condorjob_set.all %}
+            <tr>
+                <td>{{ job.queue_id }}</td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_condorjob_change' job.id %}">{{ job.id }}</a></td>
+                {% endif %}
+                <td>{{ job.get_queue_status_display }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+
+    {% else %}
+    <p>
+        This subtask currently has no computing jobs associated
+    </p>
+    {% endif %}
+</article>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Compute Pools</h2>
+        <span class="byline">Your Compute Pools</span>
+    </header>
+    
+    <p>Compute pools consist of a Master node, and one or more Compute nodes. Click 'Launch Pool' below to launch a new compute pool.</p>
+    
+    <p><a class="button button-icon button-icon-check" href="{% url 'pool_add' %}">Launch pool</a></p>
+    
+    {%if pools %}
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                {% if user.is_staff %}
+                <th>Internal ID</th>
+                {% endif %}
+                <th>Access key</th>
+                <th>Active nodes*</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Details</th>
+            </tr>
+        {% for pool in pools %}
+            <tr>
+                <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{ pool.name }}</a></td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_condorpool_change' pool.id %}">{{pool.id}}</a></td>
+                {% endif %}
+
+                <td>{{pool.vpc.access_key.name }}</td>
+                <td >{{pool.get_count}}</td>
+                <td> Fixed price </td>
+                <td> {{ pool.get_status }}</td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=pool.id %}">Details</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+        <p>*Includes Master node</p>
+    </div>
+    {% else %}
+    <p>You currently have no active compute pools.</p>
+    {% endif %}
+</article>
+{% endblock %}
