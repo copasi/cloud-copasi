@@ -2664,8 +2664,8 @@ class CopasiModel:
             
         #And set the new report for the or task
         fitReport = fitTask.find(xmlns + 'Report')
-        #if custom_report:
-        #    custom_report_key = fitReport.attrib['reference']
+        if custom_report:
+            custom_report_key = fitReport.attrib['reference']
     
     
         #If no report has yet been set, report == None. Therefore, create new report
