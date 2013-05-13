@@ -6,8 +6,6 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 
-
-
 #Simple script to delete a bucket and all that's in it
 
 from boto.s3.connection import S3Connection
