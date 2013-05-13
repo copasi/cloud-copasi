@@ -2996,7 +2996,9 @@ class CopasiModel:
             i = i+1
             data_list.close()
             
-
+        #TODO:iweight variable referenced below before assigment
+        #Find out what this actually should be
+        iweight=1
 
         #Calculates the mean vector in (28) and the covariance matrix cov in (29)
         mean = [0] * number_of_parameters
