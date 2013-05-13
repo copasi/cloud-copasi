@@ -9,6 +9,8 @@
 
 #Simple script to delete a bucket and all that's in it
 
+
+
 from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 import sys
