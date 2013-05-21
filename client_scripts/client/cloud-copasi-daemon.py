@@ -16,9 +16,14 @@
 import sys, time
 from daemon import Daemon
 import client_script
+from response import RemoteLoggingResponse
 
 class MyDaemon(Daemon):
     def run(self):
+        logging_level = 'all'
+        log = Log(logging_level)
+        log.info('Daemon starting')
+
         while True:
             try:
                 min_repeat_time = 120 #Seconds
@@ -28,14 +33,24 @@ class MyDaemon(Daemon):
                 
                 finish_time = time.time()
                 
+                logging.debug('Client script finished')
+                
                 difference = finish_time - start_time
                 if difference < min_repeat_time:
                     time.sleep(min_repeat_time - difference)
             except Exception, e:
-                print 'Exception:'
-                print e
+                logging.error('%s' % str(e))
+                
                 time.sleep(120)
- 
+            
+            #Try to send a response with the log so far
+            try:
+                message_list = log.get_message_list()
+                
+                response = RemoteLoggingResponse()
+            except:
+                pass
+            
 if __name__ == "__main__":
     daemon = MyDaemon('/tmp/Condor-COPASI.pid')
     if len(sys.argv) == 2:

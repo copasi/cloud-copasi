@@ -11,18 +11,16 @@ import boto.sqs
 from boto.sqs import connection
 import sys, json
 import response, condor_tools, task_tools
-
+from simple_logging import Log
 
 def readline(path):
     return open(path, 'r').read().splitlines()[0]
 
-
-#Open the files storing the variables we need
-server_url = readline('/etc/cloud-config/server_url')
-pool_id = readline('/etc/cloud-config/pool_id')
-secret_key = readline('/etc/cloud-config/secret_key')
 aws_access_key = readline('/etc/cloud-config/aws_access_key')
 aws_secret_key = readline('/etc/cloud-config/aws_secret_key')
+pool_id = readline('/etc/cloud-config/pool_id')
+
+
 
 
 def process_message(message):
@@ -44,7 +42,7 @@ def process_message(message):
         
         job_store = task_tools.submit_new_task(data, aws_access_key, aws_secret_key)
         
-        responder = response.RegisterJobResponse(server_url, pool_id, secret_key, task_id)
+        responder = response.RegisterJobResponse(task_id)
         for job_id, queue_id in job_store:
             responder.add_condor_job(job_id, queue_id)
             print str(job_id), str(queue_id)
@@ -55,32 +53,36 @@ def process_message(message):
     elif notify_type == 'delete_jobs':
         print 'delete jobs'
         deleted_jobs = task_tools.delete_jobs(data['jobs'], data['folder'])
-        responder = response.RegisterDeletedJobResponse(server_url, pool_id, secret_key, deleted_jobs)
+        responder = response.RegisterDeletedJobResponse(deleted_jobs)
         responder.send_response()
         
     elif notify_type == 'file_transfer':
         print 'file transfer'
         transferred_jobs = task_tools.transfer_files(data, aws_access_key, aws_secret_key)
-        responder=response.RegisterTransferredFilesResponse(server_url, pool_id, secret_key, data['folder'], data['reason'], transferred_jobs)
+        responder=response.RegisterTransferredFilesResponse(data['folder'], data['reason'], transferred_jobs)
         responder.send_response()
         
-def run():
+def run(log):
     #################################################
     # Read the queue to check for new job updates   #
     #################################################
+    
     sqs_connection = connection.SQSConnection(aws_access_key_id=aws_access_key,
                                              aws_secret_access_key=aws_secret_key)
-    
+
+
     queue_name = 'cloud-copasi-%s' % pool_id
+    log.debug('Queue name : %s') % queue_name
     
     queue = sqs_connection.get_queue(queue_name)
-    print 'reading queue'
+    
+    log.debug('reading queue')
     message = queue.read()
     while message != None:
         #Go through all messages in the queue and process them
         #try:
             #process message
-        print 'processing message...'
+        log.debug('New message')
         process_message(message)
             
         message.delete()
@@ -96,7 +98,7 @@ def run():
     #TODO:Get actual status
     condor_q = condor_tools.process_condor_q()
     
-    update_response =response.UpdateResponse(server_url, pool_id, secret_key)
+    update_response =response.UpdateResponse()
     
     update_response.set_condor_jobs_from_q(condor_q)
 

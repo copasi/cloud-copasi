@@ -12,13 +12,31 @@ REGISTER_JOB='/api/register_job/'
 UPDATE_STATUS='/api/update_status/'
 REGISTER_DELETED_JOBS = '/api/register_deleted_jobs/'
 REGISTER_TRANSFERRED_FILES = '/api/register_transferred_files/'
+REMOTE_LOGGING_UPDATE ='/api/remote_logging_update/'
+
+
+def readline(path):
+    return open(path, 'r').read().splitlines()[0]
+
+#Open the files storing the variables we need
+server_url = readline('/etc/cloud-config/server_url')
+pool_id = readline('/etc/cloud-config/pool_id')
+secret_key = readline('/etc/cloud-config/secret_key')
+
 
 class JSONResponder(object):
     
     def send_response(self, address, data):
+        
+        url = 'http://' + server_url + address
+
         assert isinstance(data, dict)
         
-        request = urllib2.Request(address)
+        data['pool_id']=pool_id
+        data['secret_key']=secret_key
+
+        
+        request = urllib2.Request(url)
         request.add_header('Content-Type', 'application/json')
         response=urllib2.urlopen(request, json.dumps(data))
         
@@ -38,10 +56,7 @@ class RegisterJobResponse(JSONResponder):
     
     condor_jobs=[]
     
-    def __init__(self,server_url, pool_id, secret_key, job_id):
-        self.server_url = server_url
-        self.pool_id=pool_id
-        self.secret_key=secret_key
+    def __init__(self, job_id):
         self.job_id=job_id
         
     def add_condor_job(self, condor_job_id, queue_id):
@@ -50,12 +65,10 @@ class RegisterJobResponse(JSONResponder):
         
     def send_response(self):
         #Get the response address
-        address = 'http://' + self.server_url + REGISTER_JOB
+        address = REGISTER_JOB
         #Construct a dict containing the response data
         output={}
         
-        output['pool_id']=self.pool_id
-        output['secret_key']=self.secret_key
         output['job_id']=self.job_id
         
         output['condor_jobs'] = self.condor_jobs
@@ -66,11 +79,9 @@ class RegisterJobResponse(JSONResponder):
 class UpdateResponse(JSONResponder):
     condor_jobs=[]
     
-    def __init__(self, server_url, pool_id, secret_key):
-        self.server_url=server_url
-        self.pool_id=pool_id
-        self.secret_key=secret_key
-        
+    def __init__(self):
+        pass
+    
     def add_condor_job(self, queue_id, status):
         self.condor_jobs.append([queue_id, status])
         #todo:how do we link these to specific jobs? probably depends on the job s3 file
@@ -80,12 +91,10 @@ class UpdateResponse(JSONResponder):
         
     def send_response(self):
         #Get the response address
-        address = 'http://' + self.server_url + UPDATE_STATUS
+        address = UPDATE_STATUS
         #Construct a dict containing the response data
         output={}
         
-        output['pool_id']=self.pool_id
-        output['secret_key']=self.secret_key
         
         output['condor_jobs'] = self.condor_jobs
         
@@ -94,22 +103,17 @@ class UpdateResponse(JSONResponder):
 class RegisterDeletedJobResponse(JSONResponder):
     condor_jobs=[]
     
-    def __init__(self, server_url, pool_id, secret_key, job_list):
+    def __init__(self, job_list):
         self.job_list = job_list
-        self.server_url=server_url
-        self.pool_id=pool_id
-        self.secret_key=secret_key
         
     
         
     def send_response(self):
         #Get the response address
-        address = 'http://' + self.server_url + REGISTER_DELETED_JOBS
+        address = REGISTER_DELETED_JOBS
         #Construct a dict containing the response data
         output={}
         
-        output['pool_id']=self.pool_id
-        output['secret_key']=self.secret_key
         
         output['job_list'] = self.job_list
         
@@ -118,25 +122,36 @@ class RegisterDeletedJobResponse(JSONResponder):
 class RegisterTransferredFilesResponse(JSONResponder):
     condor_jobs=[]
     
-    def __init__(self, server_url, pool_id, secret_key, task_uuid, reason, file_list):
+    def __init__(self, task_uuid, reason, file_list):
         self.file_list = file_list
-        self.server_url=server_url
-        self.pool_id=pool_id
-        self.secret_key=secret_key
         self.task_uuid = task_uuid
         self.reason=reason
     
         
     def send_response(self):
         #Get the response address
-        address = 'http://' + self.server_url + REGISTER_TRANSFERRED_FILES
+        address =  REGISTER_TRANSFERRED_FILES
         #Construct a dict containing the response data
         output={}
         
-        output['pool_id']=self.pool_id
-        output['secret_key']=self.secret_key
         output['task_uuid']=self.task_uuid
         output['reason']=self.reason
         output['file_list'] = self.file_list
+        
+        return super(RegisterTransferredFilesResponse, self).send_response(address, output)
+    
+class RemoteLoggingResponse(JSONResponder):
+    
+    def __init__(self, message_list):
+        
+        self.message_list = message_list
+    
+    def send_response(self):
+        #Get the response address
+        address = REMOTE_LOGGING_UPDATE
+        #Construct a dict containing the response data
+        output={}
+        
+        output['message_list']=self.message_list
         
         return super(RegisterTransferredFilesResponse, self).send_response(address, output)
