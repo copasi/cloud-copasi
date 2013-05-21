@@ -30,4 +30,6 @@ sed -i "s:^\(CONDOR_HOST\s*=\s*\).*$:\1$CONDOR_HOST:" /etc/condor/condor_config.
 #DOMAIN=`hostname -d`
 #sed -i "s:<domain>:$DOMAIN:" /etc/condor/condor_config.local
 
+service cloud-copasi-daemon stop
 service condor start
+

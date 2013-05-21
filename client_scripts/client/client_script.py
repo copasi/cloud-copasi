@@ -64,7 +64,7 @@ def process_message(message):
         responder=response.RegisterTransferredFilesResponse(server_url, pool_id, secret_key, data['folder'], data['reason'], transferred_jobs)
         responder.send_response()
         
-def main():
+def run():
     #################################################
     # Read the queue to check for new job updates   #
     #################################################
@@ -103,4 +103,4 @@ def main():
     print update_response.send_response()
     
 if __name__ == '__main__':
-    main()
+    run()

@@ -43,3 +43,4 @@ ln -s /etc/condor/condor_config.master /etc/condor/condor_config.local
 #sed -i "s:<domain>:$DOMAIN:" /etc/condor/condor_config.local
 
 service condor start
+service cloud-copasi-daemon start
