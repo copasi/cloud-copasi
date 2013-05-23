@@ -7,7 +7,9 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 import json, urllib2
+import sys
 
+#URLs
 REGISTER_JOB='/api/register_job/'
 UPDATE_STATUS='/api/update_status/'
 REGISTER_DELETED_JOBS = '/api/register_deleted_jobs/'
@@ -29,7 +31,6 @@ class JSONResponder(object):
     def send_response(self, address, data):
         
         url = 'http://' + server_url + address
-
         assert isinstance(data, dict)
         
         data['pool_id']=pool_id
@@ -154,4 +155,4 @@ class RemoteLoggingResponse(JSONResponder):
         
         output['message_list']=self.message_list
         
-        return super(RegisterTransferredFilesResponse, self).send_response(address, output)
+        return super(RemoteLoggingResponse, self).send_response(address, output)

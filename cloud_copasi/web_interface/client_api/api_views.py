@@ -223,7 +223,7 @@ class RegisterDeletedJobsView(APIView):
 
 class RegisterTransferredFilesView(APIView):
     """
-    Respond to notificationt that files have been transferred
+    Respond to notifications that files have been transferred
     """ 
     
 
@@ -261,3 +261,32 @@ class RegisterTransferredFilesView(APIView):
         json_response=json.dumps(response_data)
         
         return HttpResponse(json_response, content_type="application/json", status=201)
+    
+class RemoteLoggingUpdateView(APIView):
+    """Receive a log from a remote server, store it, and acknowledge the message was received
+    """
+    def post(self, request, *args, **kwargs):
+        assert isinstance(request, HttpRequest)
+        assert request.META['CONTENT_TYPE'] == 'application/json'
+        json_data=request.body
+        data = json.loads(json_data)
+
+        pool_id = data['pool_id']
+        secret_key = data['secret_key']
+        
+        pool=CondorPool.objects.get(uuid=pool_id)
+        assert pool.secret_key == secret_key
+        
+        #Message list contains tuples (message type, datetime, message)
+        message_list = data['message_list']
+
+        for message_type, date_time, message in message_list:
+            print >>sys.stderr, message_type, date_time, message
+        
+        #Construct a json response to send back
+        response_data={'status':'created'}
+        json_response=json.dumps(response_data)
+        
+        return HttpResponse(json_response, content_type="application/json", status=201)
+
+    

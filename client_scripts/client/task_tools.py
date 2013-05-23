@@ -13,7 +13,7 @@ from boto.s3.key import Key
 import os
 import condor_tools, response
 
-def submit_new_task(task_data, aws_access_key, aws_secret_key):
+def submit_new_task(task_data, aws_access_key, aws_secret_key, log):
     """Submit a new task to the condor pool
     """
     task_id = task_data['task_id']

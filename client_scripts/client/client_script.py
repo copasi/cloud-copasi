@@ -11,7 +11,6 @@ import boto.sqs
 from boto.sqs import connection
 import sys, json
 import response, condor_tools, task_tools
-from simple_logging import Log
 
 def readline(path):
     return open(path, 'r').read().splitlines()[0]
@@ -23,7 +22,7 @@ pool_id = readline('/etc/cloud-config/pool_id')
 
 
 
-def process_message(message):
+def process_message(message, log):
     """Process an sqs message containing job information
     """
     
@@ -33,22 +32,25 @@ def process_message(message):
     
     #Load the message as a json object
     data = json.loads(message_body)
-    print data
+    
     notify_type = data['notify_type']
     
+    log.debug('Message type: %s' % notify_type)
+    
     if notify_type == 'new_task':
-        print 'new task'
+        
         task_id = data['task_id']
         
-        job_store = task_tools.submit_new_task(data, aws_access_key, aws_secret_key)
+        job_store = task_tools.submit_new_task(data, aws_access_key, aws_secret_key, log)
         
         responder = response.RegisterJobResponse(task_id)
         for job_id, queue_id in job_store:
             responder.add_condor_job(job_id, queue_id)
             print str(job_id), str(queue_id)
         
-            
-        responder.send_response()
+         
+        outcome = responder.send_response()
+        log.debug('Sending response. Outcome: %s') % outcome
 
     elif notify_type == 'delete_jobs':
         print 'delete jobs'
@@ -72,24 +74,27 @@ def run(log):
 
 
     queue_name = 'cloud-copasi-%s' % pool_id
-    log.debug('Queue name : %s') % queue_name
+    log.debug('Queue name : %s' % queue_name)
+    
     
     queue = sqs_connection.get_queue(queue_name)
     
     log.debug('reading queue')
     message = queue.read()
     while message != None:
-        #Go through all messages in the queue and process them
-        #try:
-            #process message
-        log.debug('New message')
-        process_message(message)
-            
-        message.delete()
-        #except Exception, e:
-        #    raise e
-        #Reload the message
-        message = queue.read()
+        try:
+            #Go through all messages in the queue and process them
+            #try:
+                #process message
+            log.debug('New message found. Processing...')
+            process_message(message, log)
+                
+            message.delete()
+
+            #Reload the message
+            message = queue.read()
+        except Exception, e:
+            log.error(str(e))
         
     ##############################################
     # Get the condor pool status and report back #
@@ -102,7 +107,7 @@ def run(log):
     
     update_response.set_condor_jobs_from_q(condor_q)
 
-    print update_response.send_response()
+    update_response.send_response()
     
 if __name__ == '__main__':
     run()

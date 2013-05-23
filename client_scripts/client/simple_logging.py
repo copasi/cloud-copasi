@@ -24,7 +24,7 @@ class Log:
                       }
     
     def __get_level__(self, name):
-        return self.logging_levels.get(name, default=0)
+        return self.logging_levels.get(name, 0)
     
     def __init__(self, level):
         #Level name i.e. 'debug'. Messages below this level will not be stored
@@ -34,7 +34,7 @@ class Log:
     def __add_message__(self, message_type, message):
         #Add the message and message type to the message list, with a timestamp
         message_level = self.__get_level__(message_type)
-        current_level = self.get_level(self.level)
+        current_level = self.__get_level__(self.level)
         
         if message_level >= current_level:
             m = (message_type, str(datetime.now()), message)
