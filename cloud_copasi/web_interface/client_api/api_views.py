@@ -25,9 +25,11 @@ from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
 from cloud_copasi.web_interface.models import VPC, CondorPool, Task, CondorJob, Subtask
 from django.http import HttpRequest
-import json
+import json, logging
 from django.views.decorators.csrf import csrf_exempt
 
+
+log = logging.getLogger(__name__)
 class APIView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -279,9 +281,27 @@ class RemoteLoggingUpdateView(APIView):
         
         #Message list contains tuples (message type, datetime, message)
         message_list = data['message_list']
-
+        
         for message_type, date_time, message in message_list:
-            print >>sys.stderr, message_type, date_time, message
+            
+            if message_type == 'debug':
+                log_method = log.debug
+            elif message_type == 'info':
+                log_method = log.info
+            elif message_type == 'warning':
+                log_method = log.warning
+            elif message_type == 'error':
+                log_method = log.error
+            elif message_type == 'critical':
+                log_method = log.critical
+            else:
+                continue
+            pool_name = pool.name
+            pool_username = pool.vpc.access_key.user.username
+            
+            log_message = '[%s] Message from pool %s (user %s): %s' % (date_time, pool_name, pool_username, message)
+            
+            log_method(log_message)
         
         #Construct a json response to send back
         response_data={'status':'created'}

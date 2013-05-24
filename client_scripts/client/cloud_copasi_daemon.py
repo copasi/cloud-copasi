@@ -19,16 +19,20 @@ import client_script
 from response import RemoteLoggingResponse
 from simple_logging import Log
 
+def readline(path):
+    return open(path, 'r').read().splitlines()[0]
+log_level = readline('/etc/cloud-config/log_level').lower()
+poll_time = int(readline('/etc/cloud-config/poll_time')) #seconds
+
 class MyDaemon(Daemon):
     
     #Set the level we wish to log at. Logs are sent back to the central server
     #Choices are all, debug, info, error, none
     
-    logging_level = 'all'
-
+    
 
     def __init__(self, *args, **kwargs):
-        self.log = Log(self.logging_level)
+        self.log = Log(log_level)
 
         return super(MyDaemon, self).__init__(*args, **kwargs)
     
@@ -42,7 +46,7 @@ class MyDaemon(Daemon):
         self.log.info('Daemon running')
 
         while True:
-            min_repeat_time = 10 #Seconds
+            min_repeat_time = poll_time #Seconds
             start_time = time.time()
 
             try:

@@ -17,6 +17,10 @@ from exceptions import Exception
 from time import sleep
 from cloud_copasi import settings
 from boto import sqs
+import logging
+
+log = logging.getLogger(__name__)
+
 
 def get_ami(ec2_connection, ami):
     assert isinstance(ec2_connection, EC2Connection)
@@ -55,12 +59,13 @@ def launch_pool(condor_pool):
     Launch a Condor pool with the definitions provided by the condor_pool object
     """
     
-    
+    log.debug('Launcing condor pool')
     assert isinstance(condor_pool, CondorPool)
     
     #Initiate the connection    
     vpc_connection, ec2_connection = aws_tools.create_connections(condor_pool.vpc.access_key)
     
+    log.debug('Retrieving machine image')
     ami = get_active_ami(ec2_connection)
     
     #Launch the master instance
@@ -69,8 +74,12 @@ def launch_pool(condor_pool):
                                                               condor_pool.uuid,
                                                               condor_pool.secret_key,
                                                               condor_pool.vpc.access_key.access_key_id,
-                                                              condor_pool.vpc.access_key.secret_key)
+                                                              condor_pool.vpc.access_key.secret_key,
+                                                              settings.EC2_LOG_LEVEL,
+                                                              settings.EC2_POLL_TIME,
+                                                              )
     #And launch
+    log.debug('Launching Master node')
     master_reservation = ec2_connection.run_instances(ami.id,
                                                key_name=condor_pool.key_pair.name,
                                                instance_type=settings.MASTER_NODE_TYPE,
@@ -80,7 +89,7 @@ def launch_pool(condor_pool):
                                                min_count=1,#Only 1 instance needed
                                                max_count=1,
                                                )
-    
+    #
     sleep(2)
     
     ec2_instances = []
@@ -101,7 +110,8 @@ def launch_pool(condor_pool):
     
     #wait until the master has a private ip address
     #sleep in beween
-    sleep_time=2
+    log.debug('Waiting for private IP to be assigned to master node')
+    sleep_time=5
     max_retrys=20
     current_try=0
     while master_ec2_instance.get_private_ip() == None and current_try<max_retrys:
@@ -109,6 +119,7 @@ def launch_pool(condor_pool):
         current_try+=1
     sleep(2)
     if condor_pool.size > 0:
+        log.debug('Launching worker nodes')
         worker_reservation = ec2_connection.run_instances(ami.id,
                                                    key_name=condor_pool.key_pair.name,
                                                    instance_type=condor_pool.initial_instance_type,
@@ -133,6 +144,7 @@ def launch_pool(condor_pool):
         
     
     #Create an sqs queue
+    log.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(condor_pool.vpc.access_key)
     if sqs_connection.get_queue(condor_pool.get_queue_name()) != None:
         sqs_connection.delete_queue(condor_pool.get_queue_name())
@@ -140,14 +152,25 @@ def launch_pool(condor_pool):
     sqs_connection.create_queue(condor_pool.get_queue_name())
     
     #Assign an elastic IP to the master instance
-    assign_ip_address(master_ec2_instance)
+    #Try up to 5 times
+    log.debug('Assigning elastic IP to master node')
+    for i in range(5):
+        try:
+            assign_ip_address(master_ec2_instance)
+            log.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
+            break
+        except Exception, e:
+            log.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
+            log.exception(e)
+            sleep(5)
     
     return ec2_instances
 
 
 def terminate_pool(condor_pool):
     assert isinstance(condor_pool, CondorPool)
-    
+    log.debug('Terminating condor pool %s (user %s)' %(condor_pool.name, condor_pool.vpc.access_key.user.username))
+
     #Keep a track of the following errors
     errors=[]
     #First, create an ec2_connection object
@@ -156,21 +179,21 @@ def terminate_pool(condor_pool):
     instances = EC2Instance.objects.filter(condor_pool=condor_pool)
     
     
-    #Dissassociate the IP address of the master instance and release it
+    #Dissassociate the IP address of the master instance and release i
     try:
-        if condor_pool.master.elasticip != None:
-            ec2_connection.disassociate_address(association_id=condor_pool.master.elasticip.association_id)
-            ec2_connection.release_address(allocation_id=condor_pool.master.elasticip.allocation_id)
-            condor_pool.master.elasticip.delete()
+        release_ip_address(condor_pool.master)
     except Exception, e:
+        log.exception(e)
         errors.append(e)
 
     
     instance_ids = [instance.instance_id for instance in instances]
     
+    log.debug('Terminating instances')
     try:
         ec2_connection.terminate_instances(instance_ids)
     except Exception, e:
+        log.exception(e)
         errors.append(e)
     
     key_pair = condor_pool.key_pair
@@ -178,15 +201,19 @@ def terminate_pool(condor_pool):
     try:
         ec2_connection.delete_key_pair(key_pair.name)
     except Exception, e:
+        log.exception(e)
         errors.append(e)
+    log.debug('Removing keypair file')
     try:
         os.remove(key_pair.path)
     except:
+        log.exception(e)
         pass
     condor_pool.delete()
     key_pair.delete()
     #Flatten the errors into 1 list
     
+    log.debug('Pool terminated')
     return errors
 
 def assign_ip_address(ec2_instance):
@@ -200,9 +227,11 @@ def assign_ip_address(ec2_instance):
     
     if ips.count() > 0:
         #Use the first IP address
+        log.debug('Using existing IP address')
         elastic_ip=ips[0]
     else:
         #We need to allocate a new ip address first
+        log.debug('Allocating new IP address')
         address=ec2_connection.allocate_address('vpc')
         
         elastic_ip = ElasticIP()
@@ -216,14 +245,19 @@ def assign_ip_address(ec2_instance):
     sleep_time=5
     max_attempts=6
     attempt_count=0
+    log.debug('Associating IP addresss with EC2 instance')
     while attempt_count < max_attempts:
         if ec2_instance.get_state() == 'running':
+            log.debug('Instance running')
             break
         else:
+            log.warning('Instance not running. Sleeping...')
             sleep(sleep_time)
             attempt_count +=1
     
+    
     assert ec2_connection.associate_address(instance_id=ec2_instance.instance_id, allocation_id=elastic_ip.allocation_id)
+    log.debug('IP associated with instance')
     elastic_ip.instance=ec2_instance
     
     #Use an inelegent workaround to get the association id of the address, since the api doesn't tell us this
@@ -246,16 +280,22 @@ def release_ip_address(ec2_instance):
     errors=[]
     try:
         ip = ElasticIP.objects.get(instance=ec2_instance)
-
+        log.debug('Disassociating IP')
         ec2_connection.disassociate_address(association_id=ip.association_id)
-        ec2_connection.release_addresss(allocation_id=ip.allocation_id)
-    
     except Exception, e:
+        log.exception(e)
         errors.append(e)
      
     try:
+        log.debug('Releasing IP')
+        ec2_connection.release_address(allocation_id=ip.allocation_id)
+    except Exception, e:
+        log.exception(e)
+        errors.append(e)
+    try:
         ip.delete()
     except Exception, e:
+        log.exception(e)
         errors.append(e)
     
     return errors

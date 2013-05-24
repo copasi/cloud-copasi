@@ -19,7 +19,9 @@ class Log:
                       'all': 0,
                       'debug': 1,
                       'info': 2,
-                      'error': 3,
+                      'warning': 3,
+                      'error': 4,
+                      'critical': 5,
                       'none': 99,
                       }
     
@@ -46,8 +48,14 @@ class Log:
     def info(self, message):
         self.__add_message__('info', message)
         
+    def warning(self, message):
+        self.__add_message__('warning', message)
+        
     def error(self, message):
         self.__add_message__('error', message)
+        
+    def critical(self, message):
+        self.__add_message__('critical', message)
     
     def get_message_list(self):
         return self.message_list

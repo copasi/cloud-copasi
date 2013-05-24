@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 MASTER_LAUNCH_STRING = """#!/bin/bash
-/opt/condor_config/master_config.sh %s %s %s %s %s"""
+/opt/condor_config/master_config.sh %s %s %s %s %s %s %d"""
 #5 args
 # - server_url
 # - pool_id
@@ -17,6 +17,7 @@ MASTER_LAUNCH_STRING = """#!/bin/bash
 
 WORKER_LAUNCH_STRING = """#!/bin/bash
 /opt/condor_config/worker_config.sh %s"""
+
 
 EC2_TYPE_CHOICES =(
           ('t1.micro','t1.micro (<2 ECU, 1 Core, 613MB (Free tier eligible))'),
