@@ -78,6 +78,7 @@ class PoolAddView(RestrictedFormView):
     def get_form_kwargs(self):
         kwargs =  super(RestrictedFormView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
+        
         return kwargs
     
     def form_valid(self, *args, **kwargs):
@@ -101,6 +102,13 @@ class PoolAddView(RestrictedFormView):
         #    return HttpResponseRedirect(reverse_lazy('pool_add'))
         
         return super(PoolAddView, self).form_valid(*args, **kwargs)
+
+    def dispatch(self, *args, **kwargs):
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Launching pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Launching a pool can take several minutes'
+
+        return super(PoolAddView, self).dispatch(*args, **kwargs)
 
 class PoolDetailsView(RestrictedView):
     template_name='pool/pool_details.html'
@@ -146,7 +154,11 @@ class PoolTerminateView(RestrictedView):
         
         condor_pool = CondorPool.objects.get(id=pool_id)
         assert condor_pool.vpc.access_key.user == request.user
-                
+        
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Terminating pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
+        
         if not confirmed:
         
             kwargs['condor_pool'] = condor_pool

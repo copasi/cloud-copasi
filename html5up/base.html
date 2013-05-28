@@ -16,10 +16,23 @@
         <script src="{{ STATIC_URL }}js/jquery.dropotron-1.2.js"></script>
         <script src="{{ STATIC_URL }}js/init.js"></script>
         <script>
-            function formSubmit(formName)
+            function formSubmit(formName, display_loading)
             {
+                display_loading = typeof display_loading !== 'undefined' ? display_loading : false;
+                
+                if (display_loading === true) {
+                    $('#loading-overlay').fadeIn('slow');
+                    $('#loading-box').fadeIn('slow');
+                }
+                
                 document.getElementById(formName).submit();
             }
+            function showLoadingScreen()
+            {
+                    $('#loading-overlay').fadeIn('slow');
+                    $('#loading-box').fadeIn('slow');
+            }
+
         </script>
         <script src="{{ STATIC_URL }}js/popup_box.js"></script>
 
@@ -105,5 +118,7 @@
             
 {% include 'footer.html' %}
 
+
+{% include 'loading_screen.html' %}
     </body>
 </html>
