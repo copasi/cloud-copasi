@@ -14,6 +14,9 @@ class Log:
     #Message list should be flushed periodically and messages sent back to central server
 
     #Logging levels:
+    
+    write_to_file = True
+    log_filename = '/home/ubuntu/cloud-copasi.log'
 
     logging_levels = {
                       'all': 0,
@@ -41,7 +44,10 @@ class Log:
         if message_level >= current_level:
             m = (message_type, str(datetime.now()), message)
             self.message_list.append(m)
-    
+            if self.write_to_file:
+                log_file = open(self.log_filename, 'a')
+                log_file.write(str(m) + '\n')
+                log_file.close()
     def debug(self, message):
         self.__add_message__('debug', message)
         

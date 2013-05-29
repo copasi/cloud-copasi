@@ -48,9 +48,8 @@ def process_message(message, log):
             responder.add_condor_job(job_id, queue_id)
             print str(job_id), str(queue_id)
         
-         
         outcome = responder.send_response()
-        log.debug('Sending response. Outcome: %s') % outcome
+        log.debug('Sent response. Outcome: %s' % outcome)
 
     elif notify_type == 'delete_jobs':
         print 'delete jobs'
