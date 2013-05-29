@@ -34,6 +34,6 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
         </table>
     </div>
-    <a href="{% url 'task_delete' task_id=task_id %}" class="button button-icon button-icon-check button-hspace">Delete task</a><a href="{% url 'task_details' task_id=task_id %}" class="button button-alt button-hspace">Cancel</a>
+    <a href="{% url 'task_delete' task_id=task_id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Delete task</a><a href="{% url 'task_details' task_id=task_id %}" class="button button-alt button-hspace">Cancel</a>
 </article>
 {% endblock %}

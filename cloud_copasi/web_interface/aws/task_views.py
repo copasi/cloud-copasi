@@ -67,6 +67,11 @@ class NewTaskView(RestrictedFormView):
         if pools.count() == 0:
             request.session['errors']=[('No running compute pools', 'You must have at least 1 running compute pool before you can submit a job')]
             return HttpResponseRedirect(reverse_lazy('pool_status'))
+        
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Submitting task'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Submitting a task can take several minutes'
+
         return super(NewTaskView,self).dispatch(request, *args, **kwargs)
     
     def form_valid(self, form,  *args, **kwargs):
@@ -182,6 +187,10 @@ class TaskDeleteView(RestrictedView):
         
         confirmed = kwargs['confirmed']
         
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Terminating pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
+
         if not confirmed:
             kwargs['task']=task
             return super(TaskDeleteView, self).dispatch(request, *args, **kwargs)
