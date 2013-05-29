@@ -188,8 +188,8 @@ class TaskDeleteView(RestrictedView):
         confirmed = kwargs['confirmed']
         
         kwargs['show_loading_screen'] = True
-        kwargs['loading_title'] = 'Terminating pool'
-        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
+        kwargs['loading_title'] = 'Deleting Task'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Deleting a task can take several minutes'
 
         if not confirmed:
             kwargs['task']=task
