@@ -146,8 +146,9 @@ def launch_pool(condor_pool):
     #Create an sqs queue
     log.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(condor_pool.vpc.access_key)
-    if sqs_connection.get_queue(condor_pool.get_queue_name()) != None:
-        sqs_connection.delete_queue(condor_pool.get_queue_name())
+    queue = sqs_connection.get_queue(condor_pool.get_queue_name())
+    if queue != None:
+        sqs_connection.delete_queue(queue)
     
     sqs_connection.create_queue(condor_pool.get_queue_name())
     
@@ -206,13 +207,21 @@ def terminate_pool(condor_pool):
     log.debug('Removing keypair file')
     try:
         os.remove(key_pair.path)
-    except:
+    except Exception, e:
         log.exception(e)
         pass
     condor_pool.delete()
     key_pair.delete()
-    #Flatten the errors into 1 list
     
+    try:
+        log.debug('Deleting SQS queue for pool')
+        sqs_connection = aws_tools.create_sqs_connection(condor_pool.vpc.access_key)
+        queue = sqs_connection.get_queue(condor_pool.get_queue_name())
+        if queue != None:
+            sqs_connection.delete_queue(queue)
+    except Exception, e:
+        log.exception(e)
+
     log.debug('Pool terminated')
     return errors
 
