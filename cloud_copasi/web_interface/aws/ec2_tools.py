@@ -167,6 +167,9 @@ def launch_pool(condor_pool):
     
     return ec2_instances
 
+def scale_up(condor_pool, extra_nodes):
+    log.debug('Scaling condor pool %s with %d extra nodes')
+    return
 
 def terminate_pool(condor_pool):
     assert isinstance(condor_pool, CondorPool)

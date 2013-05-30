@@ -13,7 +13,8 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey
+from cloud_copasi.web_interface.models import AWSAccessKey, Task, EC2Instance,\
+    ElasticIP
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -31,12 +32,21 @@ class MyAccountView(RestrictedView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         user = request.user
-        access_keys = AWSAccessKey.objects.filter(user=user)
-        kwargs['access_keys'] = access_keys 
-        if access_keys.count() == 0:
-            return HttpResponseRedirect(reverse_lazy('my_account_keys_add'))
-        else:        
-            return super(MyAccountView, self).dispatch(request, *args, **kwargs)
+       
+        kwargs['compute_nodes'] = EC2Instance.objects.filter(condor_pool__vpc__access_key__user=user)
+        kwargs['elastic_ips'] = ElasticIP.objects.filter(vpc__access_key__user=user)
+        
+        
+        
+        kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
+        kwargs['compute_pools'] = CondorPool.objects.filter(vpc__access_key__user=user)
+        
+        tasks = Task.objects.filter(condor_pool__vpc__access_key__user = user)
+        kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
+        kwargs['finished_tasks'] =  tasks.filter(status='finished')
+        kwargs['task_errors'] =  tasks.filter(status='error')
+        
+        return super(MyAccountView, self).dispatch(request, *args, **kwargs)
     
 
 class KeysView(RestrictedView):

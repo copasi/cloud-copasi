@@ -41,6 +41,8 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/(?P<pool_id>\d+)/details/$', pool_views.PoolDetailsView.as_view(), name='pool_details'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/terminate/$', pool_views.PoolTerminateView.as_view(), {'confirmed': False }, name='pool_terminate'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/terminate/confirm/$', pool_views.PoolTerminateView.as_view(), {'confirmed':True}, name='pool_terminate_confirmed'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/scale_up/$', pool_views.PoolScaleUpView.as_view(), name='pool_scale_up'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/scale_down/$', pool_views.PoolScaleUpView.as_view(), name='pool_scale_down'),
 
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
     

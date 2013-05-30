@@ -182,10 +182,12 @@ class EC2Instance(models.Model):
         return ec2_connection
 
     def get_state(self):
-        instance = self.get_instance()
-        #instance.update()
-        return instance.state
-    
+        try:
+            instance = self.get_instance()
+            #instance.update()
+            return instance.state
+        except:
+            return 'Error'
     def get_private_ip(self):
         instance=self.get_instance()
         return instance.private_ip_address

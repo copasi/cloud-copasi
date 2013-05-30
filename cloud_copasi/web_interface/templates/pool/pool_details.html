@@ -40,7 +40,7 @@ http://www.gnu.org/licenses/gpl.html
         
     <p>
         <a class="button button-alt button-hspace" href="{% url 'pool_terminate' pool_id=condor_pool.id %}">Terminate pool</a>
-        <a class="button button-hspace" href="">Scale up</a>
+        <a class="button button-hspace" href="{% url 'pool_scale_up' pool_id=condor_pool.id %}">Scale up</a>
         <a class="button button-hspace" href="">Scale down</a>
     </p>
 

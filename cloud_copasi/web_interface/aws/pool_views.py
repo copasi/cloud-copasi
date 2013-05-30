@@ -169,3 +169,69 @@ class PoolTerminateView(RestrictedView):
             errors = ec2_tools.terminate_pool(condor_pool)
             request.session['errors']=errors
             return HttpResponseRedirect(reverse_lazy('pool_status'))
+
+class PoolScaleUpForm(forms.Form):
+    
+    nodes_to_add = forms.IntegerField(required=False)
+    total_pool_size = forms.IntegerField(required=False)
+    
+
+    def clean(self):
+        cleaned_data = super(PoolScaleUpForm, self).clean()
+        nodes_to_add = cleaned_data.get('nodes_to_add')
+        total_pool_size = cleaned_data.get('total_pool_size')
+        if (not nodes_to_add) and (not total_pool_size):
+            raise forms.ValidationError('You must enter a value.')
+        if nodes_to_add and total_pool_size:
+            raise forms.ValidationError('You must enter only one value.')
+        if nodes_to_add:
+            try:
+                assert nodes_to_add > 0
+            except:
+                raise forms.ValidationError('You must enter a value greater than 0.')
+
+        if total_pool_size:
+            try:
+                assert total_pool_size > 0
+            except:
+                raise forms.ValidationError('You must enter a value greater than 0.')
+
+        return cleaned_data
+
+
+
+class PoolScaleUpView(RestrictedFormView):
+    template_name = 'pool/pool_scale.html'
+    page_title = 'Scale up pool'
+    success_url = reverse_lazy('pool_status')
+    form_class = PoolScaleUpForm
+
+    
+    
+    def form_valid(self, *args, **kwargs):
+        try:
+            form=kwargs['form']
+            user=kwargs['request'].user
+            condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
+            
+            if form.cleaned_data['nodes_to_add']:
+                extra_nodes = form.cleaned_data['nodes_to_add']
+            else:
+                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(condor_pool=condor_pool).count()
+            
+            ec2_tools.scale_up(condor_pool, extra_nodes)
+            condor_pool.save()
+        except Exception, e:
+            self.request.session['errors'] = aws_tools.process_errors([e])
+            return HttpResponseRedirect(reverse_lazy('pool_status'))
+
+        
+        
+        return super(PoolScaleUpView, self).form_valid(*args, **kwargs)
+
+    def dispatch(self, *args, **kwargs):
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Scaling pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. This process can take several minutes'
+        kwargs['scale_up']=True
+        return super(PoolScaleUpView, self).dispatch(*args, **kwargs)

@@ -86,6 +86,10 @@ strong {
     color: #474747;
 }
 
+span.bold {
+    font-weight: bold;
+}
+
 form {
 }
 
@@ -753,7 +757,15 @@ div.tablelist td, div.tablelist tr, div.tablelist th {
 div.tablelist th{
     font-weight: bold;
 }
-
+div.smalltablelist td, div.smalltablelist tr, div.smalltablelist th {
+    border-style: solid;
+    border-width: 1px;
+    margin: 5px 5px 5px 5px;
+    padding: 0.3em;
+}
+div.smalltablelist th{
+    font-weight: bold;
+}
 /*********************************************************************************/
 /* Overlay                                                                        */
 /*********************************************************************************/
