@@ -163,6 +163,21 @@ class EC2Instance(models.Model):
     #We ought to have a private IP associated. However, allow blank in case the
     #AWS API messes up. Can find out again later if need be
     
+    state = models.CharField(max_length=20,
+                             verbose_name = 'Last known state',
+                             choices=(
+                                      ('pending', 'Pending'),
+                                      ('running', 'Running'),
+                                      ('shutting-down', 'Shutting down'),
+                                      ('terminated', 'Terminated'),
+                                      ('stopping', 'Stopping'),
+                                      ('stopped', 'Stopped'),
+                                      )
+                             )
+    
+    #Any message associated with the state
+    state_transition_reason = models.CharField(max_length=50, verbose_name = 'Why the instance changed state', blank=True, null=True)
+    
     class Meta:
         app_label = 'web_interface'
         
@@ -185,6 +200,8 @@ class EC2Instance(models.Model):
         try:
             instance = self.get_instance()
             #instance.update()
+            self.state = instance.state
+            self.save()
             return instance.state
         except:
             return 'Error'

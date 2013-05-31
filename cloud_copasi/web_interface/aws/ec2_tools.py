@@ -33,6 +33,18 @@ def get_active_ami(ec2_connection):
     ami=models.AMI.objects.get(active=True)
     return get_ami(ec2_connection, ami)
 
+def refresh_pool(condor_pool):
+    """Refresh the state of each instance in a condor pool
+    """
+    instances = EC2Instance.objects.filter(condor_pool=condor_pool).exclude(state='terminated')
+    #TODO: get list of instance ids
+    
+    #connection.get_all_instance_status([list])
+    
+    #for instance_status in instance_status_list: 
+    #id = instance_status.id; state=state_name,
+    #if state has changed - get instance.state_reason
+    
 
 def create_key_pair(pool):
     """Create a keypair and store it in the users storage directory
@@ -168,7 +180,7 @@ def launch_pool(condor_pool):
     return ec2_instances
 
 def scale_up(condor_pool, extra_nodes):
-    log.debug('Scaling condor pool %s with %d extra nodes')
+    log.debug('Scaling condor pool %s with %d extra nodes'%(condor_pool.id, extra_nodes))
     return
 
 def terminate_pool(condor_pool):

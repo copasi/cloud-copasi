@@ -22,6 +22,9 @@ from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
 from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
 from cloud_copasi.web_interface.models import VPC
+import logging
+
+log = logging.getLogger(__name__)
 
 class PoolStatusView(RestrictedView):
     """View to display active compute pools
@@ -211,7 +214,7 @@ class PoolScaleUpView(RestrictedFormView):
     def form_valid(self, *args, **kwargs):
         try:
             form=kwargs['form']
-            user=kwargs['request'].user
+            user=self.request.user
             condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
             
             if form.cleaned_data['nodes_to_add']:
@@ -223,6 +226,7 @@ class PoolScaleUpView(RestrictedFormView):
             condor_pool.save()
         except Exception, e:
             self.request.session['errors'] = aws_tools.process_errors([e])
+            log.exception(e)
             return HttpResponseRedirect(reverse_lazy('pool_status'))
 
         
