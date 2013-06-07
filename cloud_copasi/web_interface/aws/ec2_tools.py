@@ -36,11 +36,30 @@ def get_active_ami(ec2_connection):
 def refresh_pool(condor_pool):
     """Refresh the state of each instance in a condor pool
     """
+    vpc_connection, ec2_connection = aws_tools.create_connections(condor_pool.vpc.access_key)
+    
     instances = EC2Instance.objects.filter(condor_pool=condor_pool).exclude(state='terminated')
     #TODO: get list of instance ids
     
-    #connection.get_all_instance_status([list])
+    instance_ids = [instance.instance_id for instance in instances]
     
+    instance_status_list = ec2_connection.get_all_instance_status(instance_ids)
+    log.debug('Refreshing pool %s status' % condor_pool.name)
+    for status in instance_status_list:
+        #assert isinstance(status, )
+        log.debug('Refreshing instance %s' % status.id)
+        try:
+            id=status.id
+            ec2_instance = instances.get(instance_id=id)
+            if ec2_instance.state!=status.state_name:
+                ec2_instance.state=status.state_name
+                ec2_instance.save()
+                instance=ec2_instance.get_instance()
+                ec2_instance.state_transition_reason=instance.state_reason
+                ec2_instance.save()
+                
+        except Exception, e:
+            log.exception(e)
     #for instance_status in instance_status_list: 
     #id = instance_status.id; state=state_name,
     #if state has changed - get instance.state_reason

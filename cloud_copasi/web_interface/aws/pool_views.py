@@ -41,6 +41,10 @@ class PoolStatusView(RestrictedView):
             return HttpResponseRedirect(reverse_lazy('vpc_status'))
         pools = models.CondorPool.objects.filter(vpc__access_key__user=request.user)
         kwargs['pools'] = pools
+        
+        for pool in pools:
+            ec2_tools.refresh_pool(pool)
+        
         return RestrictedView.dispatch(self, request, *args, **kwargs)
     
 class AddPoolForm(forms.ModelForm):
@@ -123,11 +127,14 @@ class PoolDetailsView(RestrictedView):
         try:
             condor_pool = CondorPool.objects.get(id=pool_id)
             assert condor_pool.vpc.access_key.user == request.user
+            ec2_tools.refresh_pool(condor_pool)
         except EC2ResponseError, e:
             request.session['errors'] = [error for error in e.errors]
+            log.exception(e)
             return HttpResponseRedirect(reverse_lazy('pool_status'))
         except Exception, e:
             self.request.session['errors'] = [e]
+            log.exception(e)
             return HttpResponseRedirect(reverse_lazy('p'))
         
         instances=EC2Instance.objects.filter(condor_pool=condor_pool)
@@ -157,7 +164,7 @@ class PoolTerminateView(RestrictedView):
         
         condor_pool = CondorPool.objects.get(id=pool_id)
         assert condor_pool.vpc.access_key.user == request.user
-        
+        ec2_tools.refresh_pool(condor_pool)
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Terminating pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
@@ -216,7 +223,8 @@ class PoolScaleUpView(RestrictedFormView):
             form=kwargs['form']
             user=self.request.user
             condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
-            
+            assert condor_pool.vpc.access_key.user == self.request.user
+            ec2_tools.refresh_pool(condor_pool)
             if form.cleaned_data['nodes_to_add']:
                 extra_nodes = form.cleaned_data['nodes_to_add']
             else:
@@ -233,9 +241,13 @@ class PoolScaleUpView(RestrictedFormView):
         
         return super(PoolScaleUpView, self).form_valid(*args, **kwargs)
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Scaling pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. This process can take several minutes'
         kwargs['scale_up']=True
-        return super(PoolScaleUpView, self).dispatch(*args, **kwargs)
+        condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        assert condor_pool.vpc.access_key.user == request.user
+        ec2_tools.refresh_pool(condor_pool)
+        
+        return super(PoolScaleUpView, self).dispatch(request, *args, **kwargs)
