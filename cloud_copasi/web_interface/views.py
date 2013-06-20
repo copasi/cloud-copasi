@@ -24,6 +24,7 @@ from django import forms
 import sys
 from boto.exception import BotoServerError
 from cloud_copasi.web_interface.models import AWSAccessKey
+from cloud_copasi.web_interface.aws import resource_management_tools
 import logging
 #Remember - class based views are not thread safe! Don't pass lists, dicts etc as args
 
@@ -53,6 +54,11 @@ class RestrictedView(DefaultView):
         user = request.user
         access_keys = AWSAccessKey.objects.filter(user=user)
         kwargs['access_keys'] = access_keys
+        
+        resource_overview=resource_management_tools.get_aws_resources(request.user)
+        #Generate warnings
+        kwargs['show_warning_bar']=True
+        kwargs['resource_overview']=resource_overview
         
         return super(RestrictedView, self).dispatch(request, *args, **kwargs)
 

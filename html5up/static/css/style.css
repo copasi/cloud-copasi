@@ -187,6 +187,10 @@ dl.contact dd {
     outline: 0;
 }
 
+.button-aws{
+    display:inline-block;
+}
+
 .button-hspace{
     margin-left: 1em;
     margin-right: 1em;
@@ -617,6 +621,27 @@ body.homepage #header-wrapper {
 #header {
     margin-bottom: 0;
 }
+
+
+/*********************************************************************************/
+/* Warning bar                                                                        */
+/*********************************************************************************/
+
+#warning-bar {
+    text-align: center;
+    background: #ffe5e5;
+    border-bottom: solid 1px #dbdbdb;
+    color: #b40000;
+    font-weight: bold;
+    
+}
+.warning-text {
+    background-image: url('/static/alert_16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+}
+
 
 /*********************************************************************************/
 /* Footer                                                                        */

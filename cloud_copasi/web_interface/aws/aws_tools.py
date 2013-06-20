@@ -12,6 +12,7 @@ from boto.exception import BotoServerError
 from boto.sqs.connection import SQSConnection
 
 def create_connections(key):
+    """Returns pair vpc_connection, ec2_connection"""
     vpc_connection = VPCConnection(key.access_key_id, key.secret_key)
     ec2_connection = EC2Connection(key.access_key_id, key.secret_key)
     return (vpc_connection, ec2_connection)
