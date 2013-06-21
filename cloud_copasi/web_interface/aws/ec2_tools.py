@@ -18,9 +18,10 @@ from time import sleep
 from cloud_copasi import settings
 from boto import sqs
 import logging
+import datetime
 
 log = logging.getLogger(__name__)
-
+print __name__
 
 def get_ami(ec2_connection, ami):
     assert isinstance(ec2_connection, EC2Connection)
@@ -36,6 +37,12 @@ def get_active_ami(ec2_connection):
 def refresh_pool(condor_pool):
     """Refresh the state of each instance in a condor pool
     """
+    
+    log.debug('refreshing status of pool %s' % condor_pool.name)
+    if datetime.datetime.now() - condor_pool.last_update_time < datetime.timedelta(seconds=10):
+        log.debug('Pool recently refreshed. Not updating')
+        return
+    
     vpc_connection, ec2_connection = aws_tools.create_connections(condor_pool.vpc.access_key)
     
     instances = EC2Instance.objects.filter(condor_pool=condor_pool).exclude(state='terminated')

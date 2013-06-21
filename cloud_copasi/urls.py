@@ -9,7 +9,8 @@
 from django.conf.urls import patterns, include, url
 from cloud_copasi.web_interface import views
 from cloud_copasi.web_interface.account import account_views
-from cloud_copasi.web_interface.aws import task_views, pool_views
+from cloud_copasi.web_interface.aws import task_views, pool_views,\
+    resource_views
 from cloud_copasi.web_interface.client_api import api_views
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -46,6 +47,8 @@ urlpatterns = patterns('',
 
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
     
+    url(r'^my_account/resource_overview/$', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
+
     url(r'^sign_in/$', views.LoginView.as_view(), name='sign_in'),
     url(r'^sign_out/$', views.LogoutView.as_view(), name='sign_out'),
 

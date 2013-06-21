@@ -34,11 +34,14 @@ class ResourceOverview():
         self.elastic_ips = elastic_ips
         self.s3_buckets = s3_buckets
 
-def get_aws_resources(user):
+def get_aws_resources(user, key=None):
     """Return an overview of all the aws resources in use
     """
+    if key:
+        keys=[key]
+    else:
+        keys = AWSAccessKey.objects.filter(user=user)
     
-    keys = AWSAccessKey.objects.filter(user=user)
     for key in keys:
         
         ec2_count = 0
@@ -78,7 +81,7 @@ def get_aws_resources(user):
     
     return overview
 
-def get_unrecognised_resources(user):
+def get_unrecognised_resources(user, key=None):
     """Return an overview of any aws resources we don't have a record of'
     """
     
@@ -88,3 +91,23 @@ def get_unrecognised_resources(user):
     
     return overview
 
+
+def get_recognized_resources(user, key=None):
+    
+    overview = ResourceOverview()
+    
+    for condor_pool in CondorPool.objects.filter(vpc__access_key__user=user):
+        ec2_tools.refresh_pool(condor_pool)
+    
+    if key:
+        keys=[key]
+    else:
+        keys=AWSAccessKey.objects.filter(user=user)
+    
+    for key in keys:
+        
+        ec2_instances = EC2Instance.objects.filter(vpc__access_key=key)
+        
+        running_instances = ec2_instances.filter(status='pending') | ec2_instances.filter(status='running') | ec2_instances.filter('shutting-down')
+
+    return overview

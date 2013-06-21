@@ -1,0 +1,55 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>AWS Resource Overview</h2>
+        <span class="byline">A summary of all resources running on your AWS accounts</span>
+    </header>
+    
+    {% for key, recognized, unrecognized in overview %}
+    <h4>AWS Key: {{key.name}}</h4>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th></th>
+                <th>EC2 instances (compute nodes)</th>
+                <th>Elastic IPs</th>
+                <th>S3 Buckets</th>
+            </tr>
+            <tr>
+                <th>Recognized</th>
+                <td>{{ recognized.ec2_instances }}</td>
+                <td>{{ recognized.elastic_ips }}</td>
+                <td>{{ recognized.s3_buckets }}</td>
+            </tr>
+            <tr>
+                <th>Unrecognized</th>
+                <td>{{ unrecognized.ec2_instances }}</td>
+                <td>{{ unrecognized.elastic_ips }}</td>
+                <td>{{ unrecognized.s3_buckets }}</td>
+
+            </tr>
+
+        </table>
+    </div>
+    {% endfor %}
+
+    
+</article>
+{% endblock %}

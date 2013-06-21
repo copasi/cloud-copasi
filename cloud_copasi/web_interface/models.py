@@ -126,6 +126,8 @@ class CondorPool(models.Model):
     
     uuid=UUIDField(auto=True)
     
+    last_update_time = models.DateTimeField(auto_now_add=True)
+    
     class Meta:
         app_label = 'web_interface'
     
