@@ -55,9 +55,11 @@ class RestrictedView(DefaultView):
         access_keys = AWSAccessKey.objects.filter(user=user)
         kwargs['access_keys'] = access_keys
         
-        resource_overview=resource_management_tools.get_aws_resources(request.user)
+        resource_overview=resource_management_tools.get_unrecognized_resources(request.user)
         #Generate warnings
-        kwargs['show_warning_bar']=True
+        if not resource_overview.is_empty():
+            log.debug('Unrecognized resources for user %s'%request.user)
+        kwargs['show_warning_bar']= not resource_overview.is_empty()
         kwargs['resource_overview']=resource_overview
         
         return super(RestrictedView, self).dispatch(request, *args, **kwargs)

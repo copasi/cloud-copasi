@@ -21,7 +21,6 @@ import logging
 import datetime
 
 log = logging.getLogger(__name__)
-print __name__
 
 def get_ami(ec2_connection, ami):
     assert isinstance(ec2_connection, EC2Connection)
@@ -223,7 +222,7 @@ def terminate_pool(condor_pool):
     
     #Dissassociate the IP address of the master instance and release i
     try:
-        release_ip_address(condor_pool.master)
+        release_ip_address_from_instance(condor_pool.master)
     except Exception, e:
         log.exception(e)
         errors.append(e)
@@ -321,7 +320,28 @@ def assign_ip_address(ec2_instance):
         
     return elastic_ip
 
-def release_ip_address(ec2_instance):
+
+def release_ip_address(key, allocation_id, association_id=None):
+    """Dissociate and release the IP address with the allocation id and optional association id
+    """
+    
+    vpc_connection, ec2_connection = aws_tools.create_connections(key)
+    
+    try:
+        if association_id:
+            log.debug('Disassociating IP')
+            ec2_connection.disassociate_address(association_id=association_id)
+    except Exception, e:
+        log.exception(e)
+        
+    try:
+        log.debug('Releasing IP')
+        ec2_connection.release_address(allocation_id=allocation_id)
+    except Exception, e:
+        log.exception(e)
+
+
+def release_ip_address_from_instance(ec2_instance):
     """Dissassociate and release the public IP address of the ec2 instance
     """
     assert isinstance(ec2_instance, EC2Instance)

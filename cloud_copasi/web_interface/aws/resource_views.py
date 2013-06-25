@@ -43,8 +43,35 @@ class ResourceOverviewView(RestrictedView):
         
         for key in keys:
             recognized_resources=resource_management_tools.get_recognized_resources(user=request.user, key=key)
-            unrecognized_resources = resource_management_tools.get_unrecognised_resources(user=request.user,key=key)
+            unrecognized_resources = resource_management_tools.get_unrecognized_resources(user=request.user,key=key)
             overview.append((key, recognized_resources, unrecognized_resources))
+            
             
         kwargs['overview'] = overview
         return super(ResourceOverviewView, self).dispatch(request, *args, **kwargs)
+
+
+class ResourceTerminateView(RestrictedView):
+    page_title = 'Confirm termination of AWS resources'
+    template_name = 'account/resource_terminate.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        #Get list of resources
+        
+        if kwargs['all_unrecognized']:
+            resources = resource_management_tools.get_unrecognized_resources(request.user)
+        else:
+            key_id = kwargs['key_id']
+            key=AWSAccessKey.objects.get(id=key_id)
+            assert key.user == request.user
+            resources = resource_management_tools.get_unrecognized_resources(request.user, key)
+        
+        if kwargs['confirmed']:
+            resource_management_tools.terminate(request.user, resources)
+        
+        return HttpResponseRedirect(reverse_lazy('my_account_home'))
+
+        
+        kwargs['resources'] = resources
+        return super(ResourceTerminateView, self).dispatch(request, *args, **kwargs)

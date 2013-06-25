@@ -25,12 +25,20 @@ from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
 from cloud_copasi.web_interface.models import VPC, CondorPool
+
+import logging
+
+log = logging.getLogger(__name__)
+
+
+
 class MyAccountView(RestrictedView):
     template_name = 'account/account_home.html'
     page_title = 'My account'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        
         user = request.user
        
         kwargs['compute_nodes'] = EC2Instance.objects.filter(condor_pool__vpc__access_key__user=user)

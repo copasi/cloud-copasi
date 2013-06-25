@@ -285,7 +285,7 @@ class Task(models.Model):
                       ('transfer', 'Transferring files'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
-                      ('delete', 'Marked for deletion'),
+                      ('deleted', 'Deleted'),
                       ('cancelled', 'Cancelled'),
                       ('unknown', 'Unknown'),
                       )

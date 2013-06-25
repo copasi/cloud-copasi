@@ -21,10 +21,14 @@ http://www.gnu.org/licenses/gpl.html
         <h2>AWS Resource Overview</h2>
         <span class="byline">A summary of all resources running on your AWS accounts</span>
     </header>
+    <div>
+    <p><a href="{% url 'resource terminate_all_unrecognized' %}" class="button button-icon button-icon-check">Terminate all unrecognized resources</a></p>
+    </div>
     
     {% for key, recognized, unrecognized in overview %}
     <h4>AWS Key: {{key.name}}</h4>
     <div class="tablelist">
+        <p><a href="{% url 'resource terminate_key' key_id=key.id%}">Terminate all resources associated with this key</a></p>
         <table>
             <tr>
                 <th></th>
@@ -34,15 +38,15 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
             <tr>
                 <th>Recognized</th>
-                <td>{{ recognized.ec2_instances }}</td>
-                <td>{{ recognized.elastic_ips }}</td>
-                <td>{{ recognized.s3_buckets }}</td>
+                <td>{{ recognized.ec2_instances | length }}</td>
+                <td>{{ recognized.elastic_ips | length }}</td>
+                <td>{{ recognized.s3_buckets | length }}</td>
             </tr>
             <tr>
                 <th>Unrecognized</th>
-                <td>{{ unrecognized.ec2_instances }}</td>
-                <td>{{ unrecognized.elastic_ips }}</td>
-                <td>{{ unrecognized.s3_buckets }}</td>
+                <td>{{ unrecognized.ec2_instances | length }}</td>
+                <td>{{ unrecognized.elastic_ips | length }}</td>
+                <td>{{ unrecognized.s3_buckets | length }}</td>
 
             </tr>
 
