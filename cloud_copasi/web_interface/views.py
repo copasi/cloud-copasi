@@ -30,9 +30,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-class TestPageView(TemplateView):
-    template_name='test.html'
-
 class DefaultView(TemplateView):
     page_title=''
     

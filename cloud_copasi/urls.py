@@ -72,7 +72,6 @@ urlpatterns = patterns('',
     url(r'^api/remote_logging_update/$', api_views.RemoteLoggingUpdateView.as_view(), name='api_remote_logging_update'),
     url(r'^api/check_resource/$', api_views.CheckResourceView.as_view(), name='api_check_resource'),
     
-    url(r'^test/$', views.TestPageView.as_view(), name='test'),
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
