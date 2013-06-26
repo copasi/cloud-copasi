@@ -114,7 +114,7 @@
         <!--Warning bar -->
         {% if show_warning_bar %}
         <div id="warning-bar">
-        <span class=warning-text>Warning: unrecognized AWS resources in use!</span>
+        <span class="warning-text"><a href="{% url 'resource_overview' %}">Warning: unrecognized AWS resources in use!</a></span>
         </div>
         {% endif %}
 {% block main_content %}    

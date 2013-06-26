@@ -22,7 +22,7 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Are you sure you want to terminate these resources? This cannot be undone!</span>
     </header>
     
-    <p><a href="" class="button button-icon button-icon-check">Terminate</a> <a href="" class="button button-alt">Cancel</a></p>
+    <p><a href="{% url 'resource_terminate_confirmed' key_id=key_id %}" class="button button-icon button-icon-check">Terminate</a> <a href="" class="button button-alt">Cancel</a></p>
     
     {% if resources.ec2_instances %}
     <h4>EC2 Instances</h4>

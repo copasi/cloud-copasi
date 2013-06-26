@@ -48,8 +48,8 @@ urlpatterns = patterns('',
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
     
     url(r'^my_account/resource_overview/$', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
-    url(r'^my_account/resource_overview/terminate_all_unrecognized/$', resource_views.ResourceTerminateView.as_view(), {'all_unrecognized' : True, 'confirmed': False}, name='resource terminate_all_unrecognized'),
-    url(r'^my_account/resource_overview/terminate/key/(?P<key_id>\d+)/$', resource_views.ResourceTerminateView.as_view(), {'all_unrecognized': False, 'confirmed': False}, name='resource terminate_key'),
+    url(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/confirmed/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': True}, name='resource_terminate_confirmed'),
+    url(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': False}, name='resource_terminate'),
 
     url(r'^sign_in/$', views.LoginView.as_view(), name='sign_in'),
     url(r'^sign_out/$', views.LogoutView.as_view(), name='sign_out'),

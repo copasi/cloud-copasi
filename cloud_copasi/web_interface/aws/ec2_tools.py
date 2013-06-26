@@ -321,8 +321,8 @@ def assign_ip_address(ec2_instance):
     return elastic_ip
 
 
-def release_ip_address(key, allocation_id, association_id=None):
-    """Dissociate and release the IP address with the allocation id and optional association id
+def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
+    """Dissociate and release the IP address with the allocation id and optional association id. Alternatively just use public ip
     """
     
     vpc_connection, ec2_connection = aws_tools.create_connections(key)
@@ -331,12 +331,18 @@ def release_ip_address(key, allocation_id, association_id=None):
         if association_id:
             log.debug('Disassociating IP')
             ec2_connection.disassociate_address(association_id=association_id)
+        if public_ip:
+            log.debug('Disassociating IP')
+            ec2_connection.disassociate_address(public_ip=public_ip)
     except Exception, e:
         log.exception(e)
         
     try:
         log.debug('Releasing IP')
-        ec2_connection.release_address(allocation_id=allocation_id)
+        if allocation_id:
+            ec2_connection.release_address(allocation_id=allocation_id)
+        else:
+            ec2_connection.release_address(public_ip=public_ip)
     except Exception, e:
         log.exception(e)
 

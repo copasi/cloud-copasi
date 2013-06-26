@@ -627,12 +627,13 @@ body.homepage #header-wrapper {
 /* Warning bar                                                                        */
 /*********************************************************************************/
 
-#warning-bar {
+#warning-bar{
     text-align: center;
     background: #ffe5e5;
     border-bottom: solid 1px #dbdbdb;
     color: #b40000;
     font-weight: bold;
+
     
 }
 .warning-text {
@@ -642,7 +643,10 @@ body.homepage #header-wrapper {
     padding-left: 20px;
 }
 
-
+.warning-text a{
+    color: #b40000;
+    font-weight: bold;
+}
 /*********************************************************************************/
 /* Footer                                                                        */
 /*********************************************************************************/

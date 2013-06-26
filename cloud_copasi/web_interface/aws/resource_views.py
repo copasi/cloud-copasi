@@ -58,8 +58,8 @@ class ResourceTerminateView(RestrictedView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         #Get list of resources
-        
-        if kwargs['all_unrecognized']:
+
+        if kwargs['key_id'] == 'all':
             resources = resource_management_tools.get_unrecognized_resources(request.user)
         else:
             key_id = kwargs['key_id']
@@ -68,9 +68,8 @@ class ResourceTerminateView(RestrictedView):
             resources = resource_management_tools.get_unrecognized_resources(request.user, key)
         
         if kwargs['confirmed']:
-            resource_management_tools.terminate(request.user, resources)
-        
-        return HttpResponseRedirect(reverse_lazy('my_account_home'))
+            resource_management_tools.terminate_resources(resources)
+            return HttpResponseRedirect(reverse_lazy('my_account'))
 
         
         kwargs['resources'] = resources

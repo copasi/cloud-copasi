@@ -11,7 +11,7 @@ from boto.ec2 import EC2Connection
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools,\
-    s3_tools
+    s3_tools, task_tools
 from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP,\
     AWSAccessKey, Task
 import sys, os
@@ -64,8 +64,8 @@ class ResourceOverview():
     def add_ec2_instance(self, key, instance_id):
         self.ec2_instances.append((key, instance_id))
         
-    def add_elastic_ip(self, key, allocation_id, association_id=None):
-        self.elastic_ips.append((key, allocation_id, association_id))
+    def add_elastic_ip(self, key, allocation_id, association_id=None, public_ip=None):
+        self.elastic_ips.append((key, allocation_id, association_id, public_ip))
 
             
     def add_s3_bucket(self, key, bucket_name):
@@ -93,7 +93,8 @@ def get_remote_resources(user, key=None):
             instance_reservations=ec2_connection.get_all_instances()
             for reservation in instance_reservations:
                 for instance in reservation.instances:
-                    overview.add_ec2_instance(key, instance.id)
+                    if instance.state != 'terminated':
+                        overview.add_ec2_instance(key, instance.id)
             
         except Exception, e:
             log.exception(e)
@@ -101,7 +102,10 @@ def get_remote_resources(user, key=None):
         try:
             addresses = ec2_connection.get_all_addresses()
             for address in addresses:
-                overview.add_elastic_ip(key, address.allocation_id, address.association_id)
+                if address.allocation_id == None:
+                    overview.add_elastic_ip(key, None, None, address.public_ip)
+                else:
+                    overview.add_elastic_ip(key, address.allocation_id, address.association_id, None)
                 
         except Exception, e:
             log.exception(e)
@@ -145,7 +149,7 @@ def get_local_resources(user, key=None):
         elastic_ips = ElasticIP.objects.all()
         
         for elastic_ip in elastic_ips:
-            overview.add_elastic_ip(key, elastic_ip)
+            overview.add_elastic_ip(key, elastic_ip.allocation_id, elastic_ip.association_id, None)
         
         #S3 buckets. Should be two for every non-deleted task
         #Get non-deleted tasks
@@ -176,7 +180,7 @@ def get_unrecognized_resources(user, key=None):
     return unrecognized
 
 
-def terminate(user, resources):
+def terminate_resources(resources):
     """Terminate the AWS resources here.
     These will not correspond to any local model
     """
@@ -186,12 +190,57 @@ def terminate(user, resources):
     elastic_ips={}
     s3_buckets={}
     
-    #Build up a dict to contain resources indexed by key 
+    #Build up dicts to contain resources indexed by key 
     
     for key, instance_id in resources.ec2_instances:
-        ec2_instances[key] = instance_id
-    for key, allocation_id, association_id in resources.elastic_ips:
-        elastic_ips[key] = (allocation_id, association_id)
+        if key in ec2_instances:
+            ec2_instances[key].append(instance_id)
+        else:
+            ec2_instances[key] = [instance_id]
+            
+    for key, allocation_id, association_id, public_ip in resources.elastic_ips:
+        if key in elastic_ips:
+            elastic_ips[key].append((allocation_id, association_id, public_ip))
+        else:
+            elastic_ips[key] = [(allocation_id, association_id, public_ip)]
+            
     for key, bucket_name in resources.s3_buckets:
-        s3_buckets[key] = bucket_name
+        if key in s3_buckets:
+            s3_buckets[key].append(bucket_name)
+        else:
+            s3_buckets[key] = [bucket_name]
         
+        
+    #Release IPs    
+    for key in elastic_ips:
+        for allocation_id, association_id, public_ip in elastic_ips[key]:
+            log.debug('Releasing IP address with allocation ID %s'%allocation_id)
+            try:
+                if public_ip:
+                    ec2_tools.release_ip_address(key, None, None, public_ip)
+                else:
+                    ec2_tools.release_ip_address(key, allocation_id, association_id, None)
+            except Exception, e:
+                log.exception(e)
+                
+                
+    #Terminate EC2 instances
+    for key in ec2_instances:
+        log.debug('Terminating %d instances for key %s' %(len(ec2_instances[key]), key.name))
+        try:
+            vpc_connection, ec2_connection = aws_tools.create_connections(key)
+            ec2_connection.terminate_instances(ec2_instances[key])
+        except Exception, e:
+            log.exception(e)
+    
+
+    #Delete buckets
+    for key in s3_buckets:
+        for bucket_name in s3_buckets[key]:
+            try:
+                log.debug('Deleting bucket %s' %bucket_name)
+                s3_connection = s3_tools.create_s3_connection(key)
+                bucket = s3_connection.get_bucket(bucket_name)
+                task_tools.delete_bucket(bucket)
+            except Exception, e:
+                log.exception(e)

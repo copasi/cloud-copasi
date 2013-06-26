@@ -22,13 +22,13 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">A summary of all resources running on your AWS accounts</span>
     </header>
     <div>
-    <p><a href="{% url 'resource terminate_all_unrecognized' %}" class="button button-icon button-icon-check">Terminate all unrecognized resources</a></p>
+    <p><a href="{% url 'resource_terminate' key_id='all' %}" class="button button-icon button-icon-check">Terminate all unrecognized resources</a></p>
     </div>
     
     {% for key, recognized, unrecognized in overview %}
     <h4>AWS Key: {{key.name}}</h4>
     <div class="tablelist">
-        <p><a href="{% url 'resource terminate_key' key_id=key.id%}">Terminate all resources associated with this key</a></p>
+        <p><a href="{% url 'resource_terminate' key_id=key.id%}">Terminate all resources associated with this key</a></p>
         <table>
             <tr>
                 <th></th>
