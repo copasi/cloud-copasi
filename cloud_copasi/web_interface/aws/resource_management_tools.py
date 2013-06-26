@@ -93,7 +93,7 @@ def get_remote_resources(user, key=None):
             instance_reservations=ec2_connection.get_all_instances()
             for reservation in instance_reservations:
                 for instance in reservation.instances:
-                    if instance.state != 'terminated':
+                    if instance.state == 'pending' or instance.state=='running':
                         overview.add_ec2_instance(key, instance.id)
             
         except Exception, e:
@@ -139,7 +139,7 @@ def get_local_resources(user, key=None):
     for key in keys:
         #EC2 instances
         ec2_instances = EC2Instance.objects.filter(condor_pool__vpc__access_key=key)
-        running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running') | ec2_instances.filter(state='shutting-down')
+        running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
         for instance in running_instances:
             overview.add_ec2_instance(key, instance.instance_id)
@@ -180,7 +180,7 @@ def get_unrecognized_resources(user, key=None):
     return unrecognized
 
 
-def terminate_resources(resources):
+def terminate_resources(user, resources):
     """Terminate the AWS resources here.
     These will not correspond to any local model
     """
@@ -193,18 +193,21 @@ def terminate_resources(resources):
     #Build up dicts to contain resources indexed by key 
     
     for key, instance_id in resources.ec2_instances:
+        assert key.user == user
         if key in ec2_instances:
             ec2_instances[key].append(instance_id)
         else:
             ec2_instances[key] = [instance_id]
             
     for key, allocation_id, association_id, public_ip in resources.elastic_ips:
+        assert key.user == user
         if key in elastic_ips:
             elastic_ips[key].append((allocation_id, association_id, public_ip))
         else:
             elastic_ips[key] = [(allocation_id, association_id, public_ip)]
             
     for key, bucket_name in resources.s3_buckets:
+        assert key.user == user
         if key in s3_buckets:
             s3_buckets[key].append(bucket_name)
         else:

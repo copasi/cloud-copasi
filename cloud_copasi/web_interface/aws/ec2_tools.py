@@ -19,6 +19,8 @@ from cloud_copasi import settings
 from boto import sqs
 import logging
 import datetime
+from django.utils.timezone import now as utcnow
+from django.utils.timezone import utc
 
 log = logging.getLogger(__name__)
 
@@ -36,9 +38,14 @@ def get_active_ami(ec2_connection):
 def refresh_pool(condor_pool):
     """Refresh the state of each instance in a condor pool
     """
-    
+    import traceback, inspect
+    frame = inspect.currentframe()
+    stack_trace = traceback.format_stack(frame)
+    log.debug(stack_trace)
     log.debug('refreshing status of pool %s' % condor_pool.name)
-    if datetime.datetime.now() - condor_pool.last_update_time < datetime.timedelta(seconds=10):
+    difference = utcnow() - condor_pool.last_update_time.replace(tzinfo=utc)
+    log.debug('Time difference %s' % str(difference))
+    if difference < datetime.timedelta(seconds=3):
         log.debug('Pool recently refreshed. Not updating')
         return
     
@@ -66,6 +73,8 @@ def refresh_pool(condor_pool):
                 
         except Exception, e:
             log.exception(e)
+    condor_pool.last_update_time = utcnow()
+    condor_pool.save()
     #for instance_status in instance_status_list: 
     #id = instance_status.id; state=state_name,
     #if state has changed - get instance.state_reason
@@ -143,6 +152,8 @@ def launch_pool(condor_pool):
     ec2_instances.append(master_ec2_instance)
 
     condor_pool.master = master_ec2_instance
+    
+    condor_pool.last_update_time = utcnow()
     condor_pool.save()
     
     #wait until the master has a private ip address
@@ -179,7 +190,6 @@ def launch_pool(condor_pool):
             
             ec2_instances.append(ec2_instance)
         
-    
     #Create an sqs queue
     log.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(condor_pool.vpc.access_key)

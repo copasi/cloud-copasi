@@ -67,7 +67,7 @@ http://www.gnu.org/licenses/gpl.html
             You have <span class="bold">{{ compute_pools.count }}</span> compute pool{{ compute_pools.count|pluralize }} running.
         {% endif %}
         <br />
-        <a href="{% url 'my_account_keys' %}">Click here</a> to manage your compute pools.
+        <a href="{% url 'pool_status' %}">Click here</a> to manage your compute pools.
     </p>
     </section>
 

@@ -28,7 +28,7 @@ http://www.gnu.org/licenses/gpl.html
     {% for key, recognized, unrecognized in overview %}
     <h4>AWS Key: {{key.name}}</h4>
     <div class="tablelist">
-        <p><a href="{% url 'resource_terminate' key_id=key.id%}">Terminate all resources associated with this key</a></p>
+        <p><a href="{% url 'resource_terminate' key_id=key.id%}">Terminate all unrecognized resources associated with this key</a></p>
         <table>
             <tr>
                 <th></th>
