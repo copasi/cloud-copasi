@@ -18,7 +18,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from cloud_copasi.web_interface.aws import vpc_tools, aws_tools
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools,\
+    resource_management_tools
 from cloud_copasi.web_interface import models, task_plugins
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
@@ -27,7 +28,7 @@ from cloud_copasi.web_interface.models import VPC, CondorPool, Task, CondorJob, 
 from django.http import HttpRequest
 import json, logging
 from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib.auth.models import User
 
 log = logging.getLogger(__name__)
 class APIView(View):
@@ -310,3 +311,19 @@ class RemoteLoggingUpdateView(APIView):
         return HttpResponse(json_response, content_type="application/json", status=201)
 
     
+class CheckResourceView(APIView):
+    
+    def get(self, request, *args, **kwargs):
+        user_id = int(request.GET['user_id'])
+        user = User.objects.get(id=user_id)
+        log.debug('Checking status for user %s'%user)
+
+        unrecognized_resources = resource_management_tools.get_unrecognized_resources(user)
+        
+        if unrecognized_resources.is_empty():
+            response_data={'status':'healthy'}
+        else:
+            response_data={'status':'unrecognized'}
+        
+        json_response=json.dumps(response_data)
+        return HttpResponse(json_response, content_type="application/json", status=200)

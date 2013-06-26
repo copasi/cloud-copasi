@@ -32,7 +32,15 @@
                     $('#loading-overlay').fadeIn('slow');
                     $('#loading-box').fadeIn('slow');
             }
-
+        function checkResources()
+        {
+            $.getJSON("{% url 'api_check_resource' %}", {'user_id': "{{request.user.id}}" }, function(data){
+                if (data.status == 'unrecognized') {
+                    $("#warning-bar").slideDown("medium");
+                };
+            });
+        }
+        window.onload = checkResources;
         </script>
         <script src="{{ STATIC_URL }}js/popup_box.js"></script>
 
@@ -112,11 +120,9 @@
             </div>
 
         <!--Warning bar -->
-        {% if show_warning_bar %}
-        <div id="warning-bar">
+        <div id="warning-bar" style="display: none;">
         <span class="warning-text"><a href="{% url 'resource_overview' %}">Warning: unrecognized AWS resources in use!</a></span>
         </div>
-        {% endif %}
 {% block main_content %}    
 {% endblock %}
 

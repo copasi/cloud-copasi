@@ -1,0 +1,22 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>the title</title>
+   <script type="text/javascript" src="http://catalyst.mib.man.ac.uk:8000/static/js/jquery-1.8.3.min.js"></script>
+   <script type="text/javascript">
+    function testfunction()
+        {
+        $.getJSON("http://catalyst.mib.man.ac.uk:8000/api/check_resource/", {}, function(data){
+            alert('test ' + data.hello);
+            });
+        }
+</script>
+</head>
+<body>
+   <p>Click on the button to load data:</p>
+   <div id="stage" style="background-color:blue;">
+          STAGE
+   </div>
+   <input type="button" id="driver" value="Load Data" onclick="testfunction()"/>
+</body>
+</html>

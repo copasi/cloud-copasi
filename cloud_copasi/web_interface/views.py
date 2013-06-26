@@ -30,6 +30,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+class TestPageView(TemplateView):
+    template_name='test.html'
+
 class DefaultView(TemplateView):
     page_title=''
     
@@ -55,12 +58,12 @@ class RestrictedView(DefaultView):
         access_keys = AWSAccessKey.objects.filter(user=user)
         kwargs['access_keys'] = access_keys
         
-        resource_overview=resource_management_tools.get_unrecognized_resources(request.user)
+        #resource_overview=resource_management_tools.get_unrecognized_resources(request.user)
         #Generate warnings
-        if not resource_overview.is_empty():
-            log.debug('Unrecognized resources for user %s'%request.user)
-        kwargs['show_warning_bar']= not resource_overview.is_empty()
-        kwargs['resource_overview']=resource_overview
+        #if not resource_overview.is_empty():
+        #    log.debug('Unrecognized resources for user %s'%request.user)
+        #kwargs['show_warning_bar']= not resource_overview.is_empty()
+        #kwargs['resource_overview']=resource_overview
         
         return super(RestrictedView, self).dispatch(request, *args, **kwargs)
 
