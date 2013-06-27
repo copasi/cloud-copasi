@@ -60,7 +60,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{ condor_pool.master.instance_type }}</td>
                 <td>{{ condor_pool.master.get_state }}</td>
                 <td>Not implemented</td>
-                <td>Not implemented</td>
+                <td>{{  condor_pool.master.get_health }}</td>
             </tr>
             {% endif %}
         </table>
@@ -82,7 +82,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{ instance.instance_type }}</td>
                 <td>{{ instance.get_state }}</td>
                 <td>Not implemented</td>
-                <td>Not implemented</td>
+                <td>{{ instance.get_health }}</td>
             </tr>
             {% endfor %}
         </table>

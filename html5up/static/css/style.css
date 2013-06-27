@@ -627,25 +627,63 @@ body.homepage #header-wrapper {
 /* Warning bar                                                                        */
 /*********************************************************************************/
 
-#warning-bar{
-    text-align: center;
-    background: #ffe5e5;
+#status-bar{
+    font-weight: bold;
+    height: 24px;
+    position: relative;
+    background-color: white;
     border-bottom: solid 1px #dbdbdb;
-    color: #b40000;
+    text-align: center;
     font-weight: bold;
 
-    
 }
-.warning-text {
+#checking-text{
+    display:none;
+}
+#response-bar{
+    display:none;
+    position:absolute;
+    width: 100%;
+    text-align: center;
+}
+
+.warning-bar{
+    background: #ffe5e5;
+    color: #b40000;
+}
+.warning-text a{
     background-image: url('/static/alert_16.png');
     background-position: left center;
     background-repeat: no-repeat;
     padding-left: 20px;
-}
-
-.warning-text a{
     color: #b40000;
     font-weight: bold;
+
+}
+.healthy-bar{
+    background: #c0e3b1 ;
+    color: rgb(71, 71, 71);
+}
+
+.healthy-text{
+    background-image: url('/static/green-check-16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 23px;
+
+}
+.error-bar{
+    background: #ffffa5;
+    color: rgb(71,71,71);
+}
+.error-text{
+    background-image: url('/static/warning-16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+    color: rgb(71,71,71);
+    font-weight: bold;
+
 }
 /*********************************************************************************/
 /* Footer                                                                        */

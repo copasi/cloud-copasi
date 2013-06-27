@@ -44,6 +44,8 @@ class DefaultView(TemplateView):
         if errors:
             kwargs['errors'] = errors
         
+        if request.user.is_authenticated():
+            kwargs['show_status_bar']=True
         return super(DefaultView, self).dispatch(request, *args, **kwargs)
 
 
@@ -54,7 +56,7 @@ class RestrictedView(DefaultView):
         user = request.user
         access_keys = AWSAccessKey.objects.filter(user=user)
         kwargs['access_keys'] = access_keys
-        
+        kwargs['show_status_bar'] = True
         #resource_overview=resource_management_tools.get_unrecognized_resources(request.user)
         #Generate warnings
         #if not resource_overview.is_empty():

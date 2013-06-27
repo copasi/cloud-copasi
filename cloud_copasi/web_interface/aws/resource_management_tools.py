@@ -139,6 +139,12 @@ def get_local_resources(user, key=None):
     for key in keys:
         #EC2 instances
         ec2_instances = EC2Instance.objects.filter(condor_pool__vpc__access_key=key)
+        log.debug('all_instances')
+        log.debug(ec2_instances)
+        log.debug('pending instances')
+        log.debug(ec2_instances.filter(state='pending'))
+        log.debug('running instances')
+        log.debug(ec2_instances.filter(state='running'))
         running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
         for instance in running_instances:
@@ -176,7 +182,6 @@ def get_unrecognized_resources(user, key=None):
     remote = get_remote_resources(user, key)
     
     unrecognized = remote-recognized
-    
     return unrecognized
 
 
@@ -247,3 +252,12 @@ def terminate_resources(user, resources):
                 task_tools.delete_bucket(bucket)
             except Exception, e:
                 log.exception(e)
+                
+def health_check(user, key=None):
+    """Perform a health check on all AWS resources
+    """
+    condor_pools = CondorPool.objects.filter(vpc__access_key__user=user)
+    for condor_pool in condor_pools:
+        health = condor_pool.get_health()
+        if health != 'ok': return health
+    return 'ok'

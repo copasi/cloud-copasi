@@ -38,10 +38,6 @@ def get_active_ami(ec2_connection):
 def refresh_pool(condor_pool):
     """Refresh the state of each instance in a condor pool
     """
-    import traceback, inspect
-    frame = inspect.currentframe()
-    stack_trace = traceback.format_stack(frame)
-    log.debug(stack_trace)
     log.debug('refreshing status of pool %s' % condor_pool.name)
     difference = utcnow() - condor_pool.last_update_time.replace(tzinfo=utc)
     log.debug('Time difference %s' % str(difference))
@@ -69,7 +65,10 @@ def refresh_pool(condor_pool):
                 ec2_instance.save()
                 instance=ec2_instance.get_instance()
                 ec2_instance.state_transition_reason=instance.state_reason
-                ec2_instance.save()
+                
+            ec2_instance.instance_status = status.instance_status.status
+            ec2_instance.system_status = status.system_status.status
+            ec2_instance.save()
                 
         except Exception, e:
             log.exception(e)
@@ -385,3 +384,4 @@ def release_ip_address_from_instance(ec2_instance):
         errors.append(e)
     
     return errors
+

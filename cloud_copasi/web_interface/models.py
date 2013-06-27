@@ -134,8 +134,6 @@ class CondorPool(models.Model):
     def __unicode__(self):
         return "%s (User: %s)" % (self.name, self.vpc.access_key.user.username) 
     
-    def get_status(self):
-        return 'Not implemented'
     
     def get_key_pair(self, ec2_connection):
         return ec2_connection.get_key_pair(self.key_pair.name)
@@ -146,6 +144,13 @@ class CondorPool(models.Model):
     
     def get_queue_name(self):
         return "cloud-copasi-" + str(self.uuid) 
+    
+    def get_health(self):
+        instances = EC2Instance.objects.filter(condor_pool=self)
+
+        for instance in instances:
+            if instance.get_health() != 'ok': return instance.get_health()
+        return 'ok'
     
 class EC2Instance(models.Model):
     
@@ -174,11 +179,20 @@ class EC2Instance(models.Model):
                                       ('terminated', 'Terminated'),
                                       ('stopping', 'Stopping'),
                                       ('stopped', 'Stopped'),
-                                      )
+                                      ),
+                             default='pending'
                              )
     
     #Any message associated with the state
     state_transition_reason = models.CharField(max_length=50, verbose_name = 'Why the instance changed state', blank=True, null=True)
+    
+    instance_status = models.CharField(max_length=20, default='initializing')
+    system_status = models.CharField(max_length=20, default='initializing')
+    
+    def get_health(self):
+        if self.instance_status=='ok' and self.system_status=='ok': return 'ok'
+        elif self.instance_status=='ok': return self.system_status
+        else: return self.instance_status
     
     class Meta:
         app_label = 'web_interface'

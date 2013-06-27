@@ -318,12 +318,22 @@ class CheckResourceView(APIView):
         user = User.objects.get(id=user_id)
         log.debug('Checking status for user %s'%user)
 
-        unrecognized_resources = resource_management_tools.get_unrecognized_resources(user)
-        
-        if unrecognized_resources.is_empty():
-            response_data={'status':'healthy'}
-        else:
-            response_data={'status':'unrecognized'}
-        
+        try:
+            if not resource_management_tools.get_unrecognized_resources(user).is_empty():
+                status='unrecognized'
+            elif resource_management_tools.get_local_resources(user).is_empty():
+                status='empty'
+            else:
+                health = resource_management_tools.health_check(user)
+                log.debug('health : %s'%health)
+                if health == 'initializing': status = 'pending'
+                elif health == 'ok': status ='healthy'
+                else: status = 'problem'
+            
+        except Exception, e:
+            log.exception(e)
+            status='error'
+            
+        response_data = {'status' : status}
         json_response=json.dumps(response_data)
         return HttpResponse(json_response, content_type="application/json", status=200)

@@ -50,7 +50,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{pool.vpc.access_key.name }}</td>
                 <td >{{pool.get_count}}</td>
                 <td> Fixed price </td>
-                <td> {{ pool.get_status }}</td>
+                <td> {{ pool.get_health }}</td>
                 <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=pool.id %}">Details</a></td>
             </tr>
         {% endfor %}
