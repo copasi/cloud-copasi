@@ -259,5 +259,5 @@ def health_check(user, key=None):
     condor_pools = CondorPool.objects.filter(vpc__access_key__user=user)
     for condor_pool in condor_pools:
         health = condor_pool.get_health()
-        if health != 'ok': return health
-    return 'ok'
+        if health != 'healthy': return health
+    return 'healthy'

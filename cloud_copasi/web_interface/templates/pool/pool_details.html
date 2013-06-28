@@ -28,11 +28,13 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Name</th>
                 <th>Number of nodes*</th>
                 <th>CPU hours used</th>
+                <th>Pool health</th>
             </tr>
             <tr>
                 <td>{{condor_pool.name}}</td>
                 <td>{{instances.count}}</td>
                 <td>Not implemented</td>
+                <td>{{condor_pool.get_health}}</td>
             </tr>
         </table>
         <p>*Includes Master node</p>

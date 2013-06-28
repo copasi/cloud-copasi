@@ -327,7 +327,7 @@ class CheckResourceView(APIView):
                 health = resource_management_tools.health_check(user)
                 log.debug('health : %s'%health)
                 if health == 'initializing': status = 'pending'
-                elif health == 'ok': status ='healthy'
+                elif health == 'healthy': status ='healthy'
                 else: status = 'problem'
             
         except Exception, e:

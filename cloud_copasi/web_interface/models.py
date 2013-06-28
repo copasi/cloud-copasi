@@ -149,8 +149,8 @@ class CondorPool(models.Model):
         instances = EC2Instance.objects.filter(condor_pool=self)
 
         for instance in instances:
-            if instance.get_health() != 'ok': return instance.get_health()
-        return 'ok'
+            if instance.get_health() != 'healthy' or instance.get_health != 'initializing': return instance.get_health()
+        return 'healthy'
     
 class EC2Instance(models.Model):
     
@@ -190,7 +190,7 @@ class EC2Instance(models.Model):
     system_status = models.CharField(max_length=20, default='initializing')
     
     def get_health(self):
-        if self.instance_status=='ok' and self.system_status=='ok': return 'ok'
+        if self.instance_status=='ok' and self.system_status=='ok': return 'healthy'
         elif self.instance_status=='ok': return self.system_status
         else: return self.instance_status
     

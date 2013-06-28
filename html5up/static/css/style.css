@@ -661,11 +661,16 @@ body.homepage #header-wrapper {
 
 }
 .healthy-bar{
-    background: #c0e3b1 ;
+    background: #CEFFBD;
     color: rgb(71, 71, 71);
 }
 
-.healthy-text{
+.plain-bar{
+    background: white;
+    color: rgb(71,71,71);
+}
+
+.healthy-text, .plain-text{
     background-image: url('/static/green-check-16.png');
     background-position: left center;
     background-repeat: no-repeat;
