@@ -71,7 +71,8 @@ urlpatterns = patterns('',
     url(r'^api/register_transferred_files/$', api_views.RegisterTransferredFilesView.as_view(), name='api_register_transferred_files'),
     url(r'^api/remote_logging_update/$', api_views.RemoteLoggingUpdateView.as_view(), name='api_remote_logging_update'),
     url(r'^api/check_resource/$', api_views.CheckResourceView.as_view(), name='api_check_resource'),
-    
+    url(r'^api/extra_task_fields/$', api_views.ExtraTaskFieldsView.as_view(), name='api_extra_task_fields'),
+
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

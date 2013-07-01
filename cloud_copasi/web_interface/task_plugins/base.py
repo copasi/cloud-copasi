@@ -8,11 +8,37 @@
 #-------------------------------------------------------------------------------
 from cloud_copasi.web_interface.models import CondorJob, Subtask
 from cloud_copasi.web_interface.aws import task_tools
+from django import forms
+from cloud_copasi.web_interface import  form_tools
+from cloud_copasi.web_interface.task_plugins import tools
+from cloud_copasi.web_interface.models import CondorPool
 
 #===============================================================================
 # Base task plugin structure
 #===============================================================================
 
+class BaseTaskForm(forms.Form):
+    name = forms.CharField()
+    #Populate the task type field with an initial empty string option
+    task_type = forms.ChoiceField(choices=[('', '------------')] + tools.task_types)
+    #access_key = form_tools.NameChoiceField(queryset=None, initial=0)
+    model_file = forms.FileField()
+    compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
+    
+    minimum_repeats = forms.IntegerField(required=False)
+    maximum_repeats = forms.IntegerField(required=False)
+    
+    
+    def __init__(self, user, *args, **kwargs):
+        super(BaseTaskForm, self).__init__(*args, **kwargs)
+        self.user = user
+
+        #access_keys = AWSAccessKey.objects.filter(user=self.user).filter(vpc__isnull=False)
+        #self.fields['access_key'].queryset = access_keys
+        
+        condor_pools = CondorPool.objects.filter(vpc__access_key__user = user).filter(vpc__isnull=False)
+        self.fields['compute_pool'].queryset = condor_pools
+        
 
 
 class BaseTask:

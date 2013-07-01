@@ -14,12 +14,14 @@ from django.forms import Form
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface.aws import task_tools
 import os
+import forms
+from cloud_copasi.web_interface import task_plugins
 
 internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
-class TaskForm(Form):
+class TaskForm(task_plugins.base.BaseTaskForm):
     #Any extra fields for the task submission form
-    pass
+    test_field_1 = forms.IntegerField()
 
 class TaskPlugin(BaseTask):
     

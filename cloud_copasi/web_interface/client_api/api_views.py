@@ -337,3 +337,13 @@ class CheckResourceView(APIView):
         response_data = {'status' : status}
         json_response=json.dumps(response_data)
         return HttpResponse(json_response, content_type="application/json", status=200)
+    
+class ExtraTaskFieldsView(APIView):
+    def get(self, request, *args, **kwargs):
+        task_type = int(request.GET['task_type'])
+        
+        
+        
+        response_data = {'field_1' : None}
+        json_response=json.dumps(response_data)
+        return HttpResponse(json_response, content_type="application/json", status=200)

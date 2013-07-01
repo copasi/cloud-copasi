@@ -17,6 +17,7 @@ from boto.ec2 import EC2Connection
 import sys, os, random, string
 from cloud_copasi import copasi
 from fields import UUIDField
+import cPickle
 
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
@@ -282,16 +283,35 @@ class Task(models.Model):
      
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
-    #submit_time = models.DateTimeField()
+    submit_time = models.DateTimeField(auto_now_add=True)
+    finish_time = models.DateTimeField(null=True)
     
     task_type = models.CharField(max_length=128, )
     
-    min_runs = models.PositiveIntegerField(verbose_name = 'The minimum number of repeats to perform', blank=True, null=True)
-    max_runs = models.PositiveIntegerField(verbose_name = 'The maximum number of repeats to perform', blank=True, null=True)
-    
+    #Filename/path of the original model
     original_model = models.CharField(max_length=200)
     
+    #Field for storing any task-specific fields
+    #Will be stored as a string-based python pickle
+    #Not the most efficient way of doing this, but these fields unlikely to be needed much
+    custom_fields = models.CharField(max_length=10000, blank=True, default='')
     
+    def set_custom_field(self, field_name, value):
+        try:
+            custom_fields = cPickle.loads(self.custom_fields)
+        except:
+            custom_fields = {}
+        custom_fields[field_name] = value
+        self.custom_fields = cPickle.dumps(custom_fields)
+        self.save()
+    
+    def get_custom_field(self, field_name):
+        try:
+            custom_fields = cPickle.loads(self.custom_fields)
+            output = custom_fields[field_name]
+            return output
+        except:
+            return None
     
     status_choices = (
                       ('new', 'New'),

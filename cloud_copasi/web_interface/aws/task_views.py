@@ -28,33 +28,25 @@ import tempfile, os
 from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
-
-class NewTaskForm(forms.Form):
-    name = forms.CharField()
-    task_type = forms.ChoiceField(choices=task_plugins.task_types)
-    access_key = form_tools.NameChoiceField(queryset=None, initial=0)
-    model_file = forms.FileField()
-    compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
-    
-    minimum_repeats = forms.IntegerField(required=False)
-    maximum_repeats = forms.IntegerField(required=False)
-    
-    
-    def __init__(self, user, *args, **kwargs):
-        super(NewTaskForm, self).__init__(*args, **kwargs)
-        self.user = user
-
-        access_keys = AWSAccessKey.objects.filter(user=self.user).filter(vpc__isnull=False)
-        self.fields['access_key'].queryset = access_keys
-        
-        condor_pools = CondorPool.objects.filter(vpc__access_key__user = user)
-        self.fields['compute_pool'].queryset = condor_pools
-        
+from cloud_copasi.web_interface.task_plugins.base import BaseTaskForm
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_new.html'
     page_title = 'New task'
-    form_class = NewTaskForm
+    
+    def __init__(self, *args, **kwargs):
+        self.form_class = BaseTaskForm
+        return super(NewTaskView, self).__init__(*args, **kwargs)
+    
+    
+    def post(self, request, *args, **kwargs):
+        """Check to see if the task type has been set. If it has then replace self.form_class with that specific form class
+        """
+        task_type = str(request.POST['task_type'])
+        if task_type != '':
+            task_form = task_plugins.get_class_form(task_type)
+            self.form_class = task_form
+        return super(NewTaskView, self).post(request, *args, **kwargs)
     
     def get_form_kwargs(self):
         kwargs = super(NewTaskView, self).get_form_kwargs()
@@ -75,8 +67,9 @@ class NewTaskView(RestrictedFormView):
         return super(NewTaskView,self).dispatch(request, *args, **kwargs)
     
     def form_valid(self, form,  *args, **kwargs):
-        access_key = form.cleaned_data['access_key']
+        #access_key = form.cleaned_data['access_key']
         compute_pool = form.cleaned_data['compute_pool']
+        access_key = compute_pool.vpc.access_key
         request = self.request
 
         assert access_key.user == request.user
