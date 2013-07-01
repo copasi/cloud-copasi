@@ -25,9 +25,8 @@ from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
 from cloud_copasi.web_interface.models import VPC, CondorPool
-from django.forms.forms import NON_FIELD_ERRORS
+
 import logging
-from django.forms.util import ErrorList
 
 log = logging.getLogger(__name__)
 
@@ -100,7 +99,7 @@ class KeysAddView(RestrictedFormView):
         kwargs =  super(RestrictedFormView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
-
+    
     def form_valid(self, *args, **kwargs):
         form=kwargs['form']
         #Create the key object and save it
@@ -114,13 +113,10 @@ class KeysAddView(RestrictedFormView):
             ec2_connection.get_all_regions()
             
         except Exception, e:
-            #Since we are about to return form_invalid, add the errors directly to the form non field error list
-            #kwargs['errors']=aws_tools.process_errors([e])
+            #Since we are about to return form_invalid, add the errors directly to kwargs
+            kwargs['errors']=aws_tools.process_errors([e])
             key.delete()
-            error_list = [x[1] for x in e.errors]
-            form._errors[NON_FIELD_ERRORS] = ErrorList(error_list)
-            return self.form_invalid(self, *args, **kwargs)
-           
+            return super(KeysAddView, self).form_invalid(*args, **kwargs)
         return super(KeysAddView, self).form_valid(*args, **kwargs)
 
 class PasswordChangeView(RestrictedFormView):
