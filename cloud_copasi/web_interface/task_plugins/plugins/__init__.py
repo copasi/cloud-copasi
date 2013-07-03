@@ -20,20 +20,14 @@
 #     return filter(is_plugin_package, os.listdir(directory))
 # 
 # 
-# #Go through the list of packages and get the task_type tuple
-# def get_task_types(subpackages):
-#     output = []
-#     for package in subpackages:
-#         module = importlib.import_module(__package__ + '.' + package + '.plugin')
-#         task_type = module.internal_type
-#         output.append(task_type)
-#     return output
-# subpackages = get_subpackages(__path__)
-# 
-# task_types = get_task_types(subpackages)
 # 
 # #Method for loading a plugin and returning the TaskPlugin class (not instance)
 # def get_class(name):
 #     module = importlib.import_module(__package__ + '.' + name + '.plugin')
 #     plugin = getattr(module, 'TaskPlugin')
+#     return plugin
+# 
+# def get_class_form(name):
+#     module = importlib.import_module(__package__ + '.' + name + '.plugin')
+#     plugin = getattr(module, 'TaskForm')
 #     return plugin

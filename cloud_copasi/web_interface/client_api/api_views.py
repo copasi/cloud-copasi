@@ -29,6 +29,7 @@ from django.http import HttpRequest
 import json, logging
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
+from cloud_copasi.web_interface.task_plugins import base, tools
 
 log = logging.getLogger(__name__)
 class APIView(View):
@@ -161,7 +162,7 @@ class UpdateCondorStatusView(APIView):
                 
                 
                 #Is there another subtask to run?
-                TaskClass = task_plugins.get_class(subtask.task.task_type)
+                TaskClass = tools.get_task_class(subtask.task.task_type)
                 
                 subtask_count = TaskClass.subtasks
                 
@@ -339,11 +340,47 @@ class CheckResourceView(APIView):
         return HttpResponse(json_response, content_type="application/json", status=200)
     
 class ExtraTaskFieldsView(APIView):
+    """Return the extra fields required for a specific task. Typically called asynchronously
+    """
     def get(self, request, *args, **kwargs):
-        task_type = int(request.GET['task_type'])
+        task_type = request.GET['task_type']
+        
+        task_form = tools.get_form_class(task_type)
+        
+        base_form = base.BaseTaskForm
+        
+        #Get a list of all fields that are only in the task form, and not in the base
+        extra_fields = []
+        for field_name in task_form.base_fields:
+            if field_name not in base_form.base_fields:
+                extra_fields.append(field_name)
+        
+        #Create a bound instance of the task form so we can get at the html
+        bound_form = task_form(user=None, task_types=[])
+        field_list = []
+        
+        #Return the complete html here:
         
         
-        
-        response_data = {'field_1' : None}
+        for field_name in extra_fields:
+            field = bound_form[field_name]
+            field_data=  {}
+            #print field
+            field_data['label'] = field.label
+            field_data['field'] = str(field) #should be html
+            if field.field.required:
+                field_data['required'] = 'required'
+            else:
+                field_data['required'] = ' '
+            if field.help_text:
+                field_data['help_text'] = field.help_text
+            else:
+                field_data['help_text'] = ' '
+            field_data['id'] = field.id_for_label
+            field_data['html_name'] = field.html_name
+            
+            field_list.append(field_data)
+        response_data={}
+        response_data['fields'] = field_list
         json_response=json.dumps(response_data)
         return HttpResponse(json_response, content_type="application/json", status=200)

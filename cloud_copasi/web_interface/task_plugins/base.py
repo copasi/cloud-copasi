@@ -9,8 +9,8 @@
 from cloud_copasi.web_interface.models import CondorJob, Subtask
 from cloud_copasi.web_interface.aws import task_tools
 from django import forms
-from cloud_copasi.web_interface import  form_tools
-from cloud_copasi.web_interface.task_plugins import tools
+from cloud_copasi.web_interface import form_tools
+#from cloud_copasi.web_interface.task_plugins import tools
 from cloud_copasi.web_interface.models import CondorPool
 
 #===============================================================================
@@ -20,7 +20,7 @@ from cloud_copasi.web_interface.models import CondorPool
 class BaseTaskForm(forms.Form):
     name = forms.CharField()
     #Populate the task type field with an initial empty string option
-    task_type = forms.ChoiceField(choices=[('', '------------')] + tools.task_types)
+    task_type = forms.ChoiceField()
     #access_key = form_tools.NameChoiceField(queryset=None, initial=0)
     model_file = forms.FileField()
     compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
@@ -29,10 +29,10 @@ class BaseTaskForm(forms.Form):
     maximum_repeats = forms.IntegerField(required=False)
     
     
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, task_types,  *args, **kwargs):
         super(BaseTaskForm, self).__init__(*args, **kwargs)
         self.user = user
-
+        self.fields['task_type'].choices = [('', '------------')] + task_types
         #access_keys = AWSAccessKey.objects.filter(user=self.user).filter(vpc__isnull=False)
         #self.fields['access_key'].queryset = access_keys
         

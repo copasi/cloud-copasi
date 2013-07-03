@@ -7,21 +7,22 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.web_interface.task_plugins.base import BaseTask
+from cloud_copasi.web_interface.task_plugins.base import BaseTask, BaseTaskForm
 from cloud_copasi.web_interface.models import Task, CondorJob
 from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
+from django import forms
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface.aws import task_tools
 import os
-import forms
-from cloud_copasi.web_interface import task_plugins
 
 internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
-class TaskForm(task_plugins.base.BaseTaskForm):
+class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
-    test_field_1 = forms.IntegerField()
+    test_field_1 = forms.CharField(max_length=20)
+    test_field_2 = forms.IntegerField()
+    test_field_3 = forms.ChoiceField(choices=(('1', '111'),))
 
 class TaskPlugin(BaseTask):
     

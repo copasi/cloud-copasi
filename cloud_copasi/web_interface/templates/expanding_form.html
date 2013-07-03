@@ -39,12 +39,14 @@ http://www.gnu.org/licenses/gpl.html
                     <tr><td> </td><td class="bottomline" colspan="2"> </td></tr>
         
             {% endfor %}
-        <tr><td><input id="id_test" name="test_field_1" type="text"></td></tr>
+        
         </table>
+        
+
         <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
         {% if show_loading_screen %}
-        <a class="form-button button button-icon button-icon-check" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
+        <a class="form-button button button-icon button-icon-check" id="form-submit-link" {% if hide_submit %} style="display:none" {% endif %} onclick="formSubmit('form1', true)">{{ submit_text }}</a>
         {% else %}
-        <a class="form-button button button-icon button-icon-check" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
+        <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
         {% endif %}
     </form>

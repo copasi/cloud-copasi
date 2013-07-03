@@ -19,7 +19,7 @@ http://www.gnu.org/licenses/gpl.html
             </table>
         {%endif %}
         
-        <table class="formtable">
+        <table class="formtable" id="formtable">
             
             {% for hidden in form.hidden_fields%}
                 {{ hidden }}
@@ -43,8 +43,8 @@ http://www.gnu.org/licenses/gpl.html
         </table>
         <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
         {% if show_loading_screen %}
-        <a class="form-button button button-icon button-icon-check" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
+        <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
         {% else %}
-        <a class="form-button button button-icon button-icon-check" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
+        <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
         {% endif %}
     </form>

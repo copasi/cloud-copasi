@@ -28,32 +28,33 @@ import tempfile, os
 from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
-from cloud_copasi.web_interface.task_plugins.base import BaseTaskForm
+from cloud_copasi.web_interface.task_plugins import base, tools
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_new.html'
     page_title = 'New task'
     
     def __init__(self, *args, **kwargs):
-        self.form_class = BaseTaskForm
+        self.form_class = base.BaseTaskForm
         return super(NewTaskView, self).__init__(*args, **kwargs)
     
     
-    def post(self, request, *args, **kwargs):
-        """Check to see if the task type has been set. If it has then replace self.form_class with that specific form class
-        """
-        task_type = str(request.POST['task_type'])
-        if task_type != '':
-            task_form = task_plugins.get_class_form(task_type)
-            self.form_class = task_form
-        return super(NewTaskView, self).post(request, *args, **kwargs)
     
     def get_form_kwargs(self):
         kwargs = super(NewTaskView, self).get_form_kwargs()
         kwargs['user']=self.request.user
+        kwargs['task_types'] = tools.get_task_types()
         return kwargs
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        
+        #If task_type has been set, change the form class
+        task_type = request.POST.get('task_type')
+        if task_type:
+            task_form = tools.get_form_class(task_type)
+            self.form_class = task_form
+        
+        
         #Ensure we have at least 1 running condor pool
         pools = CondorPool.objects.filter(vpc__access_key__user=request.user)
         if pools.count() == 0:
@@ -102,7 +103,7 @@ class NewTaskView(RestrictedFormView):
         task.original_model = full_filename
         task.save()
         
-        TaskClass = task_plugins.get_class(form.cleaned_data['task_type'])
+        TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
         
         task_instance = TaskClass(task)
         

@@ -8,7 +8,11 @@
 #-------------------------------------------------------------------------------
 
 import os, glob, sys, importlib
-from cloud_copasi.web_interface import task_plugins
+from cloud_copasi.web_interface.task_plugins import plugins as task_plugins
+import logging
+
+log = logging.getLogger(__name__)
+
 #Get a list of the subpackages in the module path
 #Must contain plugin.py
 def get_subpackages(path):
@@ -20,14 +24,30 @@ def get_subpackages(path):
     return filter(is_plugin_package, os.listdir(directory))
 
 #Go through the list of packages and get the task_type tuple
-def get_task_types(subpackages):
+def get_task_types(subpackages=None):
+    if not subpackages:
+        log.debug('task plugin path')
+        log.debug(task_plugins.__path__)
+        subpackages = get_subpackages(task_plugins.__path__)
     output = []
     for package in subpackages:
-        module = importlib.import_module(__package__ + '.' + package + '.plugin')
+        a=task_plugins
+        module = importlib.import_module(task_plugins.__name__ + '.' + package + '.plugin')
         task_type = module.internal_type
         output.append(task_type)
     return output
 
-subpackages = get_subpackages(task_plugins.__path__)
+#subpackages = get_subpackages(task_plugins.__path__)
 
-task_types = get_task_types(subpackages)
+#task_types = get_task_types(subpackages)
+def get_task_class(task_type):
+    module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
+    plugin = getattr(module, 'TaskPlugin')
+    return plugin
+
+def get_form_class(task_type):
+    """Return the task form from str task_type"""
+    module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
+    plugin = getattr(module, 'TaskForm')
+    return plugin
+
