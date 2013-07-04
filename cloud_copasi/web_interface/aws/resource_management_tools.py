@@ -139,12 +139,6 @@ def get_local_resources(user, key=None):
     for key in keys:
         #EC2 instances
         ec2_instances = EC2Instance.objects.filter(condor_pool__vpc__access_key=key)
-        log.debug('all_instances')
-        log.debug(ec2_instances)
-        log.debug('pending instances')
-        log.debug(ec2_instances.filter(state='pending'))
-        log.debug('running instances')
-        log.debug(ec2_instances.filter(state='running'))
         running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
         for instance in running_instances:
