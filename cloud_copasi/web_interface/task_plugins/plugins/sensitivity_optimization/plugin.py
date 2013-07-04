@@ -30,9 +30,7 @@ class TaskPlugin(BaseTask):
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         copasi_model = CopasiModel(self.task.original_model)
-        isvalid = copasi_model.is_valid('SO')
-        if isvalid != True:
-            raise Exception(isvalid)
+        return copasi_model.is_valid('SO')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
