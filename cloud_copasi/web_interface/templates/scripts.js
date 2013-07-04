@@ -6,7 +6,11 @@ function formSubmit(formName, display_loading)
         $('#loading-overlay').fadeIn('slow');
         $('#loading-box').fadeIn('slow');
     }
-    
+    //For the new task screen, we need to enable the #id_task_type field before submitting
+    if ($('#id_task_type').length > 0){
+        console.log('enabling id_task_type')
+        $('#id_task_type').prop('disabled', false);
+    }
     document.getElementById(formName).submit();
 }
 function showLoadingScreen()
