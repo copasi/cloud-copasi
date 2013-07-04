@@ -27,7 +27,7 @@ class TaskPlugin(BaseTask):
     subtasks = 2
 
     def validate(self):
-        return True
+        return 'invalid model'
     
     def initialize_subtasks(self):
         #Create new subtask objects, and save them

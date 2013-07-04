@@ -29,6 +29,7 @@ from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
 from cloud_copasi.web_interface.task_plugins import base, tools
+from django.forms.forms import NON_FIELD_ERRORS
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_new.html'
@@ -121,7 +122,17 @@ class NewTaskView(RestrictedFormView):
         
         task_instance = TaskClass(task)
         
-        task_instance.validate()
+        #Validate the task
+        valid = task_instance.validate()
+        if valid != True:
+            #valid message contained in valid hopefully.
+            error_messages = ['Model file is not valid for the current task type',
+                               str(valid),
+                               ]
+            form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
+            task.delete()
+            kwargs['form'] = form
+            return self.form_invalid(self, *args, **kwargs)
         
         task_instance.initialize_subtasks()
         
