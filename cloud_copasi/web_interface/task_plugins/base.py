@@ -24,10 +24,7 @@ class BaseTaskForm(forms.Form):
     #access_key = form_tools.NameChoiceField(queryset=None, initial=0)
     model_file = forms.FileField()
     compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
-    
-    minimum_repeats = forms.IntegerField(required=False)
-    maximum_repeats = forms.IntegerField(required=False)
-    
+
     
     def __init__(self, user, task_types,  *args, **kwargs):
         super(BaseTaskForm, self).__init__(*args, **kwargs)

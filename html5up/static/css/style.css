@@ -805,7 +805,7 @@ td.bottomline {
     cursor: default;
 }
 
-th.reqired, span.required{
+th.required, span.required{
     font-weight: bold;
 }
 .hidden-submit {
