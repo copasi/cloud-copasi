@@ -98,9 +98,23 @@ class NewTaskView(RestrictedFormView):
         task.name = form.cleaned_data['name']
         task.condor_pool = form.cleaned_data['compute_pool']
         task.task_type = form.cleaned_data['task_type']
-        task.min_runs = form.cleaned_data['minimum_repeats']
-        task.max_runs = form.cleaned_data['maximum_repeats']
         task.original_model = full_filename
+
+        
+        
+        #Get a list of all fields that are only in the task form, and not in the base
+
+        
+        extra_fields = []
+        base_form = base.BaseTaskForm
+        for field_name in self.form_class.base_fields:
+            if field_name not in base_form.base_fields:
+                extra_fields.append(field_name)
+        #Save the custom task fields
+        for field_name in extra_fields:
+            task.set_custom_field(field_name, form.cleaned_data[field_name])
+            
+            
         task.save()
         
         TaskClass = tools.get_task_class(form.cleaned_data['task_type'])

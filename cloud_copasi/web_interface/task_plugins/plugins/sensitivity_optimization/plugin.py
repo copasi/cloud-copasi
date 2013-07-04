@@ -20,9 +20,8 @@ internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
 class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
-    test_field_1 = forms.CharField(max_length=20)
-    test_field_2 = forms.IntegerField()
-    test_field_3 = forms.ChoiceField(choices=(('1', '111'),))
+    pass
+
 
 class TaskPlugin(BaseTask):
     
