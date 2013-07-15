@@ -60,7 +60,7 @@ def notify_new_condor_task(task, file_key_names, spec_key_names):
     """
     
     assert isinstance(task, Task)
-    queue_name = task.condor_pool.get_queue_name()
+    queue_name = task.condor_pool.get_general_queue_name()
     sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
     queue = sqs_connection.get_queue(queue_name)
     assert queue != None
@@ -87,7 +87,7 @@ def notify_new_condor_task(task, file_key_names, spec_key_names):
 
 def notify_delete_task(task):
     assert isinstance(task, Task)
-    queue_name = task.condor_pool.get_queue_name()
+    queue_name = task.condor_pool.get_general_queue_name()
     sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
     queue = sqs_connection.get_queue(queue_name)
     assert queue != None
@@ -145,7 +145,7 @@ def notify_file_transfer(task, reason, file_list, zip, delete):
     """
     
     assert isinstance(task, Task)
-    queue_name = task.condor_pool.get_queue_name()
+    queue_name = task.condor_pool.get_general_queue_name()
     sqs_connection = aws_tools.create_sqs_connection(task.condor_pool.vpc.access_key)
     queue = sqs_connection.get_queue(queue_name)
     assert queue != None

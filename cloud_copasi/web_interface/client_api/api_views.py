@@ -30,6 +30,7 @@ import json, logging
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from cloud_copasi.web_interface.task_plugins import base, tools
+import urllib2
 
 log = logging.getLogger(__name__)
 class APIView(View):
@@ -384,3 +385,42 @@ class ExtraTaskFieldsView(APIView):
         response_data['fields'] = field_list
         json_response=json.dumps(response_data)
         return HttpResponse(json_response, content_type="application/json", status=200)
+    
+class TerminateInstanceAlarm(APIView):
+    """Receive a notification from an alarm to terminate an instance due to inactivity.
+    If this happens, we have to also cancel any associated spot requests or the instance will respawn!
+    """
+
+    def post(self,request, *args, **kwargs ):
+        assert isinstance(request, HttpRequest)
+        json_data=request.body
+        data = json.loads(json_data)
+        
+        #If this is a subscription confirmation message, then confirm the request
+        if data['Type'] == 'SubscriptionConfirmation':
+            connection = urllib2.urlopen(data['SubscribeURL'])
+            log.debug('Request to subscribe to termination alarm subscription')
+            assert connection.getcode() == 200
+            log.debug('Successfully subscribed')
+            connection.close()
+        
+        elif data['Type'] == 'Notification':
+            log.debug('Received assumed alarm termination notification')
+            log.debug(data['Subject'])
+            
+            #load the message as another json object
+            message_data = json.loads(data['Message'])
+            
+            alarm_name = message_data['AlarmName']
+            
+            #Get the instance with this alarm
+            #TODO:
+            #And terminate
+            #TODO
+            
+            
+            
+
+        
+        
+        return HttpResponse(status=200)

@@ -21,6 +21,7 @@ import logging
 import datetime
 from django.utils.timezone import now as utcnow
 from django.utils.timezone import utc
+from django.core.urlresolvers import reverse_lazy
 
 log = logging.getLogger(__name__)
 
@@ -198,6 +199,25 @@ def launch_pool(condor_pool):
     
     sqs_connection.create_queue(condor_pool.get_queue_name())
     
+    #Create an SNS topic for instance alarm notifications
+    log.debug('Creating SNS topic for alarms')
+    sns_connection = aws_tools.create_sns_connection(condor_pool.vpc.access_key)
+    topic_data = sns_connection.create_topic(condor_pool.get_alarm_notify_topic())
+    
+    topic_arn = topic_data['CreateTopicResponse']['CreateTopicResult']['TopicArn']
+    
+    log.debug('SNS topic created with arn %s' %topic_arn)
+    
+    condor_pool.alarm_notify_topic_arn = topic_arn
+    #And create a  subscription to the api_terminate_instance_alarm endpoint
+    sns_connection.subscribe(topic_arn, 'http', reverse_lazy('api_terminate_instance_alarm'))
+    
+    #Apply an alarm to each of the ec2 instances to notify that they should be shutdown should they be unused
+    if condor_pool.auto_scale_down:
+        for instance in ec2_instances:
+            pass #TODO
+    
+    
     #Assign an elastic IP to the master instance
     #Try up to 5 times
     log.debug('Assigning elastic IP to master node')
@@ -217,6 +237,20 @@ def scale_up(condor_pool, extra_nodes):
     log.debug('Scaling condor pool %s with %d extra nodes'%(condor_pool.id, extra_nodes))
     return
 
+def terminate_instances(instances):
+    """Terminate the selected instances. Will also involve terminating any associated alarms and spot requests
+    
+    instances: iterable EC2Instances, list or queryset
+    """
+    vpc_connection, ec2_connection = aws_tools.create_connections(instances[0].condor_pool.vpc.access_key)
+    
+    instance_ids = [instance.instance_id for instance in instances]
+    
+    log.debug('Terminating instances')
+
+    ec2_connection.terminate_instances(instance_ids)
+    
+
 def terminate_pool(condor_pool):
     assert isinstance(condor_pool, CondorPool)
     log.debug('Terminating condor pool %s (user %s)' %(condor_pool.name, condor_pool.vpc.access_key.user.username))
@@ -235,17 +269,13 @@ def terminate_pool(condor_pool):
     except Exception, e:
         log.exception(e)
         errors.append(e)
-
-    
-    instance_ids = [instance.instance_id for instance in instances]
-    
-    log.debug('Terminating instances')
+        
     try:
-        ec2_connection.terminate_instances(instance_ids)
+        terminate_instances(instances)
     except Exception, e:
         log.exception(e)
         errors.append(e)
-    
+
     key_pair = condor_pool.key_pair
     
     try:
@@ -261,6 +291,7 @@ def terminate_pool(condor_pool):
         pass
     condor_pool.delete()
     key_pair.delete()
+
     
     try:
         log.debug('Deleting SQS queue for pool')

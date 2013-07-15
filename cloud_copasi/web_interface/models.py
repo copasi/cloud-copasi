@@ -129,6 +129,16 @@ class CondorPool(models.Model):
     
     last_update_time = models.DateTimeField(auto_now_add=True)
     
+    launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
+    
+    autoscaling_group = models.CharField(max_length=20, help_text='The name of the AWS autoscaling group for this pool')
+    
+    auto_scale_up = models.BooleanField(default=False, help_text='Not implemented at present')
+    
+    auto_scale_down = models.BooleanField(default=True, help_text = 'Terminate unused worker nodes when they become inactive. Only applies after the first task has been submitted.')
+    
+    auto_terminate = models.BooleanField(default=True, help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running')
+    
     class Meta:
         app_label = 'web_interface'
     
@@ -145,6 +155,13 @@ class CondorPool(models.Model):
     
     def get_queue_name(self):
         return "cloud-copasi-" + str(self.uuid) 
+    
+    def get_alarm_notify_topic(self):
+        """Return the name of the SNS topic that has been created for this pool for instance alarm notifications
+        """
+        return 'cloud-copasi-' + str(self.uuid)
+    
+    alarm_notify_topic_arn = models.CharField(max_length = 30, blank=True, null=True)
     
     def get_health(self):
         instances = EC2Instance.objects.filter(condor_pool=self)
@@ -190,6 +207,8 @@ class EC2Instance(models.Model):
     instance_status = models.CharField(max_length=20, default='initializing')
     system_status = models.CharField(max_length=20, default='initializing')
     
+    termination_alarm = models.CharField(max_length=30, blank=True, null=True, verbose_name = 'The name of any attached low CPU usage termination alarm')
+    
     def get_health(self):
         if self.instance_status=='ok' and self.system_status=='ok': return 'healthy'
         elif self.instance_status=='ok': return self.system_status
@@ -225,6 +244,28 @@ class EC2Instance(models.Model):
     def get_private_ip(self):
         instance=self.get_instance()
         return instance.private_ip_address
+
+class SpotRequest(models.Model):
+    condor_pool = models.ForeignKey(CondorPool)
+    
+    ec2_instance = models.ForeignKey(EC2Instance, null=True)
+    
+    request_id = models.CharField(max_length=20)
+    
+    max_price = models.FloatField()
+    
+    status_code = models.CharField(max_length=50)
+    status_message = models.CharField(max_length = 500)
+    
+    state = models.CharField(max_length=20)
+    
+    
+    class Meta:
+        app_label = 'web_interface'
+    
+    def __unicode__(self):
+        return "%s (User: %s)" % (self.name, self.vpc.access_key.user.username) 
+
 
 class AMI(models.Model):
     """Stores information about an Amazon EC2 AMI

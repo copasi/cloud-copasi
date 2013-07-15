@@ -10,6 +10,7 @@ from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 from boto.exception import BotoServerError
 from boto.sqs.connection import SQSConnection
+from boto.sns.connection import SNSConnection
 
 def create_connections(key):
     """Returns pair vpc_connection, ec2_connection"""
@@ -30,3 +31,6 @@ def process_errors(error_list):
 
 def create_sqs_connection(key):
     return SQSConnection(key.access_key_id, key.secret_key)
+
+def create_sns_connection(key):
+    return SNSConnection(key.access_key_id, key.secret_key)
