@@ -39,3 +39,16 @@ EC2_TYPE_CHOICES =(
           
           ('hs1.8xlarge','hs1.8xlarge (35ECUs, 16 Cores, 117GB)'),
           )
+
+#===============================================================================
+# Autoscale parameters
+#===============================================================================
+
+###Downscale parameters using cloudwatch alarms:
+
+#Average CPU utilization percentage. <= this, instances will be terminated
+DOWNSCALE_CPU_THRESHOLD = 90
+#The time period monitored. Unless detailed monitoring is enabled, can be 5, 15, 60, 360
+DONWSCALE_CPU_PERIOD_TIME = 5
+#Number of consecutive periods the cpu threshold must pass before instances are terminated
+DOWNSCALE_CPU_PERIOD_NUMBER = 2

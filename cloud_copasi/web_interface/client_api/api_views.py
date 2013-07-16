@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from cloud_copasi.web_interface.aws import vpc_tools, aws_tools,\
-    resource_management_tools
+    resource_management_tools, ec2_tools
 from cloud_copasi.web_interface import models, task_plugins
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
@@ -414,13 +414,12 @@ class TerminateInstanceAlarm(APIView):
             alarm_name = message_data['AlarmName']
             
             #Get the instance with this alarm
-            #TODO:
-            #And terminate
-            #TODO
-            
-            
-            
+            try:
+                instance = models.EC2Instance.objects.get(termination_alarm=alarm_name)
+                log.debug('Terminating instance %s due to inactivity'%instance.instance_id)
+                ec2_tools.terminate_instances([instance])
+            except Exception, e:
+                log.exception(e)
+                return HttpResponse(status=500)
 
-        
-        
         return HttpResponse(status=200)

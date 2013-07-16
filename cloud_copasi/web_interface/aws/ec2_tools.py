@@ -416,3 +416,15 @@ def release_ip_address_from_instance(ec2_instance):
     
     return errors
 
+def add_instance_alarm(instance):
+    """Add a termination alarm to an EC2 instance. Alarm parameters are taken from ec2_config
+    """
+    connection = aws_tools.create_cloudwatch_connection(instance.condor_pool.vpc.access_key)
+    
+    #Get the appropriate metric for creating the alarm
+    
+    metrics = connection.list_metrics(dimensions={'InstanceId': instance.instance_id}, metric_name='CPUUtilization')
+    assert len(metrics) == 1
+    metric = metrics[0]
+    
+    
