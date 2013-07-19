@@ -7,11 +7,11 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 from boto.vpc import VPCConnection
-from boto.ec2 import EC2Connection
+from boto.ec2 import EC2Connection, cloudwatch
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config
-from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP
+from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP, Task
 import sys, os
 from exceptions import Exception
 from time import sleep
@@ -210,7 +210,9 @@ def launch_pool(condor_pool):
     
     condor_pool.alarm_notify_topic_arn = topic_arn
     #And create a  subscription to the api_terminate_instance_alarm endpoint
-    sns_connection.subscribe(topic_arn, 'http', reverse_lazy('api_terminate_instance_alarm'))
+    termination_notify_url = 'http://' + settings.HOST + str(reverse_lazy('api_terminate_instance_alarm'))
+    
+    sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
     
     #Apply an alarm to each of the ec2 instances to notify that they should be shutdown should they be unused
     if condor_pool.auto_scale_down:
@@ -417,14 +419,64 @@ def release_ip_address_from_instance(ec2_instance):
     return errors
 
 def add_instance_alarm(instance):
-    """Add a termination alarm to an EC2 instance. Alarm parameters are taken from ec2_config
+    """Add a termination alarm to an EC2 instance. Alarm parameters are taken from ec2_config. Assumes that there is no alarm already present.
     """
-    connection = aws_tools.create_cloudwatch_connection(instance.condor_pool.vpc.access_key)
     
-    #Get the appropriate metric for creating the alarm
+    assert isinstance(instance, EC2Instance)
+    #Only go forward if a termination alarm hasn't already been set
+    if not instance.termination_alarm:
+        
+        log.debug('Adding termination alarm for instance %s' %instance.instance_id)
+        
+        connection = aws_tools.create_cloudwatch_connection(instance.condor_pool.vpc.access_key)
+        
+        #Get the appropriate metric for creating the alarm
+        
+        metrics = connection.list_metrics(dimensions={'InstanceId': instance.instance_id}, metric_name='CPUUtilization')
+        if len(metrics) == 0:
+            log.debug('Metric not found yet, try again later')
+            return
+        #else continue
+        assert len(metrics) == 1
+        log.debug('Metric found')
+        metric = metrics[0]
+        
+        #Create alarm for this metric
+        
+        alarm_name = 'cpu_termination_alarm_%s' % instance.instance_id
+        
+        log.debug('Adding termination alarm for instance %s'%instance.instance_id)
+        
+        alarm = metric.create_alarm(name=alarm_name,
+                            comparison='<=',
+                            threshold=ec2_config.DOWNSCALE_CPU_THRESHOLD,
+                            period=ec2_config.DONWSCALE_CPU_PERIOD,
+                            evaluation_periods=ec2_config.DOWNSCALE_CPU_EVALUATION_PERIODS,
+                            statistic='Average',
+                            alarm_actions=[instance.condor_pool.alarm_notify_topic_arn],
+                            )
+        instance.termination_alarm = alarm_name
+        assert isinstance(alarm, cloudwatch.MetricAlarm)
+        instance.save()
+        
+    else:
+        log.debug('Existing alarm already applied for instance %s' %instance.termination_alarm)
     
-    metrics = connection.list_metrics(dimensions={'InstanceId': instance.instance_id}, metric_name='CPUUtilization')
-    assert len(metrics) == 1
-    metric = metrics[0]
+def add_instances_alarms(condor_pool):
+    """Apply instance alarms to all instances in the pool. Checks to
+    """
     
+    assert isinstance(condor_pool, CondorPool)
     
+    if condor_pool.auto_terminate:
+        task_count = Task.objects.filter(condor_pool=condor_pool).count()
+        if task_count > 0:
+            
+            instances = EC2Instance.objects.filter(condor_pool=condor_pool)
+            
+            for instance in instances:
+                #Don't terminate the Master node!
+                if instance != condor_pool.master:
+                    add_instance_alarm(instance)
+        else:
+            log.debug('Not adding alarm yet - no task submitted')

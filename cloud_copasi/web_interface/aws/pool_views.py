@@ -104,6 +104,7 @@ class PoolAddView(RestrictedFormView):
         #Launch the pool
         #try:
         ec2_tools.launch_pool(pool)
+        pool.save()
         #except Exception, e:
         #    self.request.session['errors'] = aws_tools.process_errors([e])
         #    return HttpResponseRedirect(reverse_lazy('pool_add'))

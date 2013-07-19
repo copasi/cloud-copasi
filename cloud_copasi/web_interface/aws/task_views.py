@@ -22,7 +22,7 @@ from cloud_copasi.web_interface.account.account_views import MyAccountView
 from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from cloud_copasi.web_interface.aws import vpc_tools, task_tools
+from cloud_copasi.web_interface.aws import vpc_tools, task_tools, ec2_tools
 from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
@@ -71,6 +71,7 @@ class NewTaskView(RestrictedFormView):
     def form_valid(self, form,  *args, **kwargs):
         #access_key = form.cleaned_data['access_key']
         compute_pool = form.cleaned_data['compute_pool']
+        assert isinstance(compute_pool, CondorPool)
         access_key = compute_pool.vpc.access_key
         request = self.request
 
@@ -137,7 +138,7 @@ class NewTaskView(RestrictedFormView):
         task_instance.initialize_subtasks()
         
         task_instance.submit_subtask(1)
-                
+        
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
 class RunningTaskListView(RestrictedView):

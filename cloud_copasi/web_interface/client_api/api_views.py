@@ -82,6 +82,17 @@ class RegisterJobView(APIView):
             #Test case - no condor jobs submitted, therefore we can't know which subtask was updated
             pass
         
+        
+        #Now a task has been submitted, add termination alarms to the instances if this has been requested.
+
+        try:
+            ec2_tools.add_instances_alarms(pool)
+        except Exception, e:
+            log.exception(e)
+                
+
+        
+        
         #Construct a json response to send back
         response_data={'status':'created'}
         json_response=json.dumps(response_data)
@@ -180,6 +191,13 @@ class UpdateCondorStatusView(APIView):
                     #Request the transfer of files
                     task_instance.request_file_transfer(subtask.index, 'finished')
                     
+        
+        #Finally, add instance alarms to the task if needed:
+        try:
+            ec2_tools.add_instances_alarms(pool)
+        except Exception, e:
+            log.exception(e)
+
         
         #Construct a json response to send back
         response_data={'status':'created'}
