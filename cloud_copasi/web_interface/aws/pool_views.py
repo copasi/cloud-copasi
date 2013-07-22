@@ -69,7 +69,7 @@ class AddPoolForm(forms.ModelForm):
 
     class Meta:
         model = CondorPool
-        fields = ('name', 'vpc', 'size', 'initial_instance_type')
+        fields = ('name', 'vpc', 'size', 'initial_instance_type', 'auto_terminate')
         widgets = {
             'initial_instance_type' : forms.Select(attrs={'style':'width:30em'}),
             

@@ -117,7 +117,7 @@ class CondorPool(models.Model):
     vpc = models.ForeignKey(VPC, verbose_name='Keypair')
     master=models.OneToOneField('EC2Instance', null=True)
     name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool')
-    size=models.PositiveIntegerField(verbose_name='Number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
+    size=models.PositiveIntegerField(verbose_name='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
     
     key_pair = models.OneToOneField('EC2KeyPair', null=True)
 
@@ -129,13 +129,13 @@ class CondorPool(models.Model):
     
     last_update_time = models.DateTimeField(auto_now_add=True)
     
-    launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
+    #launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
     
-    autoscaling_group = models.CharField(max_length=20, help_text='The name of the AWS autoscaling group for this pool')
+    #autoscaling_group = models.CharField(max_length=20, help_text='The name of the AWS autoscaling group for this pool')
     
-    auto_scale_up = models.BooleanField(default=False, help_text='Not implemented at present')
+    #auto_scale_up = models.BooleanField(default=False, help_text='Not implemented at present')
     
-    auto_scale_down = models.BooleanField(default=True, help_text = 'Terminate unused worker nodes when they become inactive. Only applies after the first task has been submitted.')
+    #auto_scale_down = models.BooleanField(default=True, help_text = 'Terminate unused worker nodes when they become inactive. Only applies after the first task has been submitted.')
     
     auto_terminate = models.BooleanField(default=True, help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running. Only applies after at least one task has been submitted to the pool.')
     
