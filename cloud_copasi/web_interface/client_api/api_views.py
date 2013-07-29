@@ -435,6 +435,7 @@ class TerminateInstanceAlarm(APIView):
             try:
                 instance = models.EC2Instance.objects.get(termination_alarm=alarm_name)
                 log.debug('Terminating instance %s due to inactivity'%instance.instance_id)
+                #Attempt to terminate the instance. Checks on whether this should happen are made in the terminate_instances method
                 ec2_tools.terminate_instances([instance])
             except Exception, e:
                 log.exception(e)

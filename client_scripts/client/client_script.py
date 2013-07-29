@@ -77,7 +77,7 @@ def run(log):
     
     
     queue = sqs_connection.get_queue(queue_name)
-    
+
     log.debug('reading queue')
     message = queue.read()
     while message != None:
@@ -88,7 +88,7 @@ def run(log):
             log.debug('New message found. Processing...')
             process_message(message, log)
                 
-            message.delete()
+            queue.delete_message(message)
 
             #Reload the message
             message = queue.read()

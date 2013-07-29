@@ -637,25 +637,25 @@ class CopasiModel:
         file_list = []
         for optString in optimizationStrings:
             maximizeParameter.attrib['value'] = '1'
-            s = Template('max_$index.txt')
-            report.attrib['target'] = s.substitute(index=i)
+            output = 'output_%d.txt' % i
+            report.attrib['target'] = output
             
             #Update the sensitivities object
             singleObject.set('value',optString)
             
-            target = os.path.join(self.path, Template('auto_copasi_max_$index.cps').substitute(index=i))
+            target = os.path.join(self.path, 'auto_copasi_%d.cps' %i)
             
             self.model.write(target)
             file_list.append(target)
             
             maximizeParameter.attrib['value'] = '0'
-            s = Template('min_$index.txt')
-            report.attrib['target'] = s.substitute(index=i)
+            output = 'output_%d.txt' % (i + 1)
+            report.attrib['target'] = output
             
-            target = os.path.join(self.path, Template('auto_copasi_min_$index.cps').substitute(index=i))
+            target = os.path.join(self.path, 'auto_copasi_%d.cps' % (i+1))
             self.model.write(target)
             file_list.append(target)
-            i = i + 1
+            i = i + 2
             
         return file_list
         
@@ -668,8 +668,8 @@ class CopasiModel:
         
         import shutil
         for i in range(len(self.get_optimization_parameters())):
-            for max in ('min', 'max'):
-                copasi_file = os.path.join(self.path, Template('auto_copasi_${max}_$index.cps').substitute(index=i, max=max))
+            for max in (0, 1):
+                copasi_file = os.path.join(self.path, 'auto_copasi_%d.cps' % (2*i + max))
                 temp_file = os.path.join(self.path, 'temp.cps')
                 shutil.copy2(copasi_file, temp_file)
                 os.remove(copasi_file)
@@ -681,10 +681,10 @@ class CopasiModel:
         condor_jobs = []
                     
         for i in range(len(self.get_optimization_parameters())):
-            for max in ('min', 'max'):
-                copasi_file = Template('auto_copasi_${max}_$index.cps').substitute(index=i, max=max)
+            for max in (0, 1):
+                copasi_file = 'auto_copasi_%d.cps' % (2*i + max)
                 condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
-                condor_job_filename = Template('auto_condor_${max}_$index.job').substitute(index=i, max=max)
+                condor_job_filename = 'auto_condor_%d.job' % (2*i + max)
                 condor_job_full_filename = os.path.join(self.path, condor_job_filename)
                 condor_file = open(condor_job_full_filename, 'w')
                 condor_file.write(condor_job_string)
@@ -695,7 +695,7 @@ class CopasiModel:
                     'std_output_file': str(copasi_file) + '.out',
                     'std_error_file': str(copasi_file) + '.err',
                     'log_file': str(copasi_file) + '.log',
-                    'job_output': max + '_' + str(i) + '.txt',
+                    'job_output': 'output_%d.txt' % (2*i + max),
                     'copasi_file': copasi_file,
                 })
 
@@ -720,11 +720,11 @@ class CopasiModel:
                 'min_cpu' : '?',
             }
             #Read min and max files
-            for max in ['max', 'min']:
+            for max in [0, 1]:
                 iterator = 0
                 
                 try:
-                    file = open(os.path.join(self.path, Template('${max}_$index.txt').substitute(index=i, max=max)),'r')
+                    file = open(os.path.join(self.path, 'output_%d.txt' % (2*i) + max),'r')
                     output=[None for r in range(4)]
                     for f in file.readlines():
                         value = f.rstrip('\n') #Read the file line by line.
@@ -737,9 +737,13 @@ class CopasiModel:
                     cpu_time = output[2].split(' ')[2]
                     sens_result = output[3]
                     
-                    result[max + '_result'] = sens_result
-                    result[max + '_cpu'] = cpu_time
-                    result[max + '_evals'] = evals
+                    if max == 0:
+                        max_str = 'max'
+                    else:
+                        max_str = 'min'
+                    result[max_str + '_result'] = sens_result
+                    result[max_str + '_cpu'] = cpu_time
+                    result[max_str + '_evals'] = evals
                     
                 except:
                     raise

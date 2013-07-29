@@ -215,10 +215,7 @@ def launch_pool(condor_pool):
     sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
     
     #Apply an alarm to each of the ec2 instances to notify that they should be shutdown should they be unused
-    if condor_pool.auto_scale_down:
-        for instance in ec2_instances:
-            pass #TODO
-    
+    ##Note, this is now performed when the master node sends a notification back to the server through the API
     
     #Assign an elastic IP to the master instance
     #Try up to 5 times
@@ -249,7 +246,9 @@ def terminate_instances(instances):
     instance_ids = [instance.instance_id for instance in instances]
     
     log.debug('Terminating instances')
-
+    
+    #TODO: terminate the necessary alarms and spot requests before terminating the instances themselves.
+    
     ec2_connection.terminate_instances(instance_ids)
     
 
@@ -340,6 +339,7 @@ def assign_ip_address(ec2_instance):
     while attempt_count < max_attempts:
         if ec2_instance.get_state() == 'running':
             log.debug('Instance running')
+            sleep(sleep_time) #sleep again, just to be on the safe side
             break
         else:
             log.warning('Instance not running. Sleeping...')
@@ -462,8 +462,8 @@ def add_instance_alarm(instance):
     else:
         log.debug('Existing alarm already applied for instance %s' %instance.termination_alarm)
     
-def add_instances_alarms(condor_pool):
-    """Apply instance alarms to all instances in the pool. Checks to
+def add_instances_alarms(condor_pool, include_master=False):
+    """Apply instance alarms to all instances in the pool. By default, will not apply to master node
     """
     
     assert isinstance(condor_pool, CondorPool)
@@ -476,7 +476,7 @@ def add_instances_alarms(condor_pool):
             
             for instance in instances:
                 #Don't terminate the Master node!
-                if instance != condor_pool.master:
+                if instance != condor_pool.master or include_master:
                     add_instance_alarm(instance)
         else:
             log.debug('Not adding alarm yet - no task submitted')

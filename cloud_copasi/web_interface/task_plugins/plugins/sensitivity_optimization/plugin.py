@@ -117,11 +117,11 @@ class TaskPlugin(BaseTask):
         file_list=[]
         
         for i in range(parameter_count):
-            for min in ['min', 'max']:
-                file_list.append('auto_condor_%s_%d.job' % (min, i))
-                file_list.append('auto_copasi_%s_%d.cps' % (min, i))
-                file_list.append('auto_copasi_%s_%d.cps.log' % (min, i))
-                file_list.append('auto_copasi_%s_%d.cps.out' % (min, i))
-                file_list.append('auto_copasi_%s_%d.cps.err' % (min, i))
+            for min in [1, 0]:
+                file_list.append('auto_condor_%d.job' % (2*i + min))
+                file_list.append('auto_copasi_%d.cps' % (2*i + min))
+                file_list.append('auto_copasi_%d.cps.log' % (2*i + min))
+                file_list.append('auto_copasi_%d.cps.out' % (2*i + min))
+                file_list.append('auto_copasi_%d.cps.err' % (2*i + min))
         
         self.notify_file_transfer(reason, file_list, zip=False, delete=False)
