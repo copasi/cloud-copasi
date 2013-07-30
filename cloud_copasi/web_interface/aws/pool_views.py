@@ -13,7 +13,8 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance
+from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance,\
+    EC2Pool
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -39,47 +40,52 @@ class PoolStatusView(RestrictedView):
         if vpcs.count() == 0:
             request.session['errors'] = [('No active VPCs', 'You must have at least one active VPC configured before you can start a compute pool')]
             return HttpResponseRedirect(reverse_lazy('vpc_status'))
-        pools = models.CondorPool.objects.filter(vpc__access_key__user=request.user)
+        pools = models.CondorPool.objects.filter(user=request.user)
         kwargs['pools'] = pools
         
-        for pool in pools:
-            ec2_tools.refresh_pool(pool)
+        ec2_pools = EC2Pool.objects.filter(user=request.user)
+        
+        for ec2_pool in ec2_pools:
+            ec2_tools.refresh_pool(ec2_pool)
+        
+        kwargs['ec2_pools'] = ec2_pools
         
         return RestrictedView.dispatch(self, request, *args, **kwargs)
     
-class AddPoolForm(forms.ModelForm):
+class AddEC2PoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
-        super(AddPoolForm, self).__init__(*args, **kwargs)
+        super(AddEC2PoolForm, self).__init__(*args, **kwargs)
         
         vpc_choices = models.VPC.objects.filter(access_key__user=user).values_list('id', 'access_key__name')
         self.fields['vpc'].choices=vpc_choices
         
     def clean(self):
-        cleaned_data = super(AddPoolForm, self).clean()
+        cleaned_data = super(AddEC2PoolForm, self).clean()
         name = cleaned_data.get('name')
         vpc = cleaned_data.get('vpc')
         if vpc == None:
             raise forms.ValidationError('You must select a valid access key with an associated VPC.')
 
-        if CondorPool.objects.filter(name=name,vpc__access_key__user=vpc.access_key.user).count() > 0:
+        if CondorPool.objects.filter(name=name,user=vpc.access_key.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
+        
         return cleaned_data
 
 
     class Meta:
-        model = CondorPool
+        model = EC2Pool
         fields = ('name', 'vpc', 'size', 'initial_instance_type', 'auto_terminate')
         widgets = {
             'initial_instance_type' : forms.Select(attrs={'style':'width:30em'}),
             
             }
 
-class PoolAddView(RestrictedFormView):
-    template_name = 'pool/pool_add.html'
-    page_title = 'Add pool'
+class EC2PoolAddView(RestrictedFormView):
+    template_name = 'pool/ec2_pool_add.html'
+    page_title = 'Add EC2 pool'
     success_url = reverse_lazy('pool_status')
-    form_class = AddPoolForm
+    form_class = AddEC2PoolForm
     
     
     def get_form_kwargs(self):
@@ -92,13 +98,16 @@ class PoolAddView(RestrictedFormView):
         form=kwargs['form']
         
         try:
-            pool = form.save()
+            pool = form.save(commit=False)
+            pool.user = pool.vpc.access_key.user
+            
             
             key_pair=ec2_tools.create_key_pair(pool)
             pool.key_pair = key_pair
         except Exception, e:
+            log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
-            return HttpResponseRedirect(reverse_lazy('pool_add'))
+            return HttpResponseRedirect(reverse_lazy('ec2_pool_add'))
         pool.save()
         
         #Launch the pool
@@ -109,26 +118,26 @@ class PoolAddView(RestrictedFormView):
         #    self.request.session['errors'] = aws_tools.process_errors([e])
         #    return HttpResponseRedirect(reverse_lazy('pool_add'))
         
-        return super(PoolAddView, self).form_valid(*args, **kwargs)
+        return super(EC2PoolAddView, self).form_valid(*args, **kwargs)
 
     def dispatch(self, *args, **kwargs):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Launching pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Launching a pool can take several minutes'
 
-        return super(PoolAddView, self).dispatch(*args, **kwargs)
+        return super(EC2PoolAddView, self).dispatch(*args, **kwargs)
 
-class PoolDetailsView(RestrictedView):
-    template_name='pool/pool_details.html'
-    page_title = 'Comnpute pool details'
+class EC2PoolDetailsView(RestrictedView):
+    template_name='pool/ec2_pool_details.html'
+    page_title = 'EC2 pool details'
     
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         pool_id = kwargs['pool_id']
         try:
-            condor_pool = CondorPool.objects.get(id=pool_id)
-            assert condor_pool.vpc.access_key.user == request.user
-            ec2_tools.refresh_pool(condor_pool)
+            ec2_pool = EC2Pool.objects.get(id=pool_id)
+            assert ec2_pool.vpc.access_key.user == request.user
+            ec2_tools.refresh_pool(ec2_pool)
         except EC2ResponseError, e:
             request.session['errors'] = [error for error in e.errors]
             log.exception(e)
@@ -138,10 +147,10 @@ class PoolDetailsView(RestrictedView):
             log.exception(e)
             return HttpResponseRedirect(reverse_lazy('p'))
         
-        instances=EC2Instance.objects.filter(condor_pool=condor_pool)
+        instances=EC2Instance.objects.filter(ec2_pool=ec2_pool)
         
         try:
-            master_id = condor_pool.master.id
+            master_id = ec2_pool.master.id
         except:
             master_id=None
         
@@ -149,13 +158,13 @@ class PoolDetailsView(RestrictedView):
         
         kwargs['instances'] = instances
         kwargs['compute_instances'] = compute_instances
-        kwargs['condor_pool'] = condor_pool
+        kwargs['ec2_pool'] = ec2_pool
 
-        return super(PoolDetailsView, self).dispatch(request, *args, **kwargs)
+        return super(EC2PoolDetailsView, self).dispatch(request, *args, **kwargs)
     
-class PoolTerminateView(RestrictedView):
-    template_name='pool/pool_terminate.html'
-    page_title='Confirm pool termination'
+class EC2PoolTerminateView(RestrictedView):
+    template_name='pool/ec2_pool_terminate.html'
+    page_title='Confirm EC2 pool termination'
     
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -163,32 +172,32 @@ class PoolTerminateView(RestrictedView):
         
         confirmed= kwargs['confirmed']
         
-        condor_pool = CondorPool.objects.get(id=pool_id)
-        assert condor_pool.vpc.access_key.user == request.user
-        ec2_tools.refresh_pool(condor_pool)
+        ec2_pool = EC2Pool.objects.get(id=pool_id)
+        assert ec2_pool.vpc.access_key.user == request.user
+        ec2_tools.refresh_pool(ec2_pool)
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Terminating pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
         
         if not confirmed:
         
-            kwargs['condor_pool'] = condor_pool
+            kwargs['ec2_pool'] = ec2_pool
             
-            return super(PoolTerminateView, self).dispatch(request, *args, **kwargs)
+            return super(EC2PoolTerminateView, self).dispatch(request, *args, **kwargs)
         else:
             #Terminate the pool
-            errors = ec2_tools.terminate_pool(condor_pool)
+            errors = ec2_tools.terminate_pool(ec2_pool)
             request.session['errors']=errors
             return HttpResponseRedirect(reverse_lazy('pool_status'))
 
-class PoolScaleUpForm(forms.Form):
+class EC2PoolScaleUpForm(forms.Form):
     
     nodes_to_add = forms.IntegerField(required=False)
     total_pool_size = forms.IntegerField(required=False)
     
 
     def clean(self):
-        cleaned_data = super(PoolScaleUpForm, self).clean()
+        cleaned_data = super(EC2PoolScaleUpForm, self).clean()
         nodes_to_add = cleaned_data.get('nodes_to_add')
         total_pool_size = cleaned_data.get('total_pool_size')
         if (not nodes_to_add) and (not total_pool_size):
@@ -211,11 +220,11 @@ class PoolScaleUpForm(forms.Form):
 
 
 
-class PoolScaleUpView(RestrictedFormView):
-    template_name = 'pool/pool_scale.html'
-    page_title = 'Scale up pool'
+class EC2PoolScaleUpView(RestrictedFormView):
+    template_name = 'pool/ec2_pool_scale.html'
+    page_title = 'Scale up EC2 pool'
     success_url = reverse_lazy('pool_status')
-    form_class = PoolScaleUpForm
+    form_class = EC2PoolScaleUpForm
 
     
     
@@ -223,16 +232,16 @@ class PoolScaleUpView(RestrictedFormView):
         try:
             form=kwargs['form']
             user=self.request.user
-            condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
-            assert condor_pool.vpc.access_key.user == self.request.user
-            ec2_tools.refresh_pool(condor_pool)
+            ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+            assert ec2_pool.vpc.access_key.user == self.request.user
+            ec2_tools.refresh_pool(ec2_pool)
             if form.cleaned_data['nodes_to_add']:
                 extra_nodes = form.cleaned_data['nodes_to_add']
             else:
-                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(condor_pool=condor_pool).count()
+                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(ec2_pool=ec2_pool).count()
             
-            ec2_tools.scale_up(condor_pool, extra_nodes)
-            condor_pool.save()
+            ec2_tools.scale_up(ec2_pool, extra_nodes)
+            ec2_pool.save()
         except Exception, e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
@@ -240,15 +249,15 @@ class PoolScaleUpView(RestrictedFormView):
 
         
         
-        return super(PoolScaleUpView, self).form_valid(*args, **kwargs)
+        return super(EC2PoolScaleUpView, self).form_valid(*args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Scaling pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. This process can take several minutes'
         kwargs['scale_up']=True
-        condor_pool = CondorPool.objects.get(id=kwargs['pool_id'])
-        assert condor_pool.vpc.access_key.user == request.user
-        ec2_tools.refresh_pool(condor_pool)
+        ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+        assert ec2_pool.vpc.access_key.user == request.user
+        ec2_tools.refresh_pool(ec2_pool)
         
-        return super(PoolScaleUpView, self).dispatch(request, *args, **kwargs)
+        return super(EC2PoolScaleUpView, self).dispatch(request, *args, **kwargs)

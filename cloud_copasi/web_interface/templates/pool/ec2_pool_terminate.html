@@ -29,12 +29,12 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Number of nodes*</th>
             </tr>
             <tr>
-                <td>{{ condor_pool.name }}</td>
-                <td>{{ condor_pool.get_count}}</td>
+                <td>{{ ec2_pool.name }}</td>
+                <td>{{ ec2_pool.get_count}}</td>
             </tr>
         </table>
         <p>*Includes Master node</p>
     </div>
-    <a href="{% url 'pool_terminate_confirmed' pool_id=condor_pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Terminate pool</a><a href="{% url 'pool_details' pool_id=condor_pool.id %}" class="button button-alt button-hspace">Cancel</a>
+    <a href="{% url 'ec2_pool_terminate_confirmed' pool_id=ec2_pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Terminate pool</a><a href="{% url 'ec2_pool_details' pool_id=ec2_pool.id %}" class="button button-alt button-hspace">Cancel</a>
 </article>
 {% endblock %}

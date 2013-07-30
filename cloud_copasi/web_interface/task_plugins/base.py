@@ -6,12 +6,17 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from cloud_copasi.web_interface.models import CondorJob, Subtask
+from cloud_copasi.web_interface.models import CondorJob, Subtask, BoscoPool,\
+    EC2Pool
 from cloud_copasi.web_interface.aws import task_tools
 from django import forms
 from cloud_copasi.web_interface import form_tools
 #from cloud_copasi.web_interface.task_plugins import tools
 from cloud_copasi.web_interface.models import CondorPool
+import itertools
+import logging
+
+log = logging.getLogger(__name__)
 
 #===============================================================================
 # Base task plugin structure
@@ -23,7 +28,7 @@ class BaseTaskForm(forms.Form):
     task_type = forms.ChoiceField()
     #access_key = form_tools.NameChoiceField(queryset=None, initial=0)
     model_file = forms.FileField()
-    compute_pool = form_tools.NameChoiceField(queryset=None, initial=0)
+    compute_pool = form_tools.PoolChoiceField(queryset=None, initial=0)
 
     
     def __init__(self, user, task_types,  *args, **kwargs):
@@ -33,7 +38,14 @@ class BaseTaskForm(forms.Form):
         #access_keys = AWSAccessKey.objects.filter(user=self.user).filter(vpc__isnull=False)
         #self.fields['access_key'].queryset = access_keys
         
-        condor_pools = CondorPool.objects.filter(vpc__access_key__user = user).filter(vpc__isnull=False)
+        ec2_pools = EC2Pool.objects.filter(vpc__access_key__user = user).filter(vpc__isnull=False)
+        ec2_pool_ids = [pool.pk for pool in ec2_pools]
+        
+        bosco_pools = BoscoPool.objects.filter(user=user)
+        bosco_pool_ids = [pool.pk for pool in bosco_pools]
+        
+        condor_pools = CondorPool.objects.filter(pk__in=ec2_pool_ids + bosco_pool_ids)
+        
         self.fields['compute_pool'].queryset = condor_pools
         
 

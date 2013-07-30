@@ -30,6 +30,10 @@ from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
 from cloud_copasi.web_interface.task_plugins import base, tools
 from django.forms.forms import NON_FIELD_ERRORS
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_new.html'
@@ -57,7 +61,7 @@ class NewTaskView(RestrictedFormView):
         
         
         #Ensure we have at least 1 running condor pool
-        pools = CondorPool.objects.filter(vpc__access_key__user=request.user)
+        pools = CondorPool.objects.filter(user=request.user)
         if pools.count() == 0:
             request.session['errors']=[('No running compute pools', 'You must have at least 1 running compute pool before you can submit a job')]
             return HttpResponseRedirect(reverse_lazy('pool_status'))
@@ -72,11 +76,15 @@ class NewTaskView(RestrictedFormView):
         #access_key = form.cleaned_data['access_key']
         compute_pool = form.cleaned_data['compute_pool']
         assert isinstance(compute_pool, CondorPool)
-        access_key = compute_pool.vpc.access_key
+        #access_key = compute_pool.vpc.access_key
         request = self.request
 
-        assert access_key.user == request.user
-        assert compute_pool.vpc.access_key == access_key
+        #assert access_key.user == request.user
+        #assert compute_pool.vpc.access_key == access_key
+        
+        assert compute_pool.user == request.user
+        
+        log.debug(compute_pool.get_pool_type())
         
         ########################################################################
         #Process the uploaded copasi file (and other files?) and create a list
@@ -135,9 +143,9 @@ class NewTaskView(RestrictedFormView):
             kwargs['form'] = form
             return self.form_invalid(self, *args, **kwargs)
         
-        task_instance.initialize_subtasks()
+        #task_instance.initialize_subtasks()
         
-        task_instance.submit_subtask(1)
+        #task_instance.submit_subtask(1)
         
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
@@ -150,7 +158,7 @@ class RunningTaskListView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         #Get a list of running tasks for this user
-        user_tasks = Task.objects.filter(condor_pool__vpc__access_key__user=request.user)
+        user_tasks = Task.objects.filter(condor_pool__user=request.user)
         running_tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
         
         kwargs['running_tasks'] =running_tasks
@@ -167,7 +175,7 @@ class TaskDetailsView(RestrictedView):
         
         task_id = kwargs.pop('task_id')
         task = Task.objects.get(id=task_id)
-        assert task.condor_pool.vpc.access_key.user == request.user
+        assert task.condor_pool.user == request.user
         
         kwargs['task'] = task
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
@@ -182,7 +190,7 @@ class SubtaskDetailsView(RestrictedView):
         
         subtask_id = kwargs.pop('subtask_id')
         subtask = Subtask.objects.get(id=subtask_id)
-        assert subtask.task.condor_pool.vpc.access_key.user == request.user
+        assert subtask.task.condor_pool.user == request.user
         
         kwargs['subtask'] = subtask
         
@@ -203,7 +211,7 @@ class TaskDeleteView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.vpc.access_key.user == request.user
+        assert task.condor_pool.user == request.user
         
         confirmed = kwargs['confirmed']
         

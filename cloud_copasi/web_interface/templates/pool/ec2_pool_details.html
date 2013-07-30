@@ -31,18 +31,18 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Pool health</th>
             </tr>
             <tr>
-                <td>{{condor_pool.name}}</td>
+                <td>{{ec2_pool.name}}</td>
                 <td>{{instances.count}}</td>
                 <td>Not implemented</td>
-                <td>{{condor_pool.get_health}}</td>
+                <td>{{ec2_pool.get_health}}</td>
             </tr>
         </table>
         <p>*Includes Master node</p>
     </div>
         
     <p>
-        <a class="button button-alt button-hspace" href="{% url 'pool_terminate' pool_id=condor_pool.id %}">Terminate pool</a>
-        <a class="button button-hspace" href="{% url 'pool_scale_up' pool_id=condor_pool.id %}">Scale up</a>
+        <a class="button button-alt button-hspace" href="{% url 'ec2_pool_terminate' pool_id=ec2_pool.id %}">Terminate pool</a>
+        <a class="button button-hspace" href="{% url 'ec2_pool_scale_up' pool_id=ec2_pool.id %}">Scale up</a>
         <a class="button button-hspace" href="">Scale down</a>
     </p>
 
@@ -56,13 +56,13 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Uptime</th>
                 <th>Status</th>
             </tr>
-            {% if condor_pool.master %}
+            {% if ec2_pool.master %}
             <tr>
-                <td>{{ condor_pool.master.instance_id }}</td>
-                <td>{{ condor_pool.master.instance_type }}</td>
-                <td>{{ condor_pool.master.get_state }}</td>
+                <td>{{ ec2_pool.master.instance_id }}</td>
+                <td>{{ ec2_pool.master.instance_type }}</td>
+                <td>{{ ec2_pool.master.get_state }}</td>
                 <td>Not implemented</td>
-                <td>{{  condor_pool.master.get_health }}</td>
+                <td>{{  ec2_pool.master.get_health }}</td>
             </tr>
             {% endif %}
         </table>

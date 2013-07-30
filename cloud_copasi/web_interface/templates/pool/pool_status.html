@@ -24,7 +24,7 @@ http://www.gnu.org/licenses/gpl.html
     
     <p>Compute pools consist of a Master node, and one or more Compute nodes. Click 'Launch Pool' below to launch a new compute pool.</p>
     
-    <p><a class="button button-icon button-icon-check" href="{% url 'pool_add' %}">Launch pool</a></p>
+    <p><a class="button button-icon button-icon-check" href="{% url 'ec2_pool_add' %}">Launch pool</a></p>
     
     {%if pools %}
     <div class="tablelist">
@@ -40,18 +40,18 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Status</th>
                 <th>Details</th>
             </tr>
-        {% for pool in pools %}
+        {% for ec2_pool in ec2_pools %}
             <tr>
-                <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{ pool.name }}</a></td>
+                <td><a href="{% url 'ec2_pool_details' pool_id=ec2_pool.id %}">{{ ec2_pool.name }}</a></td>
                 {% if user.is_staff %}
-                <td><a href="{% url 'admin:web_interface_condorpool_change' pool.id %}">{{pool.id}}</a></td>
+                <td><a href="{% url 'admin:web_interface_ec2pool_change' ec2_pool.id %}">{{ec2_pool.id}}</a></td>
                 {% endif %}
 
-                <td>{{pool.vpc.access_key.name }}</td>
-                <td >{{pool.get_count}}</td>
+                <td>{{ec2_pool.vpc.access_key.name }}</td>
+                <td >{{ec2_pool.get_count}}</td>
                 <td> Fixed price </td>
-                <td> {{ pool.get_health }}</td>
-                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=pool.id %}">Details</a></td>
+                <td> {{ ec2_pool.get_health }}</td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'ec2_pool_details' pool_id=ec2_pool.id %}">Details</a></td>
             </tr>
         {% endfor %}
         </table>

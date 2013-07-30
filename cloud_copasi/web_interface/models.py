@@ -18,6 +18,8 @@ import sys, os, random, string
 from cloud_copasi import copasi
 from fields import UUIDField
 import cPickle
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
@@ -111,12 +113,49 @@ def create_secret_key():
         length=30
         return "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(length)])
     
+    
+    
 class CondorPool(models.Model):
+    """Abstract placeholder for either an EC2 condor pool, or some other Bosco pool
+    """
+    
+    name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool')
+
+    user = models.ForeignKey(User)
+    
+    class Meta:
+        #abstract = True
+        app_label = 'web_interface'
+
+    def get_pool_type(self):
+        if hasattr(self, 'ec2pool'):
+            return 'ec2'
+        elif hasattr(self, 'boscopool'):
+            return 'bosco'
+        else:
+            return 'unknown'
+
+class BoscoPool(CondorPool):
+    """Store info about a non-EC2 pool added through Bosco
+    """
+    vpc__access_key__user = models.ForeignKey(User)#TODO: will this work?? Or should we just use a redundent user field instead?
+    
+    pool_type = models.CharField(max_length=20, choices = (
+                                                           ('condor', 'Condor'),
+                                                           ('pbs', 'PBS'),
+                                                           ('lsf', 'LSF'),
+                                                           ('sge', 'Sun Grid Engine'),
+                                                           )
+                                 )
+    
+    class Meta:
+        app_label = 'web_interface'
+    
+class EC2Pool(CondorPool):
     """Stores info about all the EC2 instances  making up a condor pool#
     """
     vpc = models.ForeignKey(VPC, verbose_name='Keypair')
     master=models.OneToOneField('EC2Instance', null=True)
-    name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool')
     size=models.PositiveIntegerField(verbose_name='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
     
     key_pair = models.OneToOneField('EC2KeyPair', null=True)
@@ -128,6 +167,7 @@ class CondorPool(models.Model):
     uuid=UUIDField(auto=True)
     
     last_update_time = models.DateTimeField(auto_now_add=True)
+    
     
     #launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
     
@@ -150,7 +190,7 @@ class CondorPool(models.Model):
         return ec2_connection.get_key_pair(self.key_pair.name)
     
     def get_count(self):
-        instances = EC2Instance.objects.filter(condor_pool=self)
+        instances = EC2Instance.objects.filter(ec2_pool=self)
         return instances.count()
     
     def get_queue_name(self):
@@ -164,7 +204,7 @@ class CondorPool(models.Model):
     alarm_notify_topic_arn = models.CharField(max_length = 30, blank=True, null=True)
     
     def get_health(self):
-        instances = EC2Instance.objects.filter(condor_pool=self)
+        instances = EC2Instance.objects.filter(ec2_pool=self)
 
         for instance in instances:
             if instance.get_health() != 'healthy' or instance.get_health != 'initializing': return instance.get_health()
@@ -172,7 +212,7 @@ class CondorPool(models.Model):
     
 class EC2Instance(models.Model):
     
-    condor_pool = models.ForeignKey(CondorPool)
+    ec2_pool = models.ForeignKey(EC2Pool)
     
     instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES)
     
@@ -228,7 +268,7 @@ class EC2Instance(models.Model):
         return instance
     
     def get_ec2_connection(self):
-        vpc_connection, ec2_connection = aws_tools.create_connections(self.condor_pool.vpc.access_key)
+        vpc_connection, ec2_connection = aws_tools.create_connections(self.ec2_pool.vpc.access_key)
         
         return ec2_connection
 
@@ -246,7 +286,7 @@ class EC2Instance(models.Model):
         return instance.private_ip_address
 
 class SpotRequest(models.Model):
-    condor_pool = models.ForeignKey(CondorPool)
+    ec2_pool = models.ForeignKey(EC2Pool)
     
     ec2_instance = models.ForeignKey(EC2Instance, null=True)
     

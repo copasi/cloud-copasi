@@ -12,7 +12,7 @@ from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools,\
     s3_tools, task_tools
-from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, CondorPool, ElasticIP,\
+from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP,\
     AWSAccessKey, Task
 import sys, os
 from exceptions import Exception
@@ -128,8 +128,8 @@ def get_local_resources(user, key=None):
     
     overview = ResourceOverview()
     
-    for condor_pool in CondorPool.objects.filter(vpc__access_key__user=user):
-        ec2_tools.refresh_pool(condor_pool)
+    for ec2_pool in EC2Pool.objects.filter(vpc__access_key__user=user):
+        ec2_tools.refresh_pool(ec2_pool)
     
     if key:
         keys=[key]
@@ -138,7 +138,7 @@ def get_local_resources(user, key=None):
     
     for key in keys:
         #EC2 instances
-        ec2_instances = EC2Instance.objects.filter(condor_pool__vpc__access_key=key)
+        ec2_instances = EC2Instance.objects.filter(ec2_pool__vpc__access_key=key)
         running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
         for instance in running_instances:
@@ -250,8 +250,8 @@ def terminate_resources(user, resources):
 def health_check(user, key=None):
     """Perform a health check on all AWS resources
     """
-    condor_pools = CondorPool.objects.filter(vpc__access_key__user=user)
-    for condor_pool in condor_pools:
-        health = condor_pool.get_health()
+    ec2_pools = EC2Pool.objects.filter(vpc__access_key__user=user)
+    for ec2_pool in ec2_pools:
+        health = ec2_pool.get_health()
         if health != 'healthy': return health
     return 'healthy'
