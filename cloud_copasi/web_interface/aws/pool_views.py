@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance,\
-    EC2Pool
+    EC2Pool, BoscoPool
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -261,3 +261,62 @@ class EC2PoolScaleUpView(RestrictedFormView):
         ec2_tools.refresh_pool(ec2_pool)
         
         return super(EC2PoolScaleUpView, self).dispatch(request, *args, **kwargs)
+
+class AddBoscoPoolForm(forms.Form):
+        
+    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
+    
+    address = forms.CharField(max_length=200, help_text='The address or IP of the remote submit node (e.g. server.campus.edu or 86.3.3.2)')
+    
+    username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node')
+    
+    pool_type = forms.ChoiceField(choices = (
+                                                           ('condor', 'Condor'),
+                                                           ('pbs', 'PBS'),
+                                                           ('lsf', 'LSF'),
+                                                           ('sge', 'Sun Grid Engine'),
+                                                           ),
+                                 initial='condor',
+                                 )
+    
+    platform = forms.ChoiceField(label='Remote platform',
+                                 help_text='The platform of the remote submitter we are connecting to',
+                                choices = (
+                                           ('DEB6', 'Debian 6'),
+                                           ('RH5', 'Red Hat 5'),
+                                           ('RH6', 'Red Hat 6'),
+                                           ),
+                                initial='DEB6',
+                                )
+
+    ssh_key = forms.CharField(max_length = 10000,
+                              label = 'SSH Key',
+                              help_text = 'A working private SSH key for the pool submit node. This key will used only once, and will not be stored. See the documentation for full details on how to generate this.',
+                              widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        return super(AddBoscoPoolForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super(AddBoscoPoolForm, self).clean()
+        name = cleaned_data.get('name')
+        vpc = cleaned_data.get('user')
+        address = cleaned_data.get('address')
+        
+        if BoscoPool.objects.filter(name=name,user=self.user).count() > 0:
+            raise forms.ValidationError('A pool with this name already exists')
+
+        return cleaned_data
+        
+class BoscoPoolAddView(RestrictedFormView):
+    
+    page_title = 'Add existing compute pool'
+    form_class = AddBoscoPoolForm
+    template_name = 'pool/ec2_pool_add.html'
+    success_url = reverse_lazy('pool_status')
+    
+    def get_form_kwargs(self):
+        kwargs = super(BoscoPoolAddView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs

@@ -123,6 +123,29 @@ class CondorPool(models.Model):
 
     user = models.ForeignKey(User)
     
+    platform = models.CharField(max_length = 4,
+                                verbose_name='The platform of the remote condor submitter we are connecting to',
+                                choices = (
+                                           ('DEB6', 'Debian 6'),
+                                           ('RH5', 'Red Hat 5'),
+                                           ('RH6', 'Red Hat 6'),
+                                           ),
+                                default='DEB6',
+                                )
+    
+    address = models.CharField(max_length=200,
+                               verbose_name = 'The full username@remote_address of the remote submitter'
+                               )
+    
+    pool_type = models.CharField(max_length=20, choices = (
+                                                           ('condor', 'Condor'),
+                                                           ('pbs', 'PBS'),
+                                                           ('lsf', 'LSF'),
+                                                           ('sge', 'Sun Grid Engine'),
+                                                           ),
+                                 default='condor',
+                                 )
+
     class Meta:
         #abstract = True
         app_label = 'web_interface'
@@ -138,16 +161,7 @@ class CondorPool(models.Model):
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
     """
-    vpc__access_key__user = models.ForeignKey(User)#TODO: will this work?? Or should we just use a redundent user field instead?
-    
-    pool_type = models.CharField(max_length=20, choices = (
-                                                           ('condor', 'Condor'),
-                                                           ('pbs', 'PBS'),
-                                                           ('lsf', 'LSF'),
-                                                           ('sge', 'Sun Grid Engine'),
-                                                           )
-                                 )
-    
+
     class Meta:
         app_label = 'web_interface'
     
@@ -365,12 +379,14 @@ class Task(models.Model):
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
     submit_time = models.DateTimeField(auto_now_add=True)
-    finish_time = models.DateTimeField(null=True)
+    finish_time = models.DateTimeField(null=True, blank=True)
     
     task_type = models.CharField(max_length=128, )
     
-    #Filename/path of the original model
+    #Filename of the original model (relative path only)
     original_model = models.CharField(max_length=200)
+    #And the full path of the directory the task files are stored in
+    directory = models.FilePathField(blank=True, default='not_set')
     
     #Field for storing any task-specific fields
     #Will be stored as a string-based python pickle
@@ -406,7 +422,7 @@ class Task(models.Model):
                       )
     
     
-    status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices)
+    status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='new')
     
     
     

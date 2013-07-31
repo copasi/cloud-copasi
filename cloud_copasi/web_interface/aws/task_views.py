@@ -31,6 +31,7 @@ from cloud_copasi.web_interface import task_plugins
 from cloud_copasi.web_interface.task_plugins import base, tools
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
+from django.utils.datetime_safe import datetime
 
 log = logging.getLogger(__name__)
 
@@ -63,7 +64,7 @@ class NewTaskView(RestrictedFormView):
         #Ensure we have at least 1 running condor pool
         pools = CondorPool.objects.filter(user=request.user)
         if pools.count() == 0:
-            request.session['errors']=[('No running compute pools', 'You must have at least 1 running compute pool before you can submit a job')]
+            request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a job')]
             return HttpResponseRedirect(reverse_lazy('pool_status'))
         
         kwargs['show_loading_screen'] = True
@@ -73,18 +74,20 @@ class NewTaskView(RestrictedFormView):
         return super(NewTaskView,self).dispatch(request, *args, **kwargs)
     
     def form_valid(self, form,  *args, **kwargs):
-        #access_key = form.cleaned_data['access_key']
-        compute_pool = form.cleaned_data['compute_pool']
-        assert isinstance(compute_pool, CondorPool)
-        #access_key = compute_pool.vpc.access_key
-        request = self.request
 
-        #assert access_key.user == request.user
-        #assert compute_pool.vpc.access_key == access_key
+        #Check we are authorized to run on this pool
+        compute_pool = form.cleaned_data['compute_pool']
+        request = self.request
         
+        assert isinstance(compute_pool, CondorPool)
         assert compute_pool.user == request.user
+
+
+
         
-        log.debug(compute_pool.get_pool_type())
+
+
+        log.debug('Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
         
         ########################################################################
         #Process the uploaded copasi file (and other files?) and create a list
@@ -96,19 +99,22 @@ class NewTaskView(RestrictedFormView):
         if not os.path.exists(settings.STORAGE_DIR):
             os.mkdir(settings.STORAGE_DIR)
         
-        working_dir = tempfile.mkdtemp(dir=settings.STORAGE_DIR)
-        model_file = request.FILES['model_file']
+        #And the directory for the user
+        #Takes the form userid.username
+        user_dir = '%d.%s' % (request.user.id, request.user.username)
+        user_dir_path = os.path.join(settings.STORAGE_DIR, user_dir)
+        if not os.path.exists(user_dir_path):
+            os.mkdir(user_dir_path)
         
-        full_filename = os.path.join(working_dir, model_file.name)
-
-        form_tools.handle_uploaded_file(model_file, full_filename)
+        
         
         
         task = Task()
         task.name = form.cleaned_data['name']
         task.condor_pool = form.cleaned_data['compute_pool']
         task.task_type = form.cleaned_data['task_type']
-        task.original_model = full_filename
+        
+        task.original_model = 'original_model.cps'
 
         
         
@@ -127,6 +133,30 @@ class NewTaskView(RestrictedFormView):
             
         task.save()
         
+        
+        #Create a directory to store the files for the task
+        #This will just be the id of the task
+        task_dir = task.id
+        task_dir_path = os.path.join(user_dir_path, task_dir)
+        
+        if os.path.exists(task_dir_path):
+            os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
+        
+        os.mkdir(task_dir_path)
+        
+        task.directory = task_dir_path
+        task.save()
+                #Next we need to create the directory to store the files for the task
+        
+        #working_dir = tempfile.mkdtemp(dir=settings.STORAGE_DIR)
+        model_file = request.FILES['model_file']
+        
+        full_filename = os.path.join(task_dir_path, task.original_model)
+
+        form_tools.handle_uploaded_file(model_file, full_filename)
+
+        
+        
         TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
         
         task_instance = TaskClass(task)
@@ -143,9 +173,9 @@ class NewTaskView(RestrictedFormView):
             kwargs['form'] = form
             return self.form_invalid(self, *args, **kwargs)
         
-        #task_instance.initialize_subtasks()
+        task_instance.initialize_subtasks()
         
-        #task_instance.submit_subtask(1)
+        task_instance.submit_subtask(1)
         
         return HttpResponseRedirect(reverse_lazy('my_account'))
     

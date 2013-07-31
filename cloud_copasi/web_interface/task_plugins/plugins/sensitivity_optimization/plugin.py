@@ -96,9 +96,9 @@ class TaskPlugin(BaseTask):
         
         file_list = spec_files + other_files
         #Copy the necessary files over to S3
-        task_tools.store_to_outgoing_bucket(self.task, model_path, file_list, delete=True)
+        #task_tools.store_to_outgoing_bucket(self.task, model_path, file_list, delete=True)
 
-        self.notify_subtask(subtask, spec_files, other_files)
+        #self.notify_subtask(subtask, spec_files, other_files)
         
         
     def process_second_subtask(self):
