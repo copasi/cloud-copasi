@@ -44,6 +44,9 @@ http://www.gnu.org/licenses/gpl.html
         <a class="button button-alt button-hspace" href="{% url 'ec2_pool_terminate' pool_id=ec2_pool.id %}">Terminate pool</a>
         <a class="button button-hspace" href="{% url 'ec2_pool_scale_up' pool_id=ec2_pool.id %}">Scale up</a>
         <a class="button button-hspace" href="">Scale down</a>
+        <a class="button button-hspace" href="{% url 'pool_test' pool_id=ec2_pool.id %}">Test pool</a>
+        
+        
     </p>
 
     <h4>Master node status:</h4>

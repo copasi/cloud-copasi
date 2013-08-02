@@ -123,6 +123,8 @@ class CondorPool(models.Model):
 
     user = models.ForeignKey(User)
     
+    uuid=UUIDField(auto=True)
+    
     platform = models.CharField(max_length = 4,
                                 verbose_name='The platform of the remote condor submitter we are connecting to',
                                 choices = (
@@ -134,7 +136,9 @@ class CondorPool(models.Model):
                                 )
     
     address = models.CharField(max_length=200,
-                               verbose_name = 'The full username@remote_address of the remote submitter'
+                               verbose_name = 'The full username@remote_address of the remote submitter',
+                               blank=True,
+                               default='',
                                )
     
     pool_type = models.CharField(max_length=20, choices = (
@@ -178,7 +182,7 @@ class EC2Pool(CondorPool):
 
     secret_key = models.CharField(max_length=30, default=create_secret_key)
     
-    uuid=UUIDField(auto=True)
+    
     
     last_update_time = models.DateTimeField(auto_now_add=True)
     
@@ -215,7 +219,7 @@ class EC2Pool(CondorPool):
         """
         return 'cloud-copasi-' + str(self.uuid)
     
-    alarm_notify_topic_arn = models.CharField(max_length = 30, blank=True, null=True)
+    alarm_notify_topic_arn = models.CharField(max_length = 80, blank=True, null=True)
     
     def get_health(self):
         instances = EC2Instance.objects.filter(ec2_pool=self)

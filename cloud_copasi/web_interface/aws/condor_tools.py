@@ -10,6 +10,7 @@ import subprocess, re
 import os.path, time
 from cloud_copasi import settings
 import logging
+from cloud_copasi.web_interface.models import EC2Pool
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +51,12 @@ def remove_bosco_pool(address):
     output = run_bosco_command(BOSCO_CLUSTER + ' --remove ' + address, error=True)
     log.debug('Response:')
     log.debug(output)
+    
+    #log.debug('Removing pool from ssh known_hosts')
+    #process = subprocess.Popen(['ssh-keygen', '-R', address], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    #output = process.communicate()
+    #log.debug(output)
+    
     return output
 
 def test_bosco_pool(address):
@@ -66,6 +73,27 @@ def test_bosco_pool(address):
     log.debug(output[2])
     
     return output
+
+
+def add_ec2_pool(ec2_pool):
+    """Add an EC2 pool to bosco
+    """
+    assert isinstance(ec2_pool, EC2Pool)
+    
+    address = str(ec2_pool.address)
+    
+    platform = 'DEB6' #Ubuntu-based server
+    pool_type = 'condor' #Condor scheduler
+    keypair = ec2_pool.key_pair.path
+    
+    log.debug('Adding EC2 pool to bosco')
+    
+    output = add_bosco_pool(platform, address, keypair, pool_type)
+    return output
+
+def remove_ec2_pool(ec2_pool):
+    address = str(ec2_pool.address)
+    return remove_bosco_pool(address)
 
 def process_condor_q():
     

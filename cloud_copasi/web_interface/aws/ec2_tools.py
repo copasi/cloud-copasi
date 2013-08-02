@@ -22,6 +22,7 @@ import datetime
 from django.utils.timezone import now as utcnow
 from django.utils.timezone import utc
 from django.core.urlresolvers import reverse_lazy
+import subprocess
 
 log = logging.getLogger(__name__)
 
@@ -221,12 +222,35 @@ def launch_pool(ec2_pool):
     #Try up to 5 times
     log.debug('Assigning elastic IP to master node')
     try:
-        assign_ip_address(master_ec2_instance)
+        elastic_ip = assign_ip_address(master_ec2_instance)
         log.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
     except Exception, e:
         log.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
         log.exception(e)
         raise e
+    
+    ec2_pool.address = 'ubuntu@' + str(elastic_ip.public_ip)
+    
+    
+    #Check to see if we can ssh in
+    #Try a couple of times
+    tries = 15
+    for i in range(tries):
+        log.debug('Testing SSH credentials')
+        command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ec2_pool.key_pair.path, ec2_pool.address, 'pwd']
+        
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={'DISPLAY' : ''})
+        output = process.communicate()
+        
+        log.debug('SSH response:')
+        log.debug(output)
+        
+        if process.returncode == 0:
+            log.debug('SSH success')
+            break
+        sleep(5)
+    
+    
     return ec2_instances
 
 def scale_up(ec2_pool, extra_nodes):

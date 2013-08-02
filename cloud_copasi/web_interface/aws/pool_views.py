@@ -105,7 +105,7 @@ class EC2PoolAddView(RestrictedFormView):
         try:
             pool = form.save(commit=False)
             pool.user = pool.vpc.access_key.user
-            
+            pool.save()
             
             key_pair=ec2_tools.create_key_pair(pool)
             pool.key_pair = key_pair
@@ -119,9 +119,15 @@ class EC2PoolAddView(RestrictedFormView):
         #try:
         ec2_tools.launch_pool(pool)
         pool.save()
+        
+        #Connect to Bosco
+        condor_tools.add_ec2_pool(pool)
+        
         #except Exception, e:
         #    self.request.session['errors'] = aws_tools.process_errors([e])
         #    return HttpResponseRedirect(reverse_lazy('pool_add'))
+        
+        self.success_url = reverse_lazy('pool_test', kwargs={'pool_id':pool.id})
         
         return super(EC2PoolAddView, self).form_valid(*args, **kwargs)
 
@@ -213,9 +219,18 @@ class EC2PoolTerminateView(RestrictedView):
             
             return super(EC2PoolTerminateView, self).dispatch(request, *args, **kwargs)
         else:
+            
+            #Remove from bosco
+            try:
+                condor_tools.remove_ec2_pool(ec2_pool)
+            except:
+                pass
+            
             #Terminate the pool
             errors = ec2_tools.terminate_pool(ec2_pool)
             request.session['errors']=errors
+            
+            
             return HttpResponseRedirect(reverse_lazy('pool_list'))
 
 class EC2PoolScaleUpForm(forms.Form):
@@ -381,7 +396,7 @@ class BoscoPoolAddView(RestrictedFormView):
         address = form.cleaned_data['address']
         
         log.debug('Testing SSH credentials')
-        command = ['ssh', '-i', ssh_key_filename, '-l', username, address, 'pwd']
+        command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
         process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
         
