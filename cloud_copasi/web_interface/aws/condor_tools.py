@@ -18,34 +18,54 @@ CONDOR_SUBMIT = 'condor_submit'
 CONDOR_RM = 'condor_rm'
 BOSCO_CLUSTER = 'bosco_cluster'
 
-def run_bosco_command(command):
+def run_bosco_command(command, error=False):
     #Source the bosco environment before running
     command_string = 'source ' + settings.BOSCO_SETENV + '; ' + command
-    process = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE)
+    process = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
-    output =process.communicate()[0].splitlines()
+    output = process.communicate()
     
-    return output
+    if not error: return output[0].splitlines()
+    else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
 
 def add_bosco_pool(platform, address, keypair, pool_type='condor'):
     
-    command = ''
-    if keypair:
-        command += 'eval `ssh-agent`; ssh-add ' + keypair + '; '
+
+    command = 'eval `ssh-agent`; ssh-add ' + keypair + '; '
     
     command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
     
-    if keypair:
-        command += 'kill $SSH_AGENT_PID;'
+    command += 'kill $SSH_AGENT_PID;'
         
     
-    output = run_bosco_command(command)
+    output = run_bosco_command(command, error=True)
     
     log.debug(output)
+    
+    return output
 
 def remove_bosco_pool(address):
     
-    output = run_bosco_command(BOSCO_CLUSTER + ' --remove ' + address)
+    log.debug('Removing pool %s' %address)
+    output = run_bosco_command(BOSCO_CLUSTER + ' --remove ' + address, error=True)
+    log.debug('Response:')
+    log.debug(output)
+    return output
+
+def test_bosco_pool(address):
+    log.debug('Testing bosco cluster %s' % address)
+    
+    command = BOSCO_CLUSTER + ' --test ' + address
+    output =  run_bosco_command(command, error=True)
+    
+    log.debug('Test response:')
+    log.debug(output[0])
+    log.debug('Errors:')
+    log.debug(output[1])
+    log.debug('Exit status')
+    log.debug(output[2])
+    
+    return output
 
 def process_condor_q():
     

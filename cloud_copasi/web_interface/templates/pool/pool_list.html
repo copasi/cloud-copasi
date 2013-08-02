@@ -22,11 +22,16 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Your Compute Pools</span>
     </header>
     
-    <p>Compute pools consist of a Master node, and one or more Compute nodes. Click 'Launch Pool' below to launch a new compute pool.</p>
     
-    <p><a class="button button-icon button-icon-check" href="{% url 'ec2_pool_add' %}">Launch pool</a></p>
+    <header class="minor">
+        <h3>EC2 Pools</h3>
+        
     
-    {%if pools %}
+    </header>
+    <p>EC2 compute pools consist of a Master node, and one or more Compute nodes.</p>
+    <p><a class="button button-icon button-icon-check" href="{% url 'ec2_pool_add' %}">Launch new EC2 pool</a></p>
+    
+    {%if ec2_pools %}
     <div class="tablelist">
         <table>
             <tr>
@@ -58,7 +63,44 @@ http://www.gnu.org/licenses/gpl.html
         <p>*Includes Master node</p>
     </div>
     {% else %}
-    <p>You currently have no active compute pools.</p>
+    <p><span class="bold">You currently have no active EC2 pools</span></p>
+    {% endif %}
+    
+    <header class="minor">
+        <h3>Connected pools </h3>
+    
+    </header>
+    <p>Cloud-COPASI can connect to existing Condor, PBS, LSF and SGE compute pools.</p>
+    <p><a class="button button-icon button-icon-check" href="{% url 'bosco_pool_add' %}">Connect to compute pool</a></p>
+
+    {% if bosco_pools %}
+        <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                {% if user.is_staff %}
+                <th>Internal ID</th>
+                {% endif %}
+                <th>Address</th>
+                <th>Type</th>
+                <th>Details</th>
+            </tr>
+        {% for bosco_pool in bosco_pools %}
+            <tr>
+                <td><a href="{% url 'bosco_pool_details' pool_id=bosco_pool.id %}">{{ bosco_pool.name }}</a></td>
+                {% if user.is_staff %}
+                <td><a href="{% url 'admin:web_interface_boscopool_change' bosco_pool.id %}">{{bosco_pool.id}}</a></td>
+                {% endif %}
+
+                <td>{{bosco_pool.address }}</td>
+                <td >{{bosco_pool.get_pool_type_display}}</td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'bosco_pool_details' pool_id=bosco_pool.id %}">Details</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p><span class="bold">You currently have no active connected pools</span></p>
     {% endif %}
 </article>
 {% endblock %}

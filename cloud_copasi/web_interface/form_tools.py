@@ -20,7 +20,7 @@ class PoolChoiceField(forms.ModelChoiceField):
         if hasattr(obj, 'ec2pool'):
             pool_type = 'EC2'
         elif hasattr(obj, 'boscopool'):
-            pool_type = unicode(obj.boscopool.pool_type)
+            pool_type = unicode(obj.boscopool.get_pool_type_display())
         else:
             pool_type = 'Unknown'
         return "%s (%s)" % (obj.name, pool_type)

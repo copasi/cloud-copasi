@@ -19,29 +19,30 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools,\
+    condor_tools
 from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
 from cloud_copasi.web_interface.models import VPC
 import logging
+import tempfile, subprocess
+from django.core.validators import RegexValidator
+import os
+from django.forms.forms import NON_FIELD_ERRORS
+from django.forms.util import ErrorList
+from django.http.response import HttpResponseRedirect
 
 log = logging.getLogger(__name__)
 
-class PoolStatusView(RestrictedView):
+class PoolListView(RestrictedView):
     """View to display active compute pools
     """
-    template_name = 'pool/pool_status.html'
-    page_title = 'Pool status'
+    template_name = 'pool/pool_list.html'
+    page_title = 'Compute pools'
     
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         
-        vpcs = VPC.objects.filter(access_key__user=request.user)
-        if vpcs.count() == 0:
-            request.session['errors'] = [('No active VPCs', 'You must have at least one active VPC configured before you can start a compute pool')]
-            return HttpResponseRedirect(reverse_lazy('vpc_status'))
-        pools = models.CondorPool.objects.filter(user=request.user)
-        kwargs['pools'] = pools
         
         ec2_pools = EC2Pool.objects.filter(user=request.user)
         
@@ -49,6 +50,10 @@ class PoolStatusView(RestrictedView):
             ec2_tools.refresh_pool(ec2_pool)
         
         kwargs['ec2_pools'] = ec2_pools
+        
+        
+        bosco_pools = BoscoPool.objects.filter(user=request.user)
+        kwargs['bosco_pools'] = bosco_pools
         
         return RestrictedView.dispatch(self, request, *args, **kwargs)
     
@@ -84,7 +89,7 @@ class AddEC2PoolForm(forms.ModelForm):
 class EC2PoolAddView(RestrictedFormView):
     template_name = 'pool/ec2_pool_add.html'
     page_title = 'Add EC2 pool'
-    success_url = reverse_lazy('pool_status')
+    success_url = reverse_lazy('pool_list')
     form_class = AddEC2PoolForm
     
     
@@ -141,11 +146,11 @@ class EC2PoolDetailsView(RestrictedView):
         except EC2ResponseError, e:
             request.session['errors'] = [error for error in e.errors]
             log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_status'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
         except Exception, e:
             self.request.session['errors'] = [e]
             log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('p'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
         
         instances=EC2Instance.objects.filter(ec2_pool=ec2_pool)
         
@@ -161,6 +166,29 @@ class EC2PoolDetailsView(RestrictedView):
         kwargs['ec2_pool'] = ec2_pool
 
         return super(EC2PoolDetailsView, self).dispatch(request, *args, **kwargs)
+class BoscoPoolDetailsView(RestrictedView):
+    template_name='pool/bosco_pool_details.html'
+    page_title = 'Compute pool details'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool_id = kwargs['pool_id']
+        try:
+            bosco_pool = BoscoPool.objects.get(id=pool_id)
+            assert bosco_pool.user == request.user
+        except Exception, e:
+            self.request.session['errors'] = [e]
+            log.exception(e)
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
+        
+        
+        kwargs['bosco_pool'] = bosco_pool
+        
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Testing pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Testing a pool can take several minutes'
+
+        return super(BoscoPoolDetailsView, self).dispatch(request, *args, **kwargs)
     
 class EC2PoolTerminateView(RestrictedView):
     template_name='pool/ec2_pool_terminate.html'
@@ -188,7 +216,7 @@ class EC2PoolTerminateView(RestrictedView):
             #Terminate the pool
             errors = ec2_tools.terminate_pool(ec2_pool)
             request.session['errors']=errors
-            return HttpResponseRedirect(reverse_lazy('pool_status'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
 
 class EC2PoolScaleUpForm(forms.Form):
     
@@ -223,7 +251,7 @@ class EC2PoolScaleUpForm(forms.Form):
 class EC2PoolScaleUpView(RestrictedFormView):
     template_name = 'pool/ec2_pool_scale.html'
     page_title = 'Scale up EC2 pool'
-    success_url = reverse_lazy('pool_status')
+    success_url = reverse_lazy('pool_list')
     form_class = EC2PoolScaleUpForm
 
     
@@ -245,7 +273,7 @@ class EC2PoolScaleUpView(RestrictedFormView):
         except Exception, e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_status'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
 
         
         
@@ -266,9 +294,12 @@ class AddBoscoPoolForm(forms.Form):
         
     name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
     
-    address = forms.CharField(max_length=200, help_text='The address or IP of the remote submit node (e.g. server.campus.edu or 86.3.3.2)')
+    address = forms.CharField(max_length=200,
+                              help_text='The address or IP of the remote submit node (e.g. server.campus.edu or 86.3.3.2)',
+                              validators=[RegexValidator(r'^[a-z0-9-.]+(:([0-9]+)){0,1}$')])
     
-    username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node')
+    username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node',
+                               validators=[RegexValidator(r'^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$')])
     
     pool_type = forms.ChoiceField(choices = (
                                                            ('condor', 'Condor'),
@@ -280,7 +311,7 @@ class AddBoscoPoolForm(forms.Form):
                                  )
     
     platform = forms.ChoiceField(label='Remote platform',
-                                 help_text='The platform of the remote submitter we are connecting to',
+                                 help_text='The platform of the remote submitter we are connecting to. Not sure which to select? See the documentation for full details.',
                                 choices = (
                                            ('DEB6', 'Debian 6'),
                                            ('RH5', 'Red Hat 5'),
@@ -290,8 +321,8 @@ class AddBoscoPoolForm(forms.Form):
                                 )
 
     ssh_key = forms.CharField(max_length = 10000,
-                              label = 'SSH Key',
-                              help_text = 'A working private SSH key for the pool submit node. This key will used only once, and will not be stored. See the documentation for full details on how to generate this.',
+                              label = 'SSH private key',
+                              help_text = 'A working SSH private key for the pool submit node. This key will used only once, and will not be stored. See the documentation for full details on how to generate this.',
                               widget=forms.Textarea)
 
     def __init__(self, *args, **kwargs):
@@ -301,22 +332,168 @@ class AddBoscoPoolForm(forms.Form):
     def clean(self):
         cleaned_data = super(AddBoscoPoolForm, self).clean()
         name = cleaned_data.get('name')
-        vpc = cleaned_data.get('user')
-        address = cleaned_data.get('address')
         
+        address = cleaned_data.get('address')
+        username = cleaned_data.get('username')
         if BoscoPool.objects.filter(name=name,user=self.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
-
+        
+        if address and username:
+            if BoscoPool.objects.filter(address=username+'@'+address).count() > 0:
+                raise forms.ValidationError('A pool has already been added with these access credentials')
         return cleaned_data
         
 class BoscoPoolAddView(RestrictedFormView):
     
     page_title = 'Add existing compute pool'
     form_class = AddBoscoPoolForm
-    template_name = 'pool/ec2_pool_add.html'
-    success_url = reverse_lazy('pool_status')
+    template_name = 'pool/bosco_pool_add.html'
+    success_url = reverse_lazy('pool_list')
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Connecting to pool'
+        kwargs['loading_description'] = 'Please do not navigate away from this page. Connecting to a pool can take several minutes.'
+        
+        return super(BoscoPoolAddView, self).dispatch(*args, **kwargs)
+
+    
     
     def get_form_kwargs(self):
         kwargs = super(BoscoPoolAddView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
         return kwargs
+    
+    def form_valid(self, *args, **kwargs):
+        
+        #Firstly, check to see if the ssh credentials are valid
+        form = kwargs['form']
+        
+        file_handle, ssh_key_filename = tempfile.mkstemp()
+        
+        ssh_key_file = open(ssh_key_filename, 'w')
+        ssh_key_file.write(form.cleaned_data['ssh_key'])
+        ssh_key_file.close()
+        
+        username = form.cleaned_data['username']
+        address = form.cleaned_data['address']
+        
+        log.debug('Testing SSH credentials')
+        command = ['ssh', '-i', ssh_key_filename, '-l', username, address, 'pwd']
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+        output = process.communicate()
+        
+        log.debug('SSH response:')
+        log.debug(output)
+        
+        if process.returncode != 0:
+            os.remove(ssh_key_filename)
+
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['The SSH credentials provided are not correct'])
+            return self.form_invalid(self, *args, **kwargs)
+        
+        #Assume the SSH credentails are good
+        #Next, we try to add the pool using bosco_cluster --add
+        output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
+        
+        if exit_status != 0:
+            os.remove(ssh_key_filename)
+
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['There was an error adding the pool'] + output + errors)
+            
+            try:
+                log.debug('Error adding pool. Attempting to remove from bosco_cluster')
+                condor_tools.remove_bosco_pool(username+'@'+address)
+            except:
+                pass
+            
+            return self.form_invalid(self, *args, **kwargs)
+        
+        else:
+            #Assume everything went well
+            os.remove(ssh_key_filename)
+            
+            pool = BoscoPool(name = form.cleaned_data['name'],
+                             user = self.request.user,
+                             platform = form.cleaned_data['platform'],
+                             address = form.cleaned_data['username'] + '@' + form.cleaned_data['address'],
+                             pool_type = form.cleaned_data['pool_type'],
+                             )
+            pool.save()
+                             
+            return HttpResponseRedirect(reverse_lazy('pool_test', kwargs={'pool_id': pool.id}))
+        
+
+        
+class PoolTestView(RestrictedView):
+    page_tile = 'Test pool'
+    template_name = 'pool/pool_test.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool = CondorPool.objects.get(id=kwargs.get('pool_id'))
+        assert pool.user == request.user
+        kwargs['pool'] = pool
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Testing pool'
+        kwargs['loading_description'] = 'Please do not navigate away from this page. Testing a pool can take several minutes.'
+
+        return super(PoolTestView, self).dispatch(request, *args, **kwargs)
+    
+class PoolTestResultView(RestrictedView):
+    
+    page_title = 'Pool test result'
+    template_name = 'pool/pool_test_result.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool = CondorPool.objects.get(id=kwargs.get('pool_id'))
+        assert pool.user == request.user
+        kwargs['pool'] = pool
+        
+        output, errors, exit_status = condor_tools.test_bosco_pool(pool.address)
+        
+        kwargs['output'] = output
+        kwargs['stderr'] = errors
+        kwargs['exit_status'] = exit_status
+        
+        if exit_status == 0: kwargs['success'] = True
+        else: kwargs['success'] = False
+        
+
+        
+        return super(PoolTestResultView, self).dispatch(request, *args, **kwargs)
+class BoscoPoolRemoveView(RestrictedView):
+    template_name='pool/bosco_pool_remove.html'
+    page_title='Confirm compute pool removal'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool_id = kwargs['pool_id']
+        
+        confirmed= kwargs['confirmed']
+        
+        bosco_pool = BoscoPool.objects.get(id=pool_id)
+        assert bosco_pool.user == request.user
+
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Removing pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page.'
+        
+        if not confirmed:
+        
+            kwargs['bosco_pool'] = bosco_pool
+            
+            return super(BoscoPoolRemoveView, self).dispatch(request, *args, **kwargs)
+        else:
+            #Remove the pool
+            #TODO
+            try:
+                condor_tools.remove_bosco_pool(bosco_pool.address)
+                bosco_pool.delete()
+            except Exception, e:
+                request.session['errors'] = [e]
+                return HttpResponseRedirect(reverse_lazy('bosco_pool_details', pool_id = bosco_pool.id))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))

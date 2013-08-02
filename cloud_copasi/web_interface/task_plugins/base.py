@@ -104,7 +104,7 @@ class BaseTask:
         subtask.save()
         
         #Notify the queue that we are submitting a new condor TASK
-        task_tools.notify_new_condor_task(self.task, other_files, spec_files)
+        #task_tools.notify_new_condor_task(self.task, other_files, spec_files)
         
         subtask.status = 'submitted'
         subtask.active = True
@@ -116,6 +116,6 @@ class BaseTask:
     def notify_file_transfer(self, reason, file_list, zip, delete):
         """Notify the queue that we want the master to transfer files to s3
         """
-        task_tools.notify_file_transfer(self.task, reason, file_list, zip, delete)
+        #task_tools.notify_file_transfer(self.task, reason, file_list, zip, delete)
         self.task.status='transfer'
         self.task.save()

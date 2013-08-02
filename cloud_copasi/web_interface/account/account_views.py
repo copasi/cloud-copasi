@@ -246,7 +246,7 @@ class VPCRemoveView(RedirectView):
             error_title='Compute pools still running'
             error_message='One or more compute pools are still running on this VPC. These must be terminated before the VPC can be removed.'
             request.session['errors'] = [(error_title, error_message)]
-            return HttpResponseRedirect(reverse_lazy('pool_status'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
         #Create a VPC associated with the key
         errors=[]
         try:

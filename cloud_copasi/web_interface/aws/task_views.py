@@ -65,7 +65,7 @@ class NewTaskView(RestrictedFormView):
         pools = CondorPool.objects.filter(user=request.user)
         if pools.count() == 0:
             request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a job')]
-            return HttpResponseRedirect(reverse_lazy('pool_status'))
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
         
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Submitting task'
