@@ -443,7 +443,7 @@ class BoscoPoolAddView(RestrictedFormView):
 
         
 class PoolTestView(RestrictedView):
-    page_tile = 'Test pool'
+    page_title = 'Pool added'
     template_name = 'pool/pool_test.html'
     
     @method_decorator(login_required)
