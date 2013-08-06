@@ -22,7 +22,8 @@ from cloud_copasi.web_interface.account.account_views import MyAccountView
 from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from cloud_copasi.web_interface.aws import vpc_tools, task_tools, ec2_tools
+from cloud_copasi.web_interface.aws import vpc_tools, task_tools, ec2_tools,\
+    condor_tools
 from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
@@ -136,7 +137,7 @@ class NewTaskView(RestrictedFormView):
         
         #Create a directory to store the files for the task
         #This will just be the id of the task
-        task_dir = task.id
+        task_dir = str(task.id)
         task_dir_path = os.path.join(user_dir_path, task_dir)
         
         if os.path.exists(task_dir_path):
@@ -175,7 +176,9 @@ class NewTaskView(RestrictedFormView):
         
         task_instance.initialize_subtasks()
         
-        task_instance.submit_subtask(1)
+        subtask = task_instance.prepare_subtask(1)
+        
+        condor_tools.submit_task(subtask)
         
         return HttpResponseRedirect(reverse_lazy('my_account'))
     

@@ -22,7 +22,7 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Pool successfully added</h2>
     </header>
     
-    <p>The {{pool.get_pool_type_display}} pool <span class="bold">{{pool.name }}</span> was successfully added to your account. To ensure everything is working correctly, we recommend that you run a test job on the pool. To do so, click the button below:</p>
+    <p>The {{pool.get_pool_type_display_true}} pool <span class="bold">{{pool.name }}</span> was successfully added to your account. To ensure everything is working correctly, we recommend that you run a test job on the pool. To do so, click the button below:</p>
     <p>
     <a href="{% url 'pool_test_result' pool_id=pool_id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Test pool</a>
     </p>

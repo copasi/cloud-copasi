@@ -13,7 +13,8 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob, Subtask
+from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob, Subtask,\
+    EC2Pool
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -115,7 +116,7 @@ class UpdateCondorStatusView(APIView):
         secret_key = data['secret_key']
         
         
-        pool=CondorPool.objects.get(uuid=pool_id)
+        pool=EC2Pool.objects.get(uuid=pool_id)
         assert pool.secret_key == secret_key
         
         

@@ -154,13 +154,25 @@ class CondorPool(models.Model):
         #abstract = True
         app_label = 'web_interface'
 
-    def get_pool_type(self):
+    def get_pool_type(self, display=False):
         if hasattr(self, 'ec2pool'):
-            return 'ec2'
+            if display:
+                return 'EC2'
+            else:
+                return 'ec2'
         elif hasattr(self, 'boscopool'):
-            return 'bosco'
+            if display:
+                return self.get_pool_type_display()
+            else:
+                return 'bosco'
         else:
             return 'unknown'
+        
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, self.get_pool_type(display=True))
+    
+    def get_pool_type_display_true(self):
+        return self.get_pool_type(display=True)
 
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
@@ -415,6 +427,7 @@ class Task(models.Model):
             return None
     
     status_choices = (
+                      ('waiting', 'Waiting'),
                       ('new', 'New'),
                       ('running', 'Running'),
                       ('transfer', 'Transferring files'),
@@ -426,7 +439,7 @@ class Task(models.Model):
                       )
     
     
-    status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='new')
+    status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='waiting')
     
     
     
@@ -485,22 +498,24 @@ class Subtask(models.Model):
                       ('unkown', 'Unknown'),
                       )
     status = models.CharField(max_length=32, choices = status_choices)
+    
+    cluster_id = models.IntegerField(blank=True, null=True) #The condor cluster ID (i.e. $(Cluster)) 
+    
+    spec_file = models.spec_file = models.FilePathField(max_length=255)
 
     
 class CondorJob(models.Model):
     
    #The parent job
     subtask = models.ForeignKey(Subtask, null=True)
-    #The .job condor specification file
-    spec_file = models.FilePathField(max_length=255)
     #The std output file for the job
-    std_output_file = models.FilePathField(max_length=255)
+    std_output_file = models.CharField(max_length=255)
     #The log file for the job
-    log_file = models.FilePathField(max_length=255)
+    log_file = models.CharField(max_length=255)
     #The error file for the job
     std_error_file = models.FilePathField(max_length=255)
     #The output file created by the job
-    job_output = models.FilePathField(max_length=255)
+    job_output = models.CharField(max_length=255)
     #The status of the job in the queue
     QUEUE_CHOICES = (
         ('N', 'Not queued'),
@@ -513,18 +528,19 @@ class CondorJob(models.Model):
         ('E', 'Error'),
     )
     queue_status = models.CharField(max_length=1, choices=QUEUE_CHOICES)
-    #The id of the job in the queue. Only set once the job has been queued
-    queue_id = models.IntegerField(null=True)
+    
+    #The id of the job process in the cluster. Only set once the job has been queued. 
+    process_id = models.IntegerField(null=True, blank=True)
     #The amount of computation time in seconds that the condor job took to finish. Note, this does not include any interrupted runs. Will not be set until the condor job finishes.
     run_time = models.FloatField(null=True)
     
     runs = models.PositiveIntegerField(verbose_name='The number of runs this particular job is performing', blank=True, null=True)
     
     #The copasi file that is to be copied over with this condor job
-    copasi_file = models.FilePathField(max_length=255)
+    copasi_file = models.CharField(max_length=255)
     
     def __unicode__(self):
-        return "%s (task %s)" % (unicode(self.queue_id), self.subtask.task.name)
+        return "%s (task %s)" % (unicode(self.process_id), self.subtask.task.name)
         
         
     def getDirectory(self):

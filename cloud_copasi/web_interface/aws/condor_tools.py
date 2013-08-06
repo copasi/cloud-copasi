@@ -6,11 +6,11 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-import subprocess, re
+import subprocess, re, os
 import os.path, time
 from cloud_copasi import settings
 import logging
-from cloud_copasi.web_interface.models import EC2Pool
+from cloud_copasi.web_interface.models import EC2Pool, Subtask, CondorJob
 
 log = logging.getLogger(__name__)
 
@@ -19,13 +19,28 @@ CONDOR_SUBMIT = 'condor_submit'
 CONDOR_RM = 'condor_rm'
 BOSCO_CLUSTER = 'bosco_cluster'
 
-def run_bosco_command(command, error=False):
-    #Source the bosco environment before running
-    command_string = 'source ' + settings.BOSCO_SETENV + '; ' + command
-    process = subprocess.Popen(command_string, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#Set up the Bosco environment variables (equivalent to bosco_setenv)
+os_env = os.environ.copy()
+
+env={}
+bosco_path = os.path.join(settings.BOSCO_DIR, 'bin') + ':' + os.path.join(settings.BOSCO_DIR, 'sbin')
+env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
+env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
+env['HOME'] = os_env.get('HOME', '')
+
+
+###Custom env options
+if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
+    env = dict(env.items() + settings.BOSCO_CUSTOM_ENV.items())
+
+
+
+def run_bosco_command(command, error=False, cwd=None, shell=False):
+    
+    process = subprocess.Popen(command, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
     
     output = process.communicate()
-    
+    log.debug('output')
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
 
@@ -39,7 +54,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
     command += 'kill $SSH_AGENT_PID;'
         
     
-    output = run_bosco_command(command, error=True)
+    output = run_bosco_command(command, error=True, shell=True)
     
     log.debug(output)
     
@@ -48,7 +63,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
 def remove_bosco_pool(address):
     
     log.debug('Removing pool %s' %address)
-    output = run_bosco_command(BOSCO_CLUSTER + ' --remove ' + address, error=True)
+    output = run_bosco_command([BOSCO_CLUSTER, '--remove', address], error=True)
     log.debug('Response:')
     log.debug(output)
     
@@ -62,7 +77,8 @@ def remove_bosco_pool(address):
 def test_bosco_pool(address):
     log.debug('Testing bosco cluster %s' % address)
     
-    command = BOSCO_CLUSTER + ' --test ' + address
+    command = [BOSCO_CLUSTER, '--test', address]
+
     output =  run_bosco_command(command, error=True)
     
     log.debug('Test response:')
@@ -97,7 +113,7 @@ def remove_ec2_pool(ec2_pool):
 
 def process_condor_q():
     
-    condor_q_output = run_bosco_command(CONDOR_Q)
+    condor_q_output = run_bosco_command([CONDOR_Q])
     
     #Process the output using regexps. Example line is as follows:
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD               
@@ -129,25 +145,58 @@ def condor_submit(condor_file):
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
     
-    p = subprocess.Popen([CONDOR_SUBMIT, condor_file],stdout=subprocess.PIPE, cwd=directory)
-        
-    process_output = p.communicate()[0]
+    output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
+    log.debug('Submitting to condor. Output: ')
+    log.debug(output)
     #Get condor_process number...
 #    process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
+    process_output = output[1] #We're only interested in the middle line
+    
     try:
-        r=re.compile(r'[\s\S]*submitted to cluster (?P<id>\d+).*')
-        process_id = int(r.match(process_output).group('id'))
+        assert exit_status == 0
+        r=re.compile(r'.*(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
+        number_of_jobs = int(r.match(process_output).group('n'))
+        cluster_id = int(r.match(process_output).group('cluster'))
+
     except:
-        process_id = -1 #Return -1 if for some reason the submit failed
-        #logging.exception('Failed to submit job')
-    #TODO: Should we sleep here for a bit? 1s? 10s?
-    time.sleep(0.5)
-    return process_id
+        logging.exception('Failed to submit job')
+        raise Exception('Failed to submit job')
+    return (cluster_id, number_of_jobs)
 
 def condor_rm(queue_id):
     
     p = subprocess.Popen([CONDOR_RM, str(queue_id)])
     p.communicate()
     time.sleep(0.5)
+    
+    
+    
+    
+    
+def submit_task(subtask):
+    """Submit the subtask to the pool. Create all necessary CondorJobs, and update their status.
+    """
+    
+    assert isinstance(subtask, Subtask)
+    
+    spec_file_path = os.path.join(subtask.task.directory, subtask.spec_file)
+    
+    cluster_id, number_of_jobs = condor_submit(spec_file_path)
+    
+    subtask.cluster_id=cluster_id
+    
+    for n in range(number_of_jobs):
+        copasi_model_filename = 'auto_copasi_%d.%d.cps' % (subtask.index, n)
+        job = CondorJob(subtask=subtask,
+                        std_output_file = copasi_model_filename + '.out',
+                        std_error_file = copasi_model_filename + '.err',
+                        log_file = copasi_model_filename + '.log',
+                        job_output = 'output_%d.%d.txt' % (subtask.index, n),
+                        queue_status = 'I',
+                        process_id = n,
+                        run_time = 0.0,
+                        copasi_file = copasi_model_filename,
+                        )
+        job.save()
 

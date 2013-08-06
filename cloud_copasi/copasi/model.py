@@ -25,6 +25,7 @@ should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 queue\n"""
 
+
 def get_time_per_job(job):
     #For benchmarking purposes, jobs with a name ending with ?t=0.5 will use the custom t for load balancing
     name_re = re.compile(r'.*t=(?P<t>.*)')
@@ -545,7 +546,7 @@ class CopasiModel:
         else:
             raise Exception('Unknown report type')
             
-    def prepare_so_task(self):
+    def prepare_so_task(self, subtask_index=1):
         """Generate the files required to perform the sensitivity optimization, 
         
         This involves creating the appropriate temporary .cps files. The .job files are generated seperately"""
@@ -637,69 +638,105 @@ class CopasiModel:
         file_list = []
         for optString in optimizationStrings:
             maximizeParameter.attrib['value'] = '1'
-            output = 'output_%d.txt' % i
+            output = 'output_%d.%d.txt' % (subtask_index, i)
             report.attrib['target'] = output
             
             #Update the sensitivities object
             singleObject.set('value',optString)
             
-            target = os.path.join(self.path, 'auto_copasi_%d.cps' %i)
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' %(subtask_index, i))
             
             self.model.write(target)
             file_list.append(target)
             
             maximizeParameter.attrib['value'] = '0'
-            output = 'output_%d.txt' % (i + 1)
+            output = 'output_%d.%d.txt' % (subtask_index, i + 1)
             report.attrib['target'] = output
             
-            target = os.path.join(self.path, 'auto_copasi_%d.cps' % (i+1))
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i+1))
             self.model.write(target)
             file_list.append(target)
             i = i + 2
             
         return file_list
         
-    def prepare_so_condor_jobs(self, rank='0'):
-        """Prepare the neccessary .job files to submit to condor for the sensitivity optimization task"""
+    def prepare_so_condor_job(self, pool_type, pool_address, subtask_index=1, rank='0', extraArgs=''):
+        """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+        #New: only prepares a single job which allows multiple jobs to be queued
         #We must change the ownership of each of the copasi files to the user running this script
         #
         #We assume that we have write privileges on each of the files through our group, but don't have permission to actually change ownership (must be superuser to do this)
         #Thus, we workaround this by copying the original file, deleting the original, and moving the copy back to the original filename
         
-        import shutil
-        for i in range(len(self.get_optimization_parameters())):
-            for max in (0, 1):
-                copasi_file = os.path.join(self.path, 'auto_copasi_%d.cps' % (2*i + max))
-                temp_file = os.path.join(self.path, 'temp.cps')
-                shutil.copy2(copasi_file, temp_file)
-                os.remove(copasi_file)
-                os.rename(temp_file, copasi_file)
-                os.chmod(copasi_file, 0664) #Set as group readable and writable
+#         import shutil
+#         for i in range(len(self.get_optimization_parameters())):
+#             for max in (0, 1):
+#                 copasi_file = os.path.join(self.path, 'auto_copasi_%d.cps' % (2*i + max))
+#                 temp_file = os.path.join(self.path, 'temp.cps')
+#                 shutil.copy2(copasi_file, temp_file)
+#                 os.remove(copasi_file)
+#                 os.rename(temp_file, copasi_file)
+#                 os.chmod(copasi_file, 0664) #Set as group readable and writable
         
         ############
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
         condor_jobs = []
-                    
-        for i in range(len(self.get_optimization_parameters())):
-            for max in (0, 1):
-                copasi_file = 'auto_copasi_%d.cps' % (2*i + max)
-                condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
-                condor_job_filename = 'auto_condor_%d.job' % (2*i + max)
-                condor_job_full_filename = os.path.join(self.path, condor_job_filename)
-                condor_file = open(condor_job_full_filename, 'w')
-                condor_file.write(condor_job_string)
-                condor_file.close()
-                #Append a dict contining (job_filename, std_out, std_err, log_file, job_output and copasi file)
-                condor_jobs.append({
-                    'spec_file': condor_job_filename,
-                    'std_output_file': str(copasi_file) + '.out',
-                    'std_error_file': str(copasi_file) + '.err',
-                    'log_file': str(copasi_file) + '.log',
-                    'job_output': 'output_%d.txt' % (2*i + max),
-                    'copasi_file': copasi_file,
-                })
+        
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+        
+        n = len(self.get_optimization_parameters()) * 2
+        
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin/'
+            transfer_executable = 'NO'
+        else:
+            binary_dir = settings.COPASI_BINARY_DIR
+            transfer_executable = 'YES'
+        
+        
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file, 
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = n,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+        
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
 
-        return condor_jobs
+        return condor_job_filename
+    
+    
+#         for i in range(len(self.get_optimization_parameters())):
+#             for max in (0, 1):
+#                 copasi_file = 'auto_copasi_%d.cps' % (2*i + max)
+#                 condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
+#                 condor_job_filename = 'auto_condor_%d.job' % (2*i + max)
+#                 condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+#                 condor_file = open(condor_job_full_filename, 'w')
+#                 condor_file.write(condor_job_string)
+#                 condor_file.close()
+#                 #Append a dict contining (job_filename, std_out, std_err, log_file, job_output and copasi file)
+#                 condor_jobs.append({
+#                     'spec_file': condor_job_filename,
+#                     'std_output_file': str(copasi_file) + '.out',
+#                     'std_error_file': str(copasi_file) + '.err',
+#                     'log_file': str(copasi_file) + '.log',
+#                     'job_output': 'output_%d.txt' % (2*i + max),
+#                     'copasi_file': copasi_file,
+#                 })
+# 
+#         return condor_jobs
         
     def get_so_results(self, save=False):
         """Collate the output files from a successful sensitivity optimization run. Return a list of the results"""

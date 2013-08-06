@@ -156,8 +156,9 @@ def get_local_resources(user, key=None):
         tasks = Task.objects.exclude(status='deleted')
         
         for task in tasks:
-            overview.add_s3_bucket(key, task.get_outgoing_bucket_name())
-            overview.add_s3_bucket(key, task.get_incoming_bucket_name())
+            if task.condor_pool.get_pool_type() == 'ec2':
+                overview.add_s3_bucket(key, task.get_outgoing_bucket_name())
+                overview.add_s3_bucket(key, task.get_incoming_bucket_name())
         
     return overview
 
@@ -174,7 +175,7 @@ def get_unrecognized_resources(user, key=None):
     recognized = get_recognized_resources(user, key)
     
     remote = get_remote_resources(user, key)
-    
+    log.debug(recognized)
     unrecognized = remote-recognized
     return unrecognized
 
