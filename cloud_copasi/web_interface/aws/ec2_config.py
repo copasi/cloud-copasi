@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 MASTER_LAUNCH_STRING = """#!/bin/bash
-/opt/condor_config/master_config.sh %s %s %s %s %s %s %d"""
+/opt/condor_config/master_config.sh"""
 #5 args
 # - server_url
 # - pool_id

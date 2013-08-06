@@ -11,22 +11,6 @@
 #Locate in /opt/condor_config
 #Script to configure Condor as a Master
 
-SERVER_URL=$1
-POOL_ID=$2
-SECRET_KEY=$3
-AWS_ACCESS_KEY=$4
-AWS_SECRET_KEY=$5
-LOG_LEVEL=$6
-POLL_TIME=$7
-
-#Write the server url, pool id and secret key to files in /etc/
-echo $SERVER_URL > /etc/cloud-config/server_url
-echo $POOL_ID > /etc/cloud-config/pool_id
-echo $SECRET_KEY > /etc/cloud-config/secret_key
-echo $AWS_ACCESS_KEY > /etc/cloud-config/aws_access_key
-echo $AWS_SECRET_KEY > /etc/cloud-config/aws_secret_key
-echo $LOG_LEVEL > /etc/cloud-config/log_level
-echo $POLL_TIME > /etc/cloud-config/poll_time
 
 #Kill any running Condor
 service condor stop
@@ -47,4 +31,3 @@ ln -s /etc/condor/condor_config.master /etc/condor/condor_config.local
 #sed -i "s:<domain>:$DOMAIN:" /etc/condor/condor_config.local
 
 service condor start
-service cloud-copasi-daemon start

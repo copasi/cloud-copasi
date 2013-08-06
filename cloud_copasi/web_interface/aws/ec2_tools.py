@@ -117,14 +117,7 @@ def launch_pool(ec2_pool):
     
     #Launch the master instance
     #Add the pool details to the launch string
-    master_launch_string = ec2_config.MASTER_LAUNCH_STRING % (settings.HOST,
-                                                              ec2_pool.uuid,
-                                                              ec2_pool.secret_key,
-                                                              ec2_pool.vpc.access_key.access_key_id,
-                                                              ec2_pool.vpc.access_key.secret_key,
-                                                              settings.EC2_LOG_LEVEL,
-                                                              settings.EC2_POLL_TIME,
-                                                              )
+    master_launch_string = ec2_config.MASTER_LAUNCH_STRING
     #And launch
     log.debug('Launching Master node')
     master_reservation = ec2_connection.run_instances(ami.id,
