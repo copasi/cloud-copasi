@@ -70,11 +70,11 @@ http://www.gnu.org/licenses/gpl.html
 
         {% for job in subtask.condorjob_set.all %}
             <tr>
-                <td>{{ job.queue_id }}</td>
+                <td>{{job.subtask.cluster_id}}.{{ job.process_id }}</td>
                 {% if user.is_staff %}
                 <td><a href="{% url 'admin:web_interface_condorjob_change' job.id %}">{{ job.id }}</a></td>
                 {% endif %}
-                <td>{{ job.get_queue_status_display }}</td>
+                <td>{{ job.get_status_display }}</td>
             </tr>
         {% endfor %}
         </table>

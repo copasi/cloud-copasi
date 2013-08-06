@@ -11,7 +11,8 @@ from boto.ec2 import EC2Connection
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools,\
-    s3_tools, task_tools
+    s3_tools
+from cloud_copasi.web_interface.pools import task_tools
 from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP,\
     AWSAccessKey, Task
 import sys, os
@@ -244,7 +245,8 @@ def terminate_resources(user, resources):
                 log.debug('Deleting bucket %s' %bucket_name)
                 s3_connection = s3_tools.create_s3_connection(key)
                 bucket = s3_connection.get_bucket(bucket_name)
-                task_tools.delete_bucket(bucket)
+                #task_tools.delete_bucket(bucket)
+                #TODO: reimplement here
             except Exception, e:
                 log.exception(e)
                 

@@ -9,8 +9,8 @@
 from django.conf.urls import patterns, include, url
 from cloud_copasi.web_interface import views
 from cloud_copasi.web_interface.account import account_views
-from cloud_copasi.web_interface.aws import task_views, pool_views,\
-    resource_views
+from cloud_copasi.web_interface.aws import resource_views
+from cloud_copasi.web_interface.pools import pool_views, task_views 
 from cloud_copasi.web_interface.client_api import api_views
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin

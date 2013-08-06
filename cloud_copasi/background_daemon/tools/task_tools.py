@@ -11,7 +11,8 @@ from boto.s3.connection import S3Connection
 from boto.s3.bucket import Bucket
 from boto.s3.key import Key
 import os
-import condor_tools, response
+import response
+from cloud_copasi.web_interface.pools import condor_tools
 
 def submit_new_task(task_data, aws_access_key, aws_secret_key, log):
     """Submit a new task to the condor pool

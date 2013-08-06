@@ -14,15 +14,13 @@
 
 
 import sys, time
-from daemon import Daemon
-import client_script
-from response import RemoteLoggingResponse
-from simple_logging import Log
+from tools.daemon import Daemon
+import tools.background_script
+from tools.response import RemoteLoggingResponse
+from cloud_copasi import settings
+import logging
 
-def readline(path):
-    return open(path, 'r').read().splitlines()[0]
-log_level = readline('/etc/cloud-config/log_level').lower()
-poll_time = int(readline('/etc/cloud-config/poll_time')) #seconds
+log=logging.getLogger(__name__)
 
 class MyDaemon(Daemon):
     
@@ -32,33 +30,31 @@ class MyDaemon(Daemon):
     
 
     def __init__(self, *args, **kwargs):
-        self.log = Log(log_level)
+        
 
         return super(MyDaemon, self).__init__(*args, **kwargs)
     
     def stop(self, *args, **kwargs):
-        self.log.info('Received request to stop. Daemon stopping')
-        self.send_log()
         
         return super(MyDaemon, self).stop(*args, **kwargs)
     
     def run(self):
-        self.log.info('Daemon running')
+        log.debug('Daemon running')
 
         while True:
-            min_repeat_time = poll_time #Seconds
+            min_repeat_time = settings.DAEMON_POLL_TYME #Seconds
             start_time = time.time()
 
             try:
                 
-                client_script.run(self.log)
+                tools.background_script.run()
 
-                self.log.debug('Client script finished')
+                log.debug('Background script finished')
             
             except Exception, e:
-                self.log.error('%s' % str(e))
+                log.exception(e)
                 
-            self.send_log()
+            
             
             finish_time = time.time()
             difference = finish_time - start_time
@@ -66,23 +62,10 @@ class MyDaemon(Daemon):
             if difference < min_repeat_time:
                 time.sleep(min_repeat_time - difference)
 
-    def send_log(self):
-        #Try to send a response with the log from this run
-        try:
-            message_list = self.log.get_message_list()
-            
-            response_object = RemoteLoggingResponse(message_list)
-            response_object.send_response()
-            
-            self.log.clear()
-            
-        except Exception, e:
-            self.log.clear() # Couldn't send? Clear the log so it doesn't overflow
-            self.log.error(str(e))
 
 
 if __name__ == "__main__":
-    daemon = MyDaemon('/tmp/Condor-COPASI.pid')
+    daemon = MyDaemon('/tmp/Cloud-COPASI.pid')
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             daemon.start()

@@ -8,7 +8,6 @@
 #-------------------------------------------------------------------------------
 from cloud_copasi.web_interface.models import CondorJob, Subtask, BoscoPool,\
     EC2Pool
-from cloud_copasi.web_interface.aws import task_tools
 from django import forms
 from cloud_copasi.web_interface import form_tools
 #from cloud_copasi.web_interface.task_plugins import tools
@@ -81,7 +80,7 @@ class BaseTask(object):
         subtask.task = self.task
         subtask.index = subtask_count + 1
         subtask.type = type
-        subtask.status = 'inactive'
+        subtask.status = 'waiting'
         subtask.active = False
         subtask.save()
     

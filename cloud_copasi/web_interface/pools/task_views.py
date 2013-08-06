@@ -22,8 +22,8 @@ from cloud_copasi.web_interface.account.account_views import MyAccountView
 from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from cloud_copasi.web_interface.aws import vpc_tools, task_tools, ec2_tools,\
-    condor_tools
+from cloud_copasi.web_interface.aws import vpc_tools, ec2_tools
+import task_tools, condor_tools
 from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
@@ -180,6 +180,9 @@ class NewTaskView(RestrictedFormView):
         
         condor_tools.submit_task(subtask)
         
+        task.status = 'running'
+        task.save()
+        
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
 class RunningTaskListView(RestrictedView):
@@ -227,10 +230,10 @@ class SubtaskDetailsView(RestrictedView):
         
         kwargs['subtask'] = subtask
         
-        kwargs['running_count'] = subtask.condorjob_set.filter(queue_status='R').count()
-        kwargs['finished_count'] = subtask.condorjob_set.filter(queue_status='F').count()
-        kwargs['idle_count'] = subtask.condorjob_set.filter(queue_status='I').count()
-        kwargs['held_count'] = subtask.condorjob_set.filter(queue_status='H').count()
+        kwargs['running_count'] = subtask.condorjob_set.filter(status='R').count()
+        kwargs['finished_count'] = subtask.condorjob_set.filter(status='F').count()
+        kwargs['idle_count'] = subtask.condorjob_set.filter(status='I').count()
+        kwargs['held_count'] = subtask.condorjob_set.filter(status='H').count()
         
         
         return super(SubtaskDetailsView, self).dispatch(request, *args, **kwargs)

@@ -8,6 +8,7 @@
 #-------------------------------------------------------------------------------
 import json, urllib2
 import sys
+from cloud_copasi import settings
 
 #URLs
 REGISTER_JOB='/api/register_job/'
@@ -21,9 +22,9 @@ def readline(path):
     return open(path, 'r').read().splitlines()[0]
 
 #Open the files storing the variables we need
-server_url = readline('/etc/cloud-config/server_url')
-pool_id = readline('/etc/cloud-config/pool_id')
-secret_key = readline('/etc/cloud-config/secret_key')
+server_url = settings.HOST
+pool_id = None
+secret_key = None
 
 
 class JSONResponder(object):

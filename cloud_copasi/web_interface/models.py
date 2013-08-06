@@ -16,10 +16,10 @@ from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
 from cloud_copasi import copasi
-from fields import UUIDField
 import cPickle
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from cloud_copasi.web_interface.fields import UUIDField
 
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
@@ -388,7 +388,6 @@ class ElasticIP(models.Model):
 class Task(models.Model):
     """High-level representation of a computing job
     """
-    uuid=UUIDField(auto=True)
 
     condor_pool = models.ForeignKey(CondorPool)
      
@@ -427,10 +426,8 @@ class Task(models.Model):
             return None
     
     status_choices = (
-                      ('waiting', 'Waiting'),
                       ('new', 'New'),
                       ('running', 'Running'),
-                      ('transfer', 'Transferring files'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
                       ('deleted', 'Deleted'),
@@ -488,21 +485,22 @@ class Subtask(models.Model):
     type = models.CharField(max_length=32, choices=type_choices)
     
     status_choices = (
-                      ('inactive', 'Inactive'),
-                      ('ready', 'Ready to submit'),
-                      ('submitted', 'Submitted'),
-                      ('queued', 'Queued'),
+                      ('waiting', 'Waiting'),
+                      ('ready', 'Ready'),
+                      ('running', 'Running'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
                       ('delete', 'Marked for deletion'), #TODO: needed?
                       ('unkown', 'Unknown'),
                       )
-    status = models.CharField(max_length=32, choices = status_choices)
+    status = models.CharField(max_length=32, choices = status_choices, default='waiting')
     
     cluster_id = models.IntegerField(blank=True, null=True) #The condor cluster ID (i.e. $(Cluster)) 
     
     spec_file = models.spec_file = models.FilePathField(max_length=255)
 
+    def __unicode__(self):
+        return '%s (%d)' % (self.task.name, self.index)
     
 class CondorJob(models.Model):
     
@@ -527,7 +525,7 @@ class CondorJob(models.Model):
         ('U', 'Unknown'),
         ('E', 'Error'),
     )
-    queue_status = models.CharField(max_length=1, choices=QUEUE_CHOICES)
+    status = models.CharField(max_length=1, choices=QUEUE_CHOICES)
     
     #The id of the job process in the cluster. Only set once the job has been queued. 
     process_id = models.IntegerField(null=True, blank=True)
@@ -540,7 +538,7 @@ class CondorJob(models.Model):
     copasi_file = models.CharField(max_length=255)
     
     def __unicode__(self):
-        return "%s (task %s)" % (unicode(self.process_id), self.subtask.task.name)
+        return '%s (%d - %d)' % (self.subtask.task.name, self.subtask.index, self.process_id)
         
         
     def getDirectory(self):

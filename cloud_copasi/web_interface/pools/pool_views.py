@@ -19,8 +19,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools,\
-    condor_tools
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
+from cloud_copasi.web_interface.pools import condor_tools
 from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
 from cloud_copasi.web_interface.models import VPC

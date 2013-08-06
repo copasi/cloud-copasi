@@ -13,7 +13,6 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface.aws import task_tools
 import os
 import logging
 
