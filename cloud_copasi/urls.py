@@ -29,6 +29,8 @@ urlpatterns = patterns('',
     url(r'^my_account/keys/(?P<key_id>\d+)/delete$', account_views.KeysDeleteView.as_view(), {'confirmed' : False }, name='my_account_keys_delete'),
     url(r'^my_account/keys/(?P<key_id>\d+)delete/confirm/$', account_views.KeysDeleteView.as_view(),{'confirmed' : True }, name='my_account_keys_delete_confirmed'),
     
+    url(r'^my_account/register/$', account_views.AccountRegisterView.as_view(), name='my_account_register'),
+
     #VPC
     url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),
     url(r'^my_account/vpc_status/(?P<key_id>\d+)/configure/$', account_views.VPCConfigView.as_view(), name='vpc_config'),

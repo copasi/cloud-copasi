@@ -12,6 +12,8 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, Task, EC2Instance,\
     ElasticIP, EC2Pool
@@ -28,7 +30,7 @@ from cloud_copasi.web_interface.models import VPC, CondorPool
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from django.forms.util import ErrorList
-
+from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 log = logging.getLogger(__name__)
 
 
@@ -262,3 +264,31 @@ class VPCRemoveView(RedirectView):
             
         
         return super(VPCRemoveView, self).dispatch(request, *args, **kwargs)
+
+
+class AccountRegisterForm(UserCreationForm):
+    captcha = ReCaptchaField()
+    
+
+class AccountRegisterView(FormView):
+    page_title = 'Register'
+    template_name = 'account/register.html'
+    form_class = AccountRegisterForm
+    success_url = reverse_lazy('my_account')
+    
+    def form_valid(self, form, *args, **kwargs):
+        
+        #Firstly, save and authenticate the user
+        form.save()
+        username = form.cleaned_data['username']
+        password = form.cleaned_data['password2']
+        
+        user = authenticate(username=username,
+                            password=password)
+        
+        #And log in the user
+        login(self.request, user)
+        
+        return super(AccountRegisterView, self).form_valid(form, *args, **kwargs)
+        
+    
