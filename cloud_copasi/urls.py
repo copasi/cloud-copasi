@@ -62,6 +62,9 @@ urlpatterns = patterns('',
          'page_title': 'Terms and conditions'}, name='terms'),
 
 
+    url(r'^about/contact/$', views.DefaultView.as_view(),
+        {'template_name': 'about/contact.html',
+         'page_title': 'Contact information'}, name='contact'),
 
     #VPC
     url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),

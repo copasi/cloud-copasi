@@ -33,6 +33,8 @@ import logging
 from django.forms.util import ErrorList
 from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 from cloud_copasi.web_interface.account import user_countries
+from cloud_copasi import settings
+from django.views.generic.base import ContextMixin
 
 log = logging.getLogger(__name__)
 
@@ -300,20 +302,26 @@ class AccountRegisterView(FormView):
     form_class = AccountRegisterForm
     success_url = reverse_lazy('my_account')
     
-    #Add the page title to the top of the page
+    
     def get_context_data(self, **kwargs):
         context = FormView.get_context_data(self, **kwargs)
         context['page_title'] = self.page_title
+        context['allow_new_registrations'] = settings.ALLOW_NEW_REGISTRATIONS
         return context
+
     def dispatch(self, request, *args, **kwargs):
         
         #Only display if the user is not logged in
         if request.user.is_authenticated():
             return HttpResponseRedirect(reverse_lazy('my_account'))
         
+
+        
         return super(AccountRegisterView, self).dispatch(request, *args, **kwargs)
     
     def form_valid(self, form, *args, **kwargs):
+        
+        assert settings.ALLOW_NEW_REGISTRATIONS
         
         #Firstly, save and authenticate the user
         form.save()
