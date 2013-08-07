@@ -8,6 +8,7 @@
 #-------------------------------------------------------------------------------
 
 from django import forms
+from django.db import models
 
 #Subclass the modelchoicefield so that we can just use the display name of the object
 class NameChoiceField(forms.ModelChoiceField):
@@ -31,3 +32,4 @@ def handle_uploaded_file(f,destination):
     for chunk in f.chunks():
         destination.write(chunk)
     destination.close()
+

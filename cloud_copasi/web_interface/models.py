@@ -21,6 +21,15 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from cloud_copasi.web_interface.fields import UUIDField
 
+
+class Profile(models.Model):
+    """Stores additional profile information for a user
+    """
+    user = models.OneToOneField(User)
+    institution = models.CharField(max_length=50)
+    
+
+
 class AWSAccessKey(models.Model):
     """Represents an AWS access key
     """

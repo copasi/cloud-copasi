@@ -1,4 +1,4 @@
-{% extends "right_sidebar.html" %}
+{% extends "left_sidebar.html" %}
 
 
 {% comment %}
@@ -11,20 +11,16 @@ http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
 
 {% block sidebar %}
-{% include 'password_sidebar.html' %}
+{% include "about/sidebar.html" %}
 {% endblock %}
 
 
 {% block content %}
 <article>
-    <section>
     <header class="major">
-        <h2>Register for a new acount</h2>
+        <h2>Terms and conditions</h2>
     </header>
+    <p> TODO: Some standard text to go here</p>
     
-    {% include "form.html" with submit_text="Register" %}
-
-</section>
-
 </article>
 {% endblock %}

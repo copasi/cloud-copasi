@@ -19,6 +19,7 @@ from cloud_copasi.web_interface.models import AWSAccessKey, Task, EC2Instance,\
     ElasticIP, EC2Pool
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.models import User
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from cloud_copasi.web_interface.aws import vpc_tools, aws_tools
@@ -31,6 +32,8 @@ from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from django.forms.util import ErrorList
 from cloud_copasi.django_recaptcha.fields import ReCaptchaField
+from cloud_copasi.web_interface.account import user_countries
+
 log = logging.getLogger(__name__)
 
 
@@ -267,14 +270,48 @@ class VPCRemoveView(RedirectView):
 
 
 class AccountRegisterForm(UserCreationForm):
-    captcha = ReCaptchaField()
     
+    
+    first_name = forms.CharField(max_length=30)
+    last_name = forms.CharField(max_length=30)
+
+    email_address = forms.EmailField()
+
+    institution = forms.CharField(max_length=50)
+    country = forms.ChoiceField(choices=user_countries.COUNTRIES, initial='GB')
+    
+    terms = forms.BooleanField(required=True, label='Agree to terms and conditions?',
+                               help_text = 'You must agree to the terms and conditions in order to register. Click <a href="%s" target="new">here</a> for further details')
+    
+    
+    captcha = ReCaptchaField(attrs={'theme': 'clean'}, label='Enter text')
+    
+    def __init__(self, *args, **kwargs):
+        super(AccountRegisterForm, self).__init__(*args, **kwargs)
+        self.fields['terms'].help_text = self.fields['terms'].help_text % reverse_lazy('terms')
+    
+    class Meta:
+        model=User
+        fields = ('username', 'email_address', 'first_name', 'last_name', 'institution', 'country', )
 
 class AccountRegisterView(FormView):
     page_title = 'Register'
     template_name = 'account/register.html'
     form_class = AccountRegisterForm
     success_url = reverse_lazy('my_account')
+    
+    #Add the page title to the top of the page
+    def get_context_data(self, **kwargs):
+        context = FormView.get_context_data(self, **kwargs)
+        context['page_title'] = self.page_title
+        return context
+    def dispatch(self, request, *args, **kwargs):
+        
+        #Only display if the user is not logged in
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(reverse_lazy('my_account'))
+        
+        return super(AccountRegisterView, self).dispatch(request, *args, **kwargs)
     
     def form_valid(self, form, *args, **kwargs):
         
@@ -291,4 +328,16 @@ class AccountRegisterView(FormView):
         
         return super(AccountRegisterView, self).form_valid(form, *args, **kwargs)
         
+    
+class AccountResetPasswordView(FormView):
+    page_tile = 'Reset password'
+    template_name = 'account/reset_password.html'
+    
+        #Add the page title to the top of the page
+    def get_context_data(self, **kwargs):
+        context = FormView.get_context_data(self, **kwargs)
+        context['page_title'] = self.page_title
+        return context
+
+
     

@@ -12,6 +12,7 @@ from cloud_copasi.web_interface.account import account_views
 from cloud_copasi.web_interface.aws import resource_views
 from cloud_copasi.web_interface.pools import pool_views, task_views 
 from cloud_copasi.web_interface.client_api import api_views
+from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
@@ -20,7 +21,6 @@ urlpatterns = patterns('',
     # Examples:
     url(r'^$', views.LandingView.as_view(), name='landing_view'),
     url(r'^home/$', views.HomeView.as_view(), name='home'),
-    url(r'^about/$', views.AboutView.as_view(), name='about'),
     url(r'^my_account/$', account_views.MyAccountView.as_view(), name='my_account'),
     
     #Keys
@@ -29,7 +29,39 @@ urlpatterns = patterns('',
     url(r'^my_account/keys/(?P<key_id>\d+)/delete$', account_views.KeysDeleteView.as_view(), {'confirmed' : False }, name='my_account_keys_delete'),
     url(r'^my_account/keys/(?P<key_id>\d+)delete/confirm/$', account_views.KeysDeleteView.as_view(),{'confirmed' : True }, name='my_account_keys_delete_confirmed'),
     
-    url(r'^my_account/register/$', account_views.AccountRegisterView.as_view(), name='my_account_register'),
+    url(r'^my_account/password/reset/$', 'django.contrib.auth.views.password_reset',
+        {'post_reset_redirect' : '/my_account/password/reset/done/',
+         'template_name': 'account/password_reset_form.html',
+         'extra_context' : {'page_title': 'Reset password'},
+         'email_template_name': 'account/password_reset_email.html',
+         'subject_template_name' : 'account/password_reset_email_subject.html',
+         },
+        name='password_reset'),
+    url(r'^my_account/password/reset/done/$', 'django.contrib.auth.views.password_reset_done',
+        {'template_name': 'account/password_reset_done.html',
+         'extra_context' : {'page_title': 'Reset password'},}),
+    url(r'^my_account/password/reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
+        'django.contrib.auth.views.password_reset_confirm',
+        {'post_reset_redirect' : '/my_account/password/done/',
+         'template_name': 'account/password_reset_confirm.html',
+         'extra_context' : {'page_title': 'Reset password'},
+         }),
+    url(r'^my_account/password/done/$','django.contrib.auth.views.password_reset_complete',
+        {'template_name': 'account/password_reset_complete.html',
+         'extra_context' : {'page_title': 'Reset password'},}),
+    
+    
+    
+    url(r'^register/$', account_views.AccountRegisterView.as_view(), name='my_account_register'),
+
+
+    #Help pages
+    url(r'^about/$', views.AboutView.as_view(), name='about'),
+    url(r'^about/terms/$', views.DefaultView.as_view(),
+        {'template_name': 'about/terms.html',
+         'page_title': 'Terms and conditions'}, name='terms'),
+
+
 
     #VPC
     url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),
