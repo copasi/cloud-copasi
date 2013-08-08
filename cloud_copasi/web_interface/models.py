@@ -132,7 +132,9 @@ class CondorPool(models.Model):
 
     user = models.ForeignKey(User)
     
-    uuid=UUIDField(auto=True)
+    uuid=UUIDField(auto=True, null=True, blank=True)
+    
+    copy_of = models.ForeignKey('self', blank=True, null=True, help_text = 'Is this pool a copy of an existing pool belonging to another user?')
     
     platform = models.CharField(max_length = 4,
                                 verbose_name='The platform of the remote condor submitter we are connecting to',

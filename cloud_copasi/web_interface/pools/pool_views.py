@@ -31,6 +31,7 @@ import os
 from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.util import ErrorList
 from django.http.response import HttpResponseRedirect
+from django.contrib.auth.models import User
 
 log = logging.getLogger(__name__)
 
@@ -353,9 +354,6 @@ class AddBoscoPoolForm(forms.Form):
         if BoscoPool.objects.filter(name=name,user=self.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
         
-        if address and username:
-            if BoscoPool.objects.filter(address=username+'@'+address).count() > 0:
-                raise forms.ValidationError('A pool has already been added with these access credentials')
         return cleaned_data
         
 class BoscoPoolAddView(RestrictedFormView):
@@ -411,35 +409,40 @@ class BoscoPoolAddView(RestrictedFormView):
         
         #Assume the SSH credentails are good
         #Next, we try to add the pool using bosco_cluster --add
-        output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
         
-        if exit_status != 0:
-            os.remove(ssh_key_filename)
-
-            form._errors[NON_FIELD_ERRORS] = ErrorList(['There was an error adding the pool'] + output + errors)
-            
-            try:
-                log.debug('Error adding pool. Attempting to remove from bosco_cluster')
-                condor_tools.remove_bosco_pool(username+'@'+address)
-            except:
-                pass
-            
-            return self.form_invalid(self, *args, **kwargs)
+        ##Only do this if no other pools exist with the same address!
         
+        if BoscoPool.objects.filter(address = username + '@' + address).count() == 0:
+            output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
+        
+            if exit_status != 0:
+                os.remove(ssh_key_filename)
+    
+                form._errors[NON_FIELD_ERRORS] = ErrorList(['There was an error adding the pool'] + output + errors)
+                
+                try:
+                    log.debug('Error adding pool. Attempting to remove from bosco_cluster')
+                    condor_tools.remove_bosco_pool(username+'@'+address)
+                except:
+                    pass
+                
+                return self.form_invalid(self, *args, **kwargs)
         else:
-            #Assume everything went well
-            os.remove(ssh_key_filename)
-            
-            pool = BoscoPool(name = form.cleaned_data['name'],
-                             user = self.request.user,
-                             platform = form.cleaned_data['platform'],
-                             address = form.cleaned_data['username'] + '@' + form.cleaned_data['address'],
-                             pool_type = form.cleaned_data['pool_type'],
-                             )
-            pool.save()
-                             
-            return HttpResponseRedirect(reverse_lazy('pool_test', kwargs={'pool_id': pool.id}))
+            log.debug('Adding new bosco pool %s to db, skipping bosco_cluster --add because it already exists ' % (username + '@' + address))
         
+        #Assume everything went well
+        os.remove(ssh_key_filename)
+        
+        pool = BoscoPool(name = form.cleaned_data['name'],
+                         user = self.request.user,
+                         platform = form.cleaned_data['platform'],
+                         address = form.cleaned_data['username'] + '@' + form.cleaned_data['address'],
+                         pool_type = form.cleaned_data['pool_type'],
+                         )
+        pool.save()
+                         
+        return HttpResponseRedirect(reverse_lazy('pool_test', kwargs={'pool_id': pool.id}))
+    
 
         
 class PoolTestView(RestrictedView):
@@ -506,9 +509,106 @@ class BoscoPoolRemoveView(RestrictedView):
             #Remove the pool
             #TODO
             try:
-                condor_tools.remove_bosco_pool(bosco_pool.address)
+                #Only remove the pool from bosco if the same address is not registered with any other user
+                if CondorPool.objects.filter(address=bosco_pool.address).count() == 1:
+                    condor_tools.remove_bosco_pool(bosco_pool.address)
+                    log.debug('Removing pool %s from bosco' % bosco_pool.address)
+                else:
+                    log.debug('Not removing pool %s from bosco, since in use by another user' % bosco_pool.address)
+                
+                #However, still delete the db entry
                 bosco_pool.delete()
             except Exception, e:
+                log.exception(e)
                 request.session['errors'] = [e]
                 return HttpResponseRedirect(reverse_lazy('bosco_pool_details', pool_id = bosco_pool.id))
             return HttpResponseRedirect(reverse_lazy('pool_list'))
+        
+class SharePoolForm(forms.Form):
+    username = forms.CharField(max_length=30)
+
+
+class SharePoolView(RestrictedFormView):
+    form_class = SharePoolForm
+    template_name = 'pool/pool_share.html'
+    page_title = 'Share pool'
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == self.request.user
+        assert pool.copy_of == None
+
+
+        if kwargs.get('remove'):
+            unshare_from = User.objects.get(id=kwargs['user_id'])
+            
+            unshare_pool = CondorPool.objects.get(copy_of=pool, user=unshare_from)
+            unshare_pool.delete()
+            return HttpResponseRedirect(reverse_lazy('pool_share', kwargs={'pool_id': kwargs['pool_id']}))
+
+
+        shared_pools = CondorPool.objects.filter(copy_of=pool)
+        
+        shared_users = [pool.user for pool in shared_pools]
+        
+        kwargs['shared_users'] = shared_users
+        
+        return super(SharePoolView, self).dispatch(request, *args, **kwargs)
+        
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        self.success_url = reverse_lazy('pool_share', kwargs={'pool_id':kwargs['pool_id']})
+
+        
+        #Get the pool we want to share
+        pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == self.request.user
+        assert pool.copy_of == None
+
+
+        
+        #Lookup username to see if it is valid
+        try:
+            user = User.objects.get(username=form.cleaned_data['username'])
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['Username not recognized'])
+            return self.form_invalid(*args, **kwargs)
+        
+        try:
+            assert user != self.request.user
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['Sorry, you can\'t share a pool with yourself'])
+            return self.form_invalid(*args, **kwargs)
+
+
+        
+        try:
+            assert CondorPool.objects.filter(copy_of=pool, user=user).count() == 0
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['This pool has already been shared with that user'])
+            return self.form_invalid(*args, **kwargs)
+
+        
+        #Make sure we cast the pool into the correct type
+        if pool.get_pool_type() == 'ec2':
+            pool = EC2Pool.objects.get(pk=pool.pk)
+            copy_of = EC2Pool.objects.get(pk=pool.pk)
+        else:
+            pool = BoscoPool.objects.get(pk=pool.pk)
+            copy_of = BoscoPool.objects.get(pk=pool.pk)
+        
+        #Make a copy of the pool
+        #pool.copy_of = pool
+        pool.pk = None
+        pool.id = None
+        pool.uuid = None
+        
+        pool.copy_of = copy_of
+        pool.user = user
+        
+        pool.save()
+        
+        
+        return super(SharePoolView, self).form_valid(*args, **kwargs)

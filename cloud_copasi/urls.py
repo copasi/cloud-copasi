@@ -89,6 +89,8 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/(?P<pool_id>\d+)/existing/remove/$', pool_views.BoscoPoolRemoveView.as_view(),{'confirmed':False}, name='bosco_pool_remove'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/existing/remove/comfirm/$', pool_views.BoscoPoolRemoveView.as_view(), {'confirmed':True}, name='bosco_pool_remove_confirmed'),
 
+    url(r'^my_account/pools/(?P<pool_id>\d+)/share/$', pool_views.SharePoolView.as_view(), {'remove':False}, name='pool_share'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/unshare/(?P<user_id>\d+)/$', pool_views.SharePoolView.as_view(), {'remove':True}, name='pool_unshare'),
 
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
     
