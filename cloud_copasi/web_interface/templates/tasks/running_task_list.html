@@ -28,7 +28,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Task name</th>
-                {% if user.is_staff %}
+                {% if user.is_admin %}
                 <th>Internal ID</th>
                 {% endif %}
 
@@ -41,7 +41,7 @@ http://www.gnu.org/licenses/gpl.html
         {% for task in running_tasks %}
             <tr>
                 <td><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></td>
-                {% if user.is_staff %}
+                {% if user.is_admin %}
                 <td><a href="{% url 'admin:web_interface_task_change' task.id %}">{{task.id}}</a></th>
                 {% endif %}
 

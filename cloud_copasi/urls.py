@@ -75,19 +75,17 @@ urlpatterns = patterns('',
     #Pools
     url(r'^my_account/pools/$', pool_views.PoolListView.as_view(), name='pool_list'),
     url(r'^my_account/pools/add_ec2/$', pool_views.EC2PoolAddView.as_view(), name='ec2_pool_add'),
+    url(r'^my_account/pools/add_existing/$', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
 
-    url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/details/$', pool_views.EC2PoolDetailsView.as_view(), name='ec2_pool_details'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/terminate/$', pool_views.EC2PoolTerminateView.as_view(), {'confirmed': False }, name='ec2_pool_terminate'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/terminate/confirm/$', pool_views.EC2PoolTerminateView.as_view(), {'confirmed':True}, name='ec2_pool_terminate_confirmed'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_up/$', pool_views.EC2PoolScaleUpView.as_view(), name='ec2_pool_scale_up'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_down/$', pool_views.EC2PoolScaleUpView.as_view(), name='ec2_pool_scale_down'),
 
-    url(r'^my_account/pools/add_existing/$', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/test/$', pool_views.PoolTestView.as_view(), name='pool_test'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/test/result', pool_views.PoolTestResultView.as_view(), name='pool_test_result'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/existing/details/$', pool_views.BoscoPoolDetailsView.as_view(), name='bosco_pool_details'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/existing/remove/$', pool_views.BoscoPoolRemoveView.as_view(),{'confirmed':False}, name='bosco_pool_remove'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/existing/remove/comfirm/$', pool_views.BoscoPoolRemoveView.as_view(), {'confirmed':True}, name='bosco_pool_remove_confirmed'),
+    
+    url(r'^my_account/pools/(?P<pool_id>\d+)/details/$', pool_views.PoolDetailsView.as_view(), name='pool_details'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/remove/$', pool_views.PoolRemoveView.as_view(),{'confirmed':False}, name='pool_remove'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/remove/comfirm/$', pool_views.PoolRemoveView.as_view(), {'confirmed':True}, name='pool_remove_confirmed'),
 
     url(r'^my_account/pools/(?P<pool_id>\d+)/share/$', pool_views.SharePoolView.as_view(), {'remove':False}, name='pool_share'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/unshare/(?P<user_id>\d+)/$', pool_views.SharePoolView.as_view(), {'remove':True}, name='pool_unshare'),

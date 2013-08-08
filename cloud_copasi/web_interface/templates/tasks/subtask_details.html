@@ -62,7 +62,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Job queue id</td>
-                    {% if user.is_staff %}
+                    {% if user.is_admin %}
                 <th>Job internal id</th>
                     {% endif %}
                 <th>Jobs</th>
@@ -71,7 +71,7 @@ http://www.gnu.org/licenses/gpl.html
         {% for job in subtask.condorjob_set.all %}
             <tr>
                 <td>{{job.subtask.cluster_id}}.{{ job.process_id }}</td>
-                {% if user.is_staff %}
+                {% if user.is_admin %}
                 <td><a href="{% url 'admin:web_interface_condorjob_change' job.id %}">{{ job.id }}</a></td>
                 {% endif %}
                 <td>{{ job.get_status_display }}</td>

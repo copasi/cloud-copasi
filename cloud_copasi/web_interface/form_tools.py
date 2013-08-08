@@ -24,7 +24,11 @@ class PoolChoiceField(forms.ModelChoiceField):
             pool_type = unicode(obj.boscopool.get_pool_type_display())
         else:
             pool_type = 'Unknown'
-        return "%s (%s)" % (obj.name, pool_type)
+            
+        if obj.copy_of != None:
+            return "%s (%s) (Shared)" % (obj.name, pool_type)
+        else:
+            return "%s (%s)" % (obj.name, pool_type)
 
 #Generic function for saving a django UploadedFile to a destination
 def handle_uploaded_file(f,destination):

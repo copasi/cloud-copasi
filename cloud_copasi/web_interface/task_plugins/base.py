@@ -40,10 +40,13 @@ class BaseTaskForm(forms.Form):
         ec2_pools = EC2Pool.objects.filter(vpc__access_key__user = user).filter(vpc__isnull=False)
         ec2_pool_ids = [pool.pk for pool in ec2_pools]
         
+        shared_ec2_pools = EC2Pool.objects.filter(user=user).filter(copy_of__isnull=False)
+        shared_ec2_pool_ids = [pool.pk for pool in shared_ec2_pools]
+        
         bosco_pools = BoscoPool.objects.filter(user=user)
         bosco_pool_ids = [pool.pk for pool in bosco_pools]
         
-        condor_pools = CondorPool.objects.filter(pk__in=ec2_pool_ids + bosco_pool_ids)
+        condor_pools = CondorPool.objects.filter(pk__in=ec2_pool_ids + shared_ec2_pool_ids + bosco_pool_ids)
         
         self.fields['compute_pool'].queryset = condor_pools
         

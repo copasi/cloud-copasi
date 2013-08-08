@@ -7,7 +7,7 @@ which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
 
-{% if access_keys.count > 0 %}
+
 <section>
     <header class="major">
         <h2>Dashboard</h2>
@@ -35,11 +35,12 @@ http://www.gnu.org/licenses/gpl.html
     </header>
     <ul class="style2">
         <li><a href="{% url 'pool_list' %}"> Compute pool settings</a></li>
+        {% if access_keys_count > 0 %}
         <li><a href="{% url 'vpc_status' %}"> VPC status</a></li>
-
+{% endif %}
     </ul>
 </section>
-{% endif %}
+
 <section>
     <header class="major">
         <h2>Account Options</h2>

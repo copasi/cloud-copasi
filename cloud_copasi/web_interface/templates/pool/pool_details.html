@@ -18,37 +18,59 @@ http://www.gnu.org/licenses/gpl.html
 <article>
     <header class="major">
         <h2>Compute pool details</h2>
-        <span class="byline">Compute pool details for <span style="font-weight:bolder">{{ec2_pool.name}}</span></span>
+        <span class="byline">Compute pool details for <span style="font-weight:bolder">{{pool.name}}</span></span>
     </header>
     
     <h4>Compute pool information</h4>
+    {% if pool_type == 'ec2' %}
     <div class="tablelist">
         <table>
             <tr>
                 <th>Name</th>
+                {%if pool.copy_of %}<th>Shared by</th>{% endif %}
                 <th>Number of nodes*</th>
                 <th>CPU hours used</th>
                 <th>Pool health</th>
             </tr>
             <tr>
-                <td>{{ec2_pool.name}}</td>
+                <td>{{pool.name}}</td>
+                {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
                 <td>{{instances.count}}</td>
                 <td>Not implemented</td>
-                <td>{{ec2_pool.get_health}}</td>
+                <td>{{pool.get_health}}</td>
             </tr>
         </table>
         <p>*Includes Master node</p>
     </div>
-        
+
+    {%else%}
+    
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Type</td>
+                {%if pool.copy_of %}<th>Shared by</th>{% endif %}
+                <th>Address</th>
+                <th>CPU hours used</th>
+            </tr>
+            <tr>
+                <td>{{pool.name}}</td>
+                <td>{{pool.get_pool_type_display}}</td>
+                {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
+                <td>{{pool.address}}</td>
+                <td>Not implemented</td>
+            </tr>
+        </table>
+    </div>        
+    {% endif %}
     <p>
-        <a class="button button-alt button-hspace" href="{% url 'ec2_pool_terminate' pool_id=ec2_pool.id %}">Terminate pool</a>
-        <a class="button button-hspace" href="{% url 'ec2_pool_scale_up' pool_id=ec2_pool.id %}">Scale up</a>
-        <a class="button button-hspace" href="">Scale down</a>
-        <a class="button button-hspace" href="{% url 'pool_test' pool_id=ec2_pool.id %}">Test pool</a>
+        <a class="button button-alt button-hspace" href="{% url 'pool_remove' pool_id=pool.id %}">Remove pool</a>
+        <a class="button button-hspace" href="{% url 'pool_test_result' pool_id=pool.id %}" onclick="showLoadingScreen()"> Test pool</a>
         
         
     </p>
-
+    {% if pool_type == 'ec2' %}
     <h4>Master node status:</h4>
     <div class="tablelist">
         <table>
@@ -59,13 +81,13 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Uptime</th>
                 <th>Status</th>
             </tr>
-            {% if ec2_pool.master %}
+            {% if pool.master %}
             <tr>
-                <td>{{ ec2_pool.master.instance_id }}</td>
-                <td>{{ ec2_pool.master.instance_type }}</td>
-                <td>{{ ec2_pool.master.get_state }}</td>
+                <td>{{ pool.master.instance_id }}</td>
+                <td>{{ pool.master.instance_type }}</td>
+                <td>{{ pool.master.get_state }}</td>
                 <td>Not implemented</td>
-                <td>{{  ec2_pool.master.get_health }}</td>
+                <td>{{ pool.master.get_health }}</td>
             </tr>
             {% endif %}
         </table>
@@ -93,6 +115,8 @@ http://www.gnu.org/licenses/gpl.html
         </table>
     </div>
 
+
+    {% endif %}
         
 </article>
 {% endblock %}

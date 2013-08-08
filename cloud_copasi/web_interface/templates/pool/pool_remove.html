@@ -1,0 +1,63 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Confirm {% if pool_type == 'ec2' %}termination{% else %}removal{% endif %}</h2>
+        <span class="byline">Are you sure you want to {% if pool_type == 'ec2' %}terminate{% else %}remove{% endif %} this compute pool?</span>
+    </header>
+    
+    {% if pool_type == 'ec2' %}
+    <h3>This action will terminate all associated instances , along with any running and queued jobs, and cannot be undone!</h3>
+     <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                <th>Number of nodes*</th>
+            </tr>
+            <tr>
+                <td>{{ pool.name }}</td>
+                <td>{{ pool.get_count}}</td>
+            </tr>
+        </table>
+        <p>*Includes Master node</p>
+    </div>
+    
+    {% else %}
+    <h3>This action will remove this computing pool from your account, along with any associated running and queued jobs, and cannot be undone!</h3>
+     <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                <th>Pool type</th>
+                <th>Address</th>
+            </tr>
+            <tr>
+                <td>{{ pool.name }}</td>
+                <td>{{ pool.get_pool_type_display}}</td>
+                <td>{{ pool.address}}</td>
+            </tr>
+        </table>
+    </div>
+    
+    {% endif %}
+    <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">
+    {% if pool_type == 'ec2' %}Terminate{% else %}Remove{% endif %} pool</a>
+    <a href="{% url 'pool_details' pool_id=pool.id %}" class="button button-alt button-hspace">Cancel</a>
+</article>
+{% endblock %}

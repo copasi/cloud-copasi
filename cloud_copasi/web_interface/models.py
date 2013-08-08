@@ -180,7 +180,10 @@ class CondorPool(models.Model):
             return 'unknown'
         
     def __unicode__(self):
-        return "%s (%s)" % (self.name, self.get_pool_type(display=True))
+        if self.copy_of != None:
+            return "%s (%s) (Shared)" % (self.name, self.get_pool_type(display=True))
+        else:
+            return "%s (%s)" % (self.name, self.get_pool_type(display=True))
     
     def get_pool_type_display_true(self):
         return self.get_pool_type(display=True)
@@ -196,10 +199,10 @@ class EC2Pool(CondorPool):
     """Stores info about all the EC2 instances  making up a condor pool#
     """
     vpc = models.ForeignKey(VPC, verbose_name='Keypair')
-    master=models.OneToOneField('EC2Instance', null=True)
+    master=models.ForeignKey('EC2Instance', null=True)
     size=models.PositiveIntegerField(verbose_name='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
     
-    key_pair = models.OneToOneField('EC2KeyPair', null=True)
+    key_pair = models.ForeignKey('EC2KeyPair', null=True)
 
     initial_instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES, blank=False, default='t1.micro', help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
 

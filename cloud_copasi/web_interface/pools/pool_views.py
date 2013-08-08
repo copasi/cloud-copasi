@@ -45,7 +45,7 @@ class PoolListView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         
-        ec2_pools = EC2Pool.objects.filter(user=request.user)
+        ec2_pools = EC2Pool.objects.filter(user=request.user, copy_of__isnull=True)
         
         for ec2_pool in ec2_pools:
             ec2_tools.refresh_pool(ec2_pool)
@@ -53,10 +53,32 @@ class PoolListView(RestrictedView):
         kwargs['ec2_pools'] = ec2_pools
         
         
-        bosco_pools = BoscoPool.objects.filter(user=request.user)
+        bosco_pools = BoscoPool.objects.filter(user=request.user, copy_of__isnull=True)
         kwargs['bosco_pools'] = bosco_pools
         
+        
+        shared_pools = CondorPool.objects.filter(user=request.user, copy_of__isnull=False)
+        kwargs['shared_pools'] = shared_pools
+        
         return RestrictedView.dispatch(self, request, *args, **kwargs)
+    
+
+
+class PoolRenameForm(forms.Form):
+    new_name =forms.CharField(max_length=100)
+    
+class PoolRenameView(RestrictedFormView):
+    page_title='Rename pool'
+    template_name = 'pool/pool_rename.html'
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        
+        self.success_url = reverse_lazy('pool_details', kwargs={'pool_id': kwargs['pool_id']})
+        return super(PoolRenameView, self).form_valid(*args, **kwargs)
+
+
     
 class AddEC2PoolForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -86,6 +108,7 @@ class AddEC2PoolForm(forms.ModelForm):
             'initial_instance_type' : forms.Select(attrs={'style':'width:30em'}),
             
             }
+
 
 class EC2PoolAddView(RestrictedFormView):
     template_name = 'pool/ec2_pool_add.html'
@@ -139,101 +162,98 @@ class EC2PoolAddView(RestrictedFormView):
 
         return super(EC2PoolAddView, self).dispatch(*args, **kwargs)
 
-class EC2PoolDetailsView(RestrictedView):
-    template_name='pool/ec2_pool_details.html'
-    page_title = 'EC2 pool details'
     
+class PoolDetailsView(RestrictedView):
+    template_name='pool/pool_details.html'
+    page_title = 'Pool details'
+        
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        pool_id = kwargs['pool_id']
-        try:
-            ec2_pool = EC2Pool.objects.get(id=pool_id)
-            assert ec2_pool.vpc.access_key.user == request.user
-            ec2_tools.refresh_pool(ec2_pool)
-        except EC2ResponseError, e:
-            request.session['errors'] = [error for error in e.errors]
-            log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
-        except Exception, e:
-            self.request.session['errors'] = [e]
-            log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
         
-        instances=EC2Instance.objects.filter(ec2_pool=ec2_pool)
+        pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        kwargs['pool'] = pool
         
-        try:
-            master_id = ec2_pool.master.id
-        except:
-            master_id=None
+        assert isinstance(pool, CondorPool)
+        assert pool.user == self.request.user
         
-        compute_instances = instances.exclude(id=master_id)
+        if pool.copy_of != None:
+            pool_type = 'shared'
+            original_pool = pool.copy_of
+        elif pool.get_pool_type() == 'ec2':
+            pool_type = 'ec2'
+        else:
+            pool_type = 'bosco'
+            
+        kwargs['pool_type'] = pool_type
         
-        kwargs['instances'] = instances
-        kwargs['compute_instances'] = compute_instances
-        kwargs['ec2_pool'] = ec2_pool
+        if pool_type == 'shared':
+            kwargs['shared'] = True
+            
+            if original_pool.get_pool_type() == 'ec2':
+                kwargs['shared_pool_type'] = 'ec2'
+                instances=EC2Instance.objects.filter(ec2_pool=original_pool)
+            
+                try:
+                    master_id = original_pool.master.id
+                except:
+                    master_id=None
+            
+                compute_instances = instances.exclude(id=master_id)
+        
+                kwargs['instances'] = instances
+                kwargs['compute_instances'] = compute_instances
+    #            kwargs['ec2_pool'] = ec2_pool
+                
+            else:
+                kwargs['shared_pool_type'] = 'bosco'
+            
+        
+        
+        elif pool_type == 'ec2':
+            #Recast the pool as an EC2 object
+            pool = EC2Pool.objects.get(id=pool.id)
+            kwargs['pool'] = pool
 
-        return super(EC2PoolDetailsView, self).dispatch(request, *args, **kwargs)
-class BoscoPoolDetailsView(RestrictedView):
-    template_name='pool/bosco_pool_details.html'
-    page_title = 'Compute pool details'
-    
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        pool_id = kwargs['pool_id']
-        try:
-            bosco_pool = BoscoPool.objects.get(id=pool_id)
-            assert bosco_pool.user == request.user
-        except Exception, e:
-            self.request.session['errors'] = [e]
-            log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
+            try:
+                assert pool.vpc.access_key.user == request.user
+                ec2_tools.refresh_pool(pool)
+            except EC2ResponseError, e:
+                request.session['errors'] = [error for error in e.errors]
+                log.exception(e)
+                return HttpResponseRedirect(reverse_lazy('pool_list'))
+            except Exception, e:
+                self.request.session['errors'] = [e]
+                log.exception(e)
+                return HttpResponseRedirect(reverse_lazy('pool_list'))
+            
+            instances=EC2Instance.objects.filter(ec2_pool=pool)
+            
+            try:
+                master_id = pool.master.id
+            except:
+                master_id=None
+            
+            compute_instances = instances.exclude(id=master_id)
+            
+            kwargs['instances'] = instances
+            kwargs['compute_instances'] = compute_instances
+
+        else:
+            #Pool type is bosco
+            pass
         
         
-        kwargs['bosco_pool'] = bosco_pool
         
+        
+        #Text for pool test screen
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Testing pool'
-        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Testing a pool can take several minutes'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Testing a pool can take several minutes.'
 
-        return super(BoscoPoolDetailsView, self).dispatch(request, *args, **kwargs)
-    
-class EC2PoolTerminateView(RestrictedView):
-    template_name='pool/ec2_pool_terminate.html'
-    page_title='Confirm EC2 pool termination'
-    
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        pool_id = kwargs['pool_id']
         
-        confirmed= kwargs['confirmed']
-        
-        ec2_pool = EC2Pool.objects.get(id=pool_id)
-        assert ec2_pool.vpc.access_key.user == request.user
-        ec2_tools.refresh_pool(ec2_pool)
-        kwargs['show_loading_screen'] = True
-        kwargs['loading_title'] = 'Terminating pool'
-        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Terminating a pool can take several minutes'
-        
-        if not confirmed:
-        
-            kwargs['ec2_pool'] = ec2_pool
-            
-            return super(EC2PoolTerminateView, self).dispatch(request, *args, **kwargs)
-        else:
-            
-            #Remove from bosco
-            try:
-                condor_tools.remove_ec2_pool(ec2_pool)
-            except:
-                pass
-            
-            #Terminate the pool
-            errors = ec2_tools.terminate_pool(ec2_pool)
-            request.session['errors']=errors
-            
-            
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
+        return super(PoolDetailsView, self).dispatch(request, *args, **kwargs)
 
+    
 class EC2PoolScaleUpForm(forms.Form):
     
     nodes_to_add = forms.IntegerField(required=False)
@@ -469,6 +489,9 @@ class PoolTestResultView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         pool = CondorPool.objects.get(id=kwargs.get('pool_id'))
         assert pool.user == request.user
+        
+        
+        
         kwargs['pool'] = pool
         
         output, errors, exit_status = condor_tools.test_bosco_pool(pool.address)
@@ -483,47 +506,105 @@ class PoolTestResultView(RestrictedView):
 
         
         return super(PoolTestResultView, self).dispatch(request, *args, **kwargs)
-class BoscoPoolRemoveView(RestrictedView):
-    template_name='pool/bosco_pool_remove.html'
-    page_title='Confirm compute pool removal'
+
+class PoolRemoveView(RestrictedView):
+    template_name='pool/pool_remove.html'
+    page_title='Confirm pool removal'
     
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         pool_id = kwargs['pool_id']
+        pool = CondorPool.objects.get(id=pool_id)
+        
+
+        kwargs['pool'] = pool
+        kwargs['pool_type']=pool.get_pool_type()
         
         confirmed= kwargs['confirmed']
         
-        bosco_pool = BoscoPool.objects.get(id=pool_id)
-        assert bosco_pool.user == request.user
-
-        kwargs['show_loading_screen'] = True
-        kwargs['loading_title'] = 'Removing pool'
-        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page.'
+        assert pool.user == request.user
+        copied_pools = CondorPool.objects.filter(copy_of=pool)
         
+        
+        #Are there any other pools that are a copy of this one?
+                
         if not confirmed:
-        
-            kwargs['bosco_pool'] = bosco_pool
-            
-            return super(BoscoPoolRemoveView, self).dispatch(request, *args, **kwargs)
+            kwargs['show_loading_screen'] = True
+            if pool.get_pool_type() == 'ec2' and pool.copy_of == None:
+                kwargs['loading_title'] = 'Terminating pool'
+                kwargs['loading_description'] = 'Please do not navigate away from this page. Terminating a pool can take several minutes.'
+            else:
+                kwargs['loading_title'] = 'Removing pool'
+                kwargs['loading_description'] = 'Please do not navigate away from this page. Removing a pool can take several minutes.'
+
+
+            return super(PoolRemoveView, self).dispatch(request, *args, **kwargs)
         else:
             #Remove the pool
-            #TODO
-            try:
-                #Only remove the pool from bosco if the same address is not registered with any other user
-                if CondorPool.objects.filter(address=bosco_pool.address).count() == 1:
-                    condor_tools.remove_bosco_pool(bosco_pool.address)
-                    log.debug('Removing pool %s from bosco' % bosco_pool.address)
-                else:
-                    log.debug('Not removing pool %s from bosco, since in use by another user' % bosco_pool.address)
+            
+            if pool.get_pool_type() == 'ec2' and pool.copy_of == None:
+                pool = EC2Pool.objects.get(id=pool.id)
+                kwargs['pool'] = pool
                 
-                #However, still delete the db entry
-                bosco_pool.delete()
-            except Exception, e:
-                log.exception(e)
-                request.session['errors'] = [e]
-                return HttpResponseRedirect(reverse_lazy('bosco_pool_details', pool_id = bosco_pool.id))
+                error_list = []
+                #Remove the copied pools first
+                for copied_pool in copied_pools:
+                    try:
+                        copied_pool.delete()
+                    except Exception, e:
+                        log.exception(e)
+                        error_list += ['Error deleting duplicate pool', str(e)]
+                #Remove from bosco
+                try:
+                    condor_tools.remove_ec2_pool(pool)
+                except Exception, e:
+                    log.exception(e)
+                    error_list += ['Error removing pool from bosco', str(e)]
+                
+                #Terminate the pool
+                errors = ec2_tools.terminate_pool(pool)
+                error_list += errors
+                request.session['errors']=error_list
+
+            elif pool.get_pool_type == 'bosco' and pool.copy_of == None:
+                try:
+                    #Remove any copied pools first
+                    for copied_pool in copied_pools:
+                        copied_pool.delete()
+                    
+                    #Only remove the pool from bosco if the same address is not registered with any other user
+                    if CondorPool.objects.filter(address=pool.address).count() == 1:
+                        condor_tools.remove_bosco_pool(pool.address)
+                        log.debug('Removing pool %s from bosco' % pool.address)
+                    else:
+                        log.debug('Not removing pool %s from bosco, since in use by another user' % pool.address)
+                    
+                    #However, still delete the db entry
+                    pool.delete()
+                except Exception, e:
+                    log.exception(e)
+                    request.session['errors'] = [e]
+                    return HttpResponseRedirect(reverse_lazy('pool_details', pool_id = pool.id))
+
+                
+            else:
+                #TODO
+                try:
+                    pool.delete()
+                except Exception, e:
+                    log.exception(e)
+                    request.session['errors'] = [e]
+                    return HttpResponseRedirect(reverse_lazy('pool_details', pool_id = pool.id))
+            
+            
+
+            
+            
             return HttpResponseRedirect(reverse_lazy('pool_list'))
-        
+
+
+
+
 class SharePoolForm(forms.Form):
     username = forms.CharField(max_length=30)
 
@@ -585,7 +666,7 @@ class SharePoolView(RestrictedFormView):
 
         
         try:
-            assert CondorPool.objects.filter(copy_of=pool, user=user).count() == 0
+            assert CondorPool.objects.filter(copy_of__id=pool.id, user=user).count() == 0
         except:
             form._errors[NON_FIELD_ERRORS] = ErrorList(['This pool has already been shared with that user'])
             return self.form_invalid(*args, **kwargs)
@@ -594,10 +675,10 @@ class SharePoolView(RestrictedFormView):
         #Make sure we cast the pool into the correct type
         if pool.get_pool_type() == 'ec2':
             pool = EC2Pool.objects.get(pk=pool.pk)
-            copy_of = EC2Pool.objects.get(pk=pool.pk)
         else:
             pool = BoscoPool.objects.get(pk=pool.pk)
-            copy_of = BoscoPool.objects.get(pk=pool.pk)
+        
+        copy_of = CondorPool.objects.get(pk=pool.pk)
         
         #Make a copy of the pool
         #pool.copy_of = pool

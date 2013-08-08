@@ -36,7 +36,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
-                {% if user.is_staff %}
+                {% if user.is_admin %}
                 <th>Internal ID</th>
                 {% endif %}
                 <th>Access key</th>
@@ -47,8 +47,8 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
         {% for ec2_pool in ec2_pools %}
             <tr>
-                <td><a href="{% url 'ec2_pool_details' pool_id=ec2_pool.id %}">{{ ec2_pool.name }}</a></td>
-                {% if user.is_staff %}
+                <td><a href="{% url 'pool_details' pool_id=ec2_pool.id %}">{{ ec2_pool.name }}</a></td>
+                {% if user.is_admin %}
                 <td><a href="{% url 'admin:web_interface_ec2pool_change' ec2_pool.id %}">{{ec2_pool.id}}</a></td>
                 {% endif %}
 
@@ -56,7 +56,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td >{{ec2_pool.get_count}}</td>
                 <td> Fixed price </td>
                 <td> {{ ec2_pool.get_health }}</td>
-                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'ec2_pool_details' pool_id=ec2_pool.id %}">Details</a></td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=ec2_pool.id %}">Details</a></td>
             </tr>
         {% endfor %}
         </table>
@@ -78,7 +78,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
-                {% if user.is_staff %}
+                {% if user.is_admin %}
                 <th>Internal ID</th>
                 {% endif %}
                 <th>Address</th>
@@ -87,14 +87,14 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
         {% for bosco_pool in bosco_pools %}
             <tr>
-                <td><a href="{% url 'bosco_pool_details' pool_id=bosco_pool.id %}">{{ bosco_pool.name }}</a></td>
-                {% if user.is_staff %}
+                <td><a href="{% url 'pool_details' pool_id=bosco_pool.id %}">{{ bosco_pool.name }}</a></td>
+                {% if user.is_admin %}
                 <td><a href="{% url 'admin:web_interface_boscopool_change' bosco_pool.id %}">{{bosco_pool.id}}</a></td>
                 {% endif %}
 
                 <td>{{bosco_pool.address }}</td>
                 <td >{{bosco_pool.get_pool_type_display}}</td>
-                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'bosco_pool_details' pool_id=bosco_pool.id %}">Details</a></td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>
             </tr>
         {% endfor %}
         </table>
@@ -102,5 +102,44 @@ http://www.gnu.org/licenses/gpl.html
     {% else %}
     <p><span class="bold">You currently have no active connected pools</span></p>
     {% endif %}
+
+    <header class="minor">
+        <h3>Shared pools </h3>
+    </header>
+    <p>Pools that have been shared with you by another user.</p>
+
+    {% if shared_pools %}
+        <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool name</th>
+                {% if user.is_admin %}
+                <th>Internal ID</th>
+                {% endif %}
+                <th>Address</th>
+                <th>Type</th>
+                <th>Shared by</th>
+                <th>Details</th>
+            </tr>
+        {% for shared_pool in shared_pools %}
+            <tr>
+                <td><a href="{% url 'pool_details' pool_id=shared_pool.id %}">{{ shared_pool.name }}</a></td>
+                {% if user.is_admin %}
+                <td><a href="{% url 'admin:web_interface_condorpool_change' shared_pool.id %}">{{shared_pool.id}}</a></td>
+                {% endif %}
+
+                <td>{{shared_pool.address }}</td>
+                <td >{{shared_pool.get_pool_type_display}}</td>
+                <td>{{shared_pool.copy_of.user.username}}</td>
+                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p><span class="bold">You currently have no pools shared with you</span></p>
+    {% endif %}
+    
+    
 </article>
 {% endblock %}
