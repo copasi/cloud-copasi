@@ -29,8 +29,8 @@ http://www.gnu.org/licenses/gpl.html
     
     </header>
     <p>EC2 compute pools consist of a Master node, and one or more Compute nodes.</p>
+    {% if access_keys.count > 0 %}
     <p><a class="button button-icon button-icon-check" href="{% url 'ec2_pool_add' %}">Launch new EC2 pool</a></p>
-    
     {%if ec2_pools %}
     <div class="tablelist">
         <table>
@@ -64,6 +64,10 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     {% else %}
     <p><span class="bold">You currently have no active EC2 pools</span></p>
+    {% endif %}
+    
+    {% else %}
+    <p><span class="bold">You must have <a href="{% url 'my_account_keys_add' %}">associated at least one AWS access key with your account</a> in order to launch EC2 pools</span></p>
     {% endif %}
     
     <header class="minor">

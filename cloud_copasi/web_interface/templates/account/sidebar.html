@@ -36,7 +36,7 @@ http://www.gnu.org/licenses/gpl.html
     <ul class="style2">
         <li><a href="{% url 'pool_list' %}"> Compute pool overview</a></li>
         <li><a href="{% url 'bosco_pool_add' %}"> Connect to existing pool</a></li>
-        {% if access_keys_count > 0 %}
+        {% if access_keys.count > 0 %}
         <li><a href="{% url 'ec2_pool_add' %}"> Launch new pool</a></li>
         {% endif %}
     </ul>
@@ -48,7 +48,7 @@ http://www.gnu.org/licenses/gpl.html
     </header>
     <ul class="style2">
         <li><a href="{% url 'my_account_keys' %}">Manage AWS keys</a></li>
-        {% if access_keys_count > 0 %}
+        {% if access_keys.count > 0 %}
         <li><a href="{% url 'vpc_status' %}"> VPC status</a></li>
         {% endif %}
         <li><a href="{% url 'my_account_keys_add' %}">Add new AWS key</a></li>

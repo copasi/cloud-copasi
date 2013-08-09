@@ -22,10 +22,11 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Your AWS keypairs</span>
     </header>
     
-    <p>You must have at least 1 AWS access key associated with your account in order to use Cloud COPASI. A Virtual Private Cloud (VPC) must be configured for each access key in order to run jobs.</p>
-    
+    <p>You must have at least 1 AWS access key associated with your account in order to launch EC2 pools. A Virtual Private Cloud (VPC) must be configured for each access key in order to run jobs.</p>
+
     <p><a class="button button-icon button-icon-check" href="{% url 'my_account_keys_add' %}">Add new key</a></p>
     
+    {% if access_keys.count > 0 %}
     <div class="tablelist">
         <table>
             <tr>
@@ -47,5 +48,8 @@ http://www.gnu.org/licenses/gpl.html
         </table>
     </div>
     
+    {% else %}
+    <p><span class="bold">You currently have no AWS access keys associated with your account</span></p>
+    {% endif %}
 </article>
 {% endblock %}
