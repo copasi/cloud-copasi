@@ -41,6 +41,8 @@ class AWSAccessKey(models.Model):
     
     secret_key = models.CharField(max_length=40, help_text='The 40-character secret access key associated with the access key ID', verbose_name='Secret access key', validators=[RegexValidator(regex='^.{40}$', message='Length has to be 40', code='nomatch')])
     
+    copy_of = models.ForeignKey('self', null=True, blank=True, verbose_name = 'Is this key a shared version of an original key?')
+    
     def __unicode__(self):
         return "%s, %s" % (self.name, self.access_key_id)
     
@@ -51,7 +53,7 @@ class AWSAccessKey(models.Model):
 class VPC(models.Model):
     """Represents an AWS VPC in which we can run jobs
     """
-    access_key = models.OneToOneField(AWSAccessKey)
+    access_key = models.OneToOneField(AWSAccessKey, null=True)
     #The VPC in which everything else resides
     vpc_id = models.CharField(max_length=20, verbose_name='VPC ID')
     

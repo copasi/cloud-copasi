@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from cloud_copasi.web_interface.aws import vpc_tools, aws_tools
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
 from cloud_copasi.web_interface import models
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
@@ -35,6 +35,7 @@ from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 from cloud_copasi.web_interface.account import user_countries
 from cloud_copasi import settings
 from django.views.generic.base import ContextMixin
+from cloud_copasi.web_interface.pools import condor_tools
 
 log = logging.getLogger(__name__)
 
@@ -55,6 +56,11 @@ class MyAccountView(RestrictedView):
         
         
         kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
+        kwargs['owned_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=True)
+        kwargs['shared_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=False)
+        
+        
+        
         kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
         
         tasks = Task.objects.filter(condor_pool__user = user)
@@ -65,7 +71,7 @@ class MyAccountView(RestrictedView):
         return super(MyAccountView, self).dispatch(request, *args, **kwargs)
     
 
-class KeysView(RestrictedView):
+class KeysView(MyAccountView):
     """View to display keys
     """
     template_name = 'account/key_view.html'
@@ -103,6 +109,16 @@ class KeysAddView(RestrictedFormView):
     success_url = reverse_lazy('my_account_keys')
     form_class = AddKeyForm
     
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Adding key and setting up VPC'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page.'
+
+        
+        return super(KeysAddView, self).dispatch(request, *args, **kwargs)
+    
     def get_form_kwargs(self):
         kwargs =  super(RestrictedFormView, self).get_form_kwargs()
         kwargs['user'] = self.request.user
@@ -127,8 +143,125 @@ class KeysAddView(RestrictedFormView):
             error_list = [x[1] for x in e.errors]
             form._errors[NON_FIELD_ERRORS] = ErrorList(error_list)
             return self.form_invalid(self, *args, **kwargs)
-           
+        
+        #And launch the VPC
+        try:            
+            
+            vpc = vpc_tools.create_vpc(key, vpc_connection, ec2_connection)
+
+        except Exception, e:
+            log.exception(e)
+            try:
+                vpc.delete()
+            except:
+                pass
+            try:
+                key.delete()
+            except:
+                pass
+            form._errors[NON_FIELD_ERRORS] = 'Error launching VPC for key'
+            return self.form_invalid(self, *args, **kwargs)
         return super(KeysAddView, self).form_valid(*args, **kwargs)
+
+
+class ShareKeyForm(forms.Form):
+    username = forms.CharField(max_length=30)
+
+
+class KeysShareView(RestrictedFormView):
+    form_class = ShareKeyForm
+    template_name = 'account/key_share.html'
+    page_title = 'Share key'
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        key = AWSAccessKey.objects.get(id=kwargs['key_id'])
+        assert key.user == self.request.user
+        assert key.copy_of == None
+
+
+        if kwargs.get('remove'):
+            unshare_from = User.objects.get(id=kwargs['user_id'])
+            
+            unshare_key = AWSAccessKey.objects.get(copy_of=key, user=unshare_from)
+            unshare_key.delete()
+            return HttpResponseRedirect(reverse_lazy('my_account_keys_share', kwargs={'key_id': kwargs['key_id']}))
+
+
+        shared_keys = AWSAccessKey.objects.filter(copy_of=key)
+        
+        shared_users = [key.user for key in shared_keys]
+        
+        kwargs['shared_users'] = shared_users
+        
+        return super(KeysShareView, self).dispatch(request, *args, **kwargs)
+        
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        self.success_url = reverse_lazy('my_account_keys_share', kwargs={'key_id':kwargs['key_id']})
+
+        
+        #Get the pool we want to share
+        key = AWSAccessKey.objects.get(id=kwargs['key_id'])
+        assert key.user == self.request.user
+        assert key.copy_of == None
+
+
+        
+        #Lookup username to see if it is valid
+        try:
+            user = User.objects.get(username=form.cleaned_data['username'])
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['Username not recognized'])
+            return self.form_invalid(*args, **kwargs)
+        
+        try:
+            assert user != self.request.user
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['Sorry, you can\'t share a pool with yourself'])
+            return self.form_invalid(*args, **kwargs)
+
+
+        
+        try:
+            assert AWSAccessKey.objects.filter(copy_of__id=key.id, user=user).count() == 0
+        except:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['This key has already been shared with that user'])
+            return self.form_invalid(*args, **kwargs)
+
+        vpc = key.vpc
+        
+        copy_of = AWSAccessKey.objects.get(pk=key.pk)
+        
+        
+        #Make a copy of the pool
+        #pool.copy_of = pool
+        key.pk = None
+        key.id = None
+
+        key.copy_of = copy_of
+        key.user = user
+        
+
+        
+        
+        key.save()
+        
+        #And of the VPC
+        vpc.pk = None
+        vpc.id = None
+        
+        vpc.pk = None
+        vpc.id = None
+        vpc.access_key = key
+        vpc.save()
+        
+        return super(KeysShareView, self).form_valid(*args, **kwargs)
+
+class KeysRenameView(RestrictedFormView):
+    pass
+
 
 class PasswordChangeView(RestrictedFormView):
     template_name = 'account/password_change.html'
@@ -152,30 +285,73 @@ class KeysDeleteView(MyAccountView):
     
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        try:
-            key_id = self.kwargs['key_id']
-            key = AWSAccessKey.objects.get(id=key_id)
-            kwargs['key'] = key
-            assert key.user == request.user
-        except:
-            return HttpResponseServerError()
         
-        vpcs = VPC.objects.filter(access_key=key)
-        if vpcs.count() > 0:
-            error_title = 'VPC still associated'
-            error_message = 'A VPC is still associated with this access key. You must remove the VPC before the access key can be deleted.'
-            request.session['errors'] = [(error_title, error_message)]
-            return HttpResponseRedirect(reverse_lazy('vpc_config', kwargs={'key_id':key.id}))
+        key_id = self.kwargs['key_id']
+        key = AWSAccessKey.objects.get(id=key_id)
+        kwargs['key'] = key
+        assert key.user == request.user
         
-        if self.kwargs['confirmed']:
-            try:
-                key.delete()
-                return HttpResponseRedirect(reverse_lazy('my_account_keys'))
-            except:
-                raise
+        #Is this an original key or is it a copy
+        original = key.copy_of == None
+        
+        if original:
+            #Build a list of any pools and running jobs that will be terminated when this pool is terminated
+            
+            pools = EC2Pool.objects.filter(vpc__vpc_id = key.vpc.vpc_id)
+            shared_keys = AWSAccessKey.objects.filter(copy_of=key)
+            shared_user_ids = [key.user.id for key in shared_keys]
+            kwargs['shared_users'] = User.objects.filter(id__in=shared_user_ids)
+
+        
+
         else:
-            return MyAccountView.dispatch(self, request, *args, **kwargs)
+            #A copy of a key. If so, we'll not be deleting the real vpc, adn so 
+            pools = EC2Pool.objects.filter(vpc__id=key.vpc.id)
+            
+        kwargs['pools'] = pools
+        errors=[]
+
         
+        
+        if kwargs['confirmed']:
+            
+            #Go through and terminate each of the running pools
+            for pool in pools:
+                tasks = pool.get_running_tasks()
+                for task in tasks:
+                    condor_tools.cancel_task(task)
+                
+                ec2_tools.terminate_pool(pool)
+                
+            if original:
+                #We also need to delete the vpc (and any associated)
+                related = AWSAccessKey.objects.filter(copy_of=key)
+                for related_key in shared_keys:
+                    related_key.delete()
+                
+                if key.vpc != None:
+                    vpc_connection, ec2_connection = aws_tools.create_connections(key)
+                        
+                    errors += (vpc_tools.delete_vpc(key.vpc, vpc_connection, ec2_connection))
+                    
+                    if errors != []:
+                        log.exception(errors)
+                        request.session['errors'] = aws_tools.process_errors(errors)
+                    
+                try:
+                    key.vpc.delete()
+                except Exception, e:
+                    log.exception(e)
+                #And delete the key
+                key.delete()
+            else:
+                #Just delete the key object and the vpc
+                key.delete()
+                
+            return HttpResponseRedirect(reverse_lazy('my_account_keys'))
+        
+        return super(KeysDeleteView, self).dispatch(request, *args, **kwargs)
+     
 class VPCStatusView(MyAccountView):
     template_name='account/vpc_status.html'
     page_title='VPC status'
@@ -193,9 +369,10 @@ class VPCConfigView(MyAccountView):
             assert key.user == request.user
         except Exception, e:
             request.session['errors'] = [e]
-            return HttpResponseRedirect(reverse_lazy('vpc_status'))
+            return HttpResponseRedirect(reverse_lazy('my_account_keys'))
         kwargs['key'] = key
         
+        assert key.copy_of == None
         return super(VPCConfigView,self).dispatch(request, *args, **kwargs)
 
 
@@ -247,8 +424,12 @@ class VPCRemoveView(RedirectView):
         assert key.user == request.user
         kwargs['key'] = key
         
+        
+        
+        
+        
         #Make sure there are no pools running on the vpc
-        pools = CondorPool.objects.filter(vpc=vpc)
+        pools = EC2Pool.objects.filter(vpc__vpc_id=vpc.vpc_id)
         if pools.count() > 0:
             error_title='Compute pools still running'
             error_message='One or more compute pools are still running on this VPC. These must be terminated before the VPC can be removed.'

@@ -35,6 +35,60 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
         </table>
     </div>
+    
+    <h3>Running pools</h3>
+    {% if pools %}
+    
+    <p>Deleting this keypair will terminate the following pools, and all running tasks on these pools will be cancelled:</p>    
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Pool</th>
+                <th>User</th>
+                <th>Running tasks</th>
+            </tr>
+            {% for pool in pools %}
+            <tr>
+                <td>{{ pool.name }}</td>
+                <td>{{ pool.user.username }}</td>
+                <td>{{ pool.get_running_tasks.count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>  
+    
+    {% else %}
+    <p>This keypair does not currently have any running compute pools.</p>
+    
+    {% endif %}
+    
+    
+    <h3>Shared Users</h3>
+    {% if shared_users %}
+    
+    <p>Deleting this keypar will revoke any shared access for other users. This keypair is shared with the following users:</p>
+    
+        <div class="tablelist">
+        <table>
+            <tr>
+                <th>User</th>
+            </tr>
+            {% for user in shared_users %}
+            <tr>
+                <td>{{ user.username }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>  
+    {% else %}
+    <p>This keypair is not currently shared with any other users</p>
+    {% endif %}
+    
+    
+    
     <a href="{% url 'my_account_keys_delete_confirmed' key_id=key.id %}" class="button button-icon button-icon-check button-hspace">Delete</a><a href="{% url 'my_account_keys' %}" class="button button-alt button-hspace">Cancel</a>
+    
+    <p />
+    <p><a href="{% url 'my_account_keys' %}">Return to keys overview</a></p> 
 </article>
 {% endblock %}

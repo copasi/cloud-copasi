@@ -22,7 +22,7 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Manage VPC configuration for <span style="font-weight:bolder">{{key.name}}</span></span>
     </header>
     
-    <p>All keys must have an associated Virtual Private Cloud (VPC) before computing jobs can be launched. At present a single VPC can be associated with each key.</p>
+    <p>All keys must have an available Virtual Private Cloud (VPC) before compute pools can be launched. At present a single VPC is associated with each key.</p>
     
     {% if key.vpc == "NULL" %}    
     <p style="font-weight: bold">This key currently has no associated VPC.</p>
@@ -32,11 +32,13 @@ http://www.gnu.org/licenses/gpl.html
     {% else %}
     <p>VPC status: <span style="font-weight: bold">{{ key.vpc.get_status }}</span>. </p>
     
-    <p>If you are experiencing problems, try removing the VPC and then creating a new one. Note that it can take several minutes for a newly created VPC to become available</p>
+    <p>If you are experiencing problems, try removing the AWS key and adding it again. Note that this will result in any compute pools associated with the key being terminated, along with any running tasks.</p>
     
-    <h4>Warning - removing a VPC will stop any running jobs that are using this VPC</h4>
     
-    <p><a class="button button-icon button-icon-check" href="{% url 'vpc_remove' key_id=key.id %}">Remove VPC</a></p>
+    <p><a class="button button-icon" href="{% url 'my_account_keys_delete' key_id=key.id %}">Remove Key</a></p>
+    
+    <p />
+    <p><a href="{% url 'my_account_keys' %}">Return to key overview</a></p>
     {% endif %}
         
 </article>

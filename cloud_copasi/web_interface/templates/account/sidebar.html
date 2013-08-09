@@ -48,9 +48,6 @@ http://www.gnu.org/licenses/gpl.html
     </header>
     <ul class="style2">
         <li><a href="{% url 'my_account_keys' %}">Manage AWS keys</a></li>
-        {% if access_keys.count > 0 %}
-        <li><a href="{% url 'vpc_status' %}"> VPC status</a></li>
-        {% endif %}
         <li><a href="{% url 'my_account_keys_add' %}">Add new AWS key</a></li>
         <li><a href="{% url 'my_account_password_change' %}">Change your password</a></li>
     </ul>

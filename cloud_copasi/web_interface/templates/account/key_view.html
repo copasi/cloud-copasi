@@ -22,11 +22,44 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Your AWS keypairs</span>
     </header>
     
-    <p>You must have at least 1 AWS access key associated with your account in order to launch EC2 pools. A Virtual Private Cloud (VPC) must be configured for each access key in order to run jobs.</p>
+    <p>You must have at least 1 AWS access key associated with your account in order to launch EC2 pools. A Virtual Private Cloud (VPC) must be available for each access key in order to run jobs.</p>
 
     <p><a class="button button-icon button-icon-check" href="{% url 'my_account_keys_add' %}">Add new key</a></p>
     
-    {% if access_keys.count > 0 %}
+    <h3>Your AWS access keys</h3>
+    <p>Keys that have you added to your account.</p>
+    
+    {% if owned_keys.count > 0 %}
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Key name</th>
+                <th>Access key ID</th>
+                <th>Secret access key</th>
+                <th>Delete?</th>
+                <th>Share?</th>
+                <th>VPC Status</th>
+            </tr>
+        {% for key in owned_keys %}
+            <tr>
+                <td>{{ key.name }}</td>
+                <td>{{ key.access_key_id}}</td>
+                <td style="font-style:italic;">**Hidden**</td>
+                <td><a class="button button-narrow button-alt" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></td>
+                <td><a class="button button-narrow" href="{% url 'my_account_keys_share' key_id=key.id %}">Share</a></td>
+                
+                <td><a href="{% url 'vpc_config' key_id=key.id %}">{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</a></td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p><span class="bold">You have not added any AWS keys to your account.</span></p>
+    {% endif %}
+    
+    <h3>Shared keys</h3>
+    <p>Keys that have been shared with you by another user.</p>
+    {% if shared_keys.count > 0 %}
     <div class="tablelist">
         <table>
             <tr>
@@ -36,20 +69,19 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Delete?</th>
                 <th>Status</th>
             </tr>
-        {% for key in access_keys %}
+        {% for key in shared_keys %}
             <tr>
                 <td>{{ key.name }}</td>
                 <td>{{ key.access_key_id}}</td>
                 <td style="font-style:italic;">**Hidden**</td>
                 <td><a class="button button-narrow button-alt" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></td>
-                <td><a href="{% url 'vpc_config' key_id=key.id %}">{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</a></td>
+                <td>{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</td>
             </tr>
         {% endfor %}
         </table>
     </div>
-    
     {% else %}
-    <p><span class="bold">You currently have no AWS access keys associated with your account</span></p>
+    <p><span class="bold">You do not have any AWS access keys shared with your account.</span></p>    
     {% endif %}
 </article>
 {% endblock %}

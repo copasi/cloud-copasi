@@ -269,3 +269,6 @@ def process_condor_q(user=None, subtask=None):
                 job.status = 'F'
                 job.save()
 
+def cancel_task(task):
+    #TODO: implement this method
+    return

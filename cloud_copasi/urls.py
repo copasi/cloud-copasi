@@ -26,9 +26,12 @@ urlpatterns = patterns('',
     #Keys
     url(r'^my_account/keys/$', account_views.KeysView.as_view() , name='my_account_keys'),
     url(r'^my_account/keys/add/$', account_views.KeysAddView.as_view(), name='my_account_keys_add'),
-    url(r'^my_account/keys/(?P<key_id>\d+)/delete$', account_views.KeysDeleteView.as_view(), {'confirmed' : False }, name='my_account_keys_delete'),
+    url(r'^my_account/keys/(?P<key_id>\d+)/delete/$', account_views.KeysDeleteView.as_view(), {'confirmed' : False }, name='my_account_keys_delete'),
     url(r'^my_account/keys/(?P<key_id>\d+)delete/confirm/$', account_views.KeysDeleteView.as_view(),{'confirmed' : True }, name='my_account_keys_delete_confirmed'),
-    
+    url(r'^my_account/keys/(?P<key_id>\d+)/share/$', account_views.KeysShareView.as_view(), name='my_account_keys_share'),
+    url(r'^my_account/keys/(?P<key_id>\d+)/unshare/(?P<user_id>\d+)/$', account_views.KeysShareView.as_view(), {'remove':True}, name='my_account_keys_unshare'),
+    url(r'^my_account/keys/(?P<key_id>\d+)/rename/$', account_views.KeysRenameView.as_view(), name='my_account_keys_rename'),
+
     url(r'^my_account/password/reset/$', 'django.contrib.auth.views.password_reset',
         {'post_reset_redirect' : '/my_account/password/reset/done/',
          'template_name': 'account/password_reset_form.html',
@@ -67,10 +70,10 @@ urlpatterns = patterns('',
          'page_title': 'Contact information'}, name='contact'),
 
     #VPC
-    url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),
+#     url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),
     url(r'^my_account/vpc_status/(?P<key_id>\d+)/configure/$', account_views.VPCConfigView.as_view(), name='vpc_config'),
-    url(r'^my_account/vpc_status/(?P<key_id>\d+)/add/$', account_views.VPCAddView.as_view(), name='vpc_add'),
-    url(r'^my_account/vpc_status/(?P<key_id>\d+)/remove/$', account_views.VPCRemoveView.as_view(), name='vpc_remove'),
+#    url(r'^my_account/vpc_status/(?P<key_id>\d+)/add/$', account_views.VPCAddView.as_view(), name='vpc_add'),
+#    url(r'^my_account/vpc_status/(?P<key_id>\d+)/remove/$', account_views.VPCRemoveView.as_view(), name='vpc_remove'),
     
     #Pools
     url(r'^my_account/pools/$', pool_views.PoolListView.as_view(), name='pool_list'),
