@@ -70,11 +70,30 @@ class PoolRenameForm(forms.Form):
 class PoolRenameView(RestrictedFormView):
     page_title='Rename pool'
     template_name = 'pool/pool_rename.html'
+    form_class = PoolRenameForm
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == request.user
+        kwargs['pool'] = pool
+        return super(PoolRenameView, self).dispatch(request, *args, **kwargs)
+    
     def form_valid(self, *args, **kwargs):
         
         form = kwargs['form']
+        new_name = form.cleaned_data['new_name']
         pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == self.request.user 
         
+        existing_pools = CondorPool.objects.filter(user=self.request.user).filter(name=new_name)
+        
+        if existing_pools.count()>0:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['A pool with this name already exists'])
+            return self.form_invalid(self, *args, **kwargs)
+        
+        pool.name = new_name
+        pool.save()
         self.success_url = reverse_lazy('pool_details', kwargs={'pool_id': kwargs['pool_id']})
         return super(PoolRenameView, self).form_valid(*args, **kwargs)
 

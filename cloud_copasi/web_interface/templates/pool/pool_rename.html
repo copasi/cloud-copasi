@@ -18,9 +18,12 @@ http://www.gnu.org/licenses/gpl.html
 {% block content %}
 <article>
     <header class="major">
-        <h2>Change password</h2>
+        <h2>Rename pool {{pool.name}}</h2>
     </header>
-    {% include 'form.html' with submit_text="Change password"%}
+    
+    {% include 'form.html' with submit_text="Rename pool"%}
+    <p />
+    <p><a href="{% url 'pool_details' pool_id=pool_id %}">Back to pool details</a>
 
     
 </article>

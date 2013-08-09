@@ -55,7 +55,7 @@ class MyAccountView(RestrictedView):
         
         
         kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
-        kwargs['compute_pools'] = EC2Pool.objects.filter(vpc__access_key__user=user)
+        kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
         
         tasks = Task.objects.filter(condor_pool__user = user)
         kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
