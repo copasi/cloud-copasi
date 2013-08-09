@@ -171,20 +171,54 @@ class PoolDetailsView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         pool = CondorPool.objects.get(id=kwargs['pool_id'])
+        
+        #Recast the pool type
+        if pool.get_pool_type() == 'ec2':
+            pool = EC2Pool.objects.get(id=pool.id)
+        elif pool.get_pool_type() == 'bosco':
+            pool = BoscoPool.objects.get(id=pool.id)
+        
         kwargs['pool'] = pool
+        
         
         assert isinstance(pool, CondorPool)
         assert pool.user == self.request.user
         
         if pool.copy_of != None:
             pool_type = 'shared'
-            original_pool = pool.copy_of
+            #Recast the original pool type to be the same as the current pool type
+            original_pool = pool.__class__.objects.get(id=pool.copy_of.id)
+            kwargs['original_pool'] = original_pool
         elif pool.get_pool_type() == 'ec2':
             pool_type = 'ec2'
+            kwargs['original_pool'] = pool
         else:
             pool_type = 'bosco'
             
         kwargs['pool_type'] = pool_type
+        
+        #Decide on which buttons to display
+        buttons = {}
+        #All pools have the following:
+        buttons[0] = {'button_text': 'Remove pool', #Rename this later for EC2 pools
+                      'url': reverse_lazy('pool_remove', kwargs={'pool_id' : kwargs['pool_id']}),
+                      'class':'button-alt',
+                      }
+        
+        buttons[1] = {'button_text' : 'Test pool',
+                      'url': reverse_lazy('pool_test_result', kwargs={'pool_id' : kwargs['pool_id']}),
+                      'loading_screen': True,
+                      }
+        
+        if pool_type != 'shared':
+            buttons[2] = {'button_text' : 'Share pool',
+                          'url': reverse_lazy('pool_share', kwargs={'pool_id' : kwargs['pool_id']}),
+                          }
+        
+        buttons[3] = {'button_text' : 'Rename pool',
+                      'url': reverse_lazy('pool_rename', kwargs={'pool_id' : kwargs['pool_id']}),
+                       }
+        
         
         if pool_type == 'shared':
             kwargs['shared'] = True
@@ -213,7 +247,8 @@ class PoolDetailsView(RestrictedView):
             #Recast the pool as an EC2 object
             pool = EC2Pool.objects.get(id=pool.id)
             kwargs['pool'] = pool
-
+            buttons[0]['button_text'] = 'Terminate pool'
+            
             try:
                 assert pool.vpc.access_key.user == request.user
                 ec2_tools.refresh_pool(pool)
@@ -249,7 +284,7 @@ class PoolDetailsView(RestrictedView):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Testing pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Testing a pool can take several minutes.'
-
+        kwargs['buttons'] = buttons
         
         return super(PoolDetailsView, self).dispatch(request, *args, **kwargs)
 
@@ -519,11 +554,13 @@ class PoolRemoveView(RestrictedView):
 
         kwargs['pool'] = pool
         kwargs['pool_type']=pool.get_pool_type()
+        if kwargs['pool_type'] == 'ec2':
+            kwargs['node_count'] = EC2Pool.objects.get(id=pool_id).get_count()
         confirmed= kwargs['confirmed']
         
         assert pool.user == request.user
         copied_pools = CondorPool.objects.filter(copy_of=pool)
-        
+        kwargs['copied_pools'] = copied_pools
         
         #Are there any other pools that are a copy of this one?
                 

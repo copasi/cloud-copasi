@@ -18,11 +18,11 @@ http://www.gnu.org/licenses/gpl.html
 {% block content %}
 <article>
     <header class="major">
-        <h2>Confirm {% if pool_type == 'ec2' %}termination{% else %}removal{% endif %}</h2>
-        <span class="byline">Are you sure you want to {% if pool_type == 'ec2' %}terminate{% else %}remove{% endif %} this compute pool?</span>
+        <h2>Confirm {% if pool_type == 'ec2' and not pool.copy_of%}termination{% else %}removal{% endif %}</h2>
+        <span class="byline">Are you sure you want to {% if pool_type == 'ec2' and not pool.copy_of %}terminate{% else %}remove{% endif %} this compute pool?</span>
     </header>
     
-    {% if pool_type == 'ec2' %}
+    {% if pool_type == 'ec2' and not pool.copy_of%}
     <h3>This action will terminate all associated instances , along with any running and queued jobs, and cannot be undone!</h3>
      <div class="tablelist">
         <table>
@@ -32,7 +32,7 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
             <tr>
                 <td>{{ pool.name }}</td>
-                <td>{{ pool.get_count}}</td>
+                <td>{{ node_count}}</td>
             </tr>
         </table>
         <p>*Includes Master node</p>
@@ -45,17 +45,37 @@ http://www.gnu.org/licenses/gpl.html
             <tr>
                 <th>Pool name</th>
                 <th>Pool type</th>
-                <th>Address</th>
+                {% if not pool.copy_of %}<th>Address</th>{% endif %}
             </tr>
             <tr>
                 <td>{{ pool.name }}</td>
-                <td>{{ pool.get_pool_type_display}}</td>
-                <td>{{ pool.address}}</td>
+                <td>{{ pool.get_pool_type_display_true}}</td>
+                {% if not pool.copy_of %}<td>{{ pool.address}}</td>{% endif %}
             </tr>
         </table>
     </div>
-    
     {% endif %}
+    
+    
+    {% if copied_pools %}
+    <h3>This pool is shared with the following users. {%if pool_type == 'ec2'%}Terminating{%else%}Removing{%endif%} this pool will cause any running tasks to be terminated, potentially resulting in a loss of data! </h3>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>User</th>
+                <th>Running tasks on this pool</th>
+            </tr>
+            {% for copied_pool in copied_pools %}
+            <tr>
+                <td>{{copied_pool.user.username}}</td>
+                <td>{{copied_pool.get_running_tasks.count}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    
+    
     <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">{{button_text}}</a>
 
     <a href="{% url 'pool_details' pool_id=pool.id %}" class="button button-alt button-hspace">Cancel</a>

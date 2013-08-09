@@ -188,6 +188,10 @@ class CondorPool(models.Model):
     def get_pool_type_display_true(self):
         return self.get_pool_type(display=True)
 
+
+    def get_running_tasks(self):
+        return Task.objects.filter(condor_pool=self).filter(status='running')
+    
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
     """
@@ -212,7 +216,7 @@ class EC2Pool(CondorPool):
     
     last_update_time = models.DateTimeField(auto_now_add=True)
     
-    
+
     #launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
     
     #autoscaling_group = models.CharField(max_length=20, help_text='The name of the AWS autoscaling group for this pool')
@@ -225,16 +229,13 @@ class EC2Pool(CondorPool):
     
     class Meta:
         app_label = 'web_interface'
-    
-    def __unicode__(self):
-        return "%s (User: %s)" % (self.name, self.vpc.access_key.user.username) 
-    
+        
     
     def get_key_pair(self, ec2_connection):
         return ec2_connection.get_key_pair(self.key_pair.name)
     
     def get_count(self):
-        instances = EC2Instance.objects.filter(ec2_pool=self)
+        instances = EC2Instance.objects.filter(ec2_pool=self).filter(state='running')
         return instances.count()
     
     def get_queue_name(self):

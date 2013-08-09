@@ -26,7 +26,9 @@ http://www.gnu.org/licenses/gpl.html
 
     <p>You must have configured key-based SSH access to the pool before continuing. See the documentation for further details</p>
     
-    {% include 'form.html' with submit_text="Launch pool"%}
+    {% include 'form.html' with submit_text="Connect to pool"%}
+    <p />
+    <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
 
     
 </article>

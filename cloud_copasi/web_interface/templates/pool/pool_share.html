@@ -41,7 +41,7 @@ http://www.gnu.org/licenses/gpl.html
     
     <p>Enter a username to share the pool with that user</p>
     {% include 'form.html' with submit_text="Share pool"%}
-
-    
+    <p />
+    <p><a href="{% url 'pool_details' pool_id=pool_id %}">Back to pool details</a>
 </article>
 {% endblock %}

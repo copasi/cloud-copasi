@@ -116,7 +116,7 @@ http://www.gnu.org/licenses/gpl.html
                 {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
-                <th>Address</th>
+                {% if pool.get_type == 'bosco' %}<th>Address</th>{% endif %}
                 <th>Type</th>
                 <th>Shared by</th>
                 <th>Details</th>
@@ -128,8 +128,8 @@ http://www.gnu.org/licenses/gpl.html
                 <td><a href="{% url 'admin:web_interface_condorpool_change' shared_pool.id %}">{{shared_pool.id}}</a></td>
                 {% endif %}
 
-                <td>{{shared_pool.address }}</td>
-                <td >{{shared_pool.get_pool_type_display}}</td>
+                {% if pool.get_type == 'bosco' %}<td>{{shared_pool.address }}</td>{% endif %}
+                <td >{{shared_pool.get_pool_type_display_true}}</td>
                 <td>{{shared_pool.copy_of.user.username}}</td>
                 <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
             </tr>

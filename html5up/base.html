@@ -78,7 +78,7 @@
                                                         </ul>
                                                     </li>
                                                     {% if user.is_authenticated %}
-                                                    <li><a href="{% url 'my_account' %}">My account</a></li>
+                                                    <li><a href="{% url 'my_account' %}">My account|{{user.username}}</a></li>
                                                     {% if user.is_superuser %}
                                                     <li><a href="{% url 'admin:index' %}">Admin</a></li>
                                                     {% endif %}
