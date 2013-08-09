@@ -57,7 +57,9 @@ http://www.gnu.org/licenses/gpl.html
     
     {% endif %}
     <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">
-    {% if pool_type == 'ec2' %}Terminate{% else %}Remove{% endif %} pool</a>
+    {% for button in buttons %}
+        <a href="{{button.url}}" class="button button-narrow {{button.class}}">{{button.text}}</a>
+    {% endfor %}
     <a href="{% url 'pool_details' pool_id=pool.id %}" class="button button-alt button-hspace">Cancel</a>
 </article>
 {% endblock %}
