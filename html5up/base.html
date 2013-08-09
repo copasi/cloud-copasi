@@ -79,7 +79,7 @@
                                                     </li>
                                                     {% if user.is_authenticated %}
                                                     <li><a href="{% url 'my_account' %}">My account</a></li>
-                                                    {% if user.is_admin %}
+                                                    {% if user.is_superuser %}
                                                     <li><a href="{% url 'admin:index' %}">Admin</a></li>
                                                     {% endif %}
                                                     <li><a href="{% url 'sign_out' %}">Sign out</a></li>

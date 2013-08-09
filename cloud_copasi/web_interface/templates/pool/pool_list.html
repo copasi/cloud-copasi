@@ -36,7 +36,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
                 <th>Access key</th>
@@ -48,7 +48,7 @@ http://www.gnu.org/licenses/gpl.html
         {% for ec2_pool in ec2_pools %}
             <tr>
                 <td><a href="{% url 'pool_details' pool_id=ec2_pool.id %}">{{ ec2_pool.name }}</a></td>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_ec2pool_change' ec2_pool.id %}">{{ec2_pool.id}}</a></td>
                 {% endif %}
 
@@ -78,7 +78,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
                 <th>Address</th>
@@ -88,7 +88,7 @@ http://www.gnu.org/licenses/gpl.html
         {% for bosco_pool in bosco_pools %}
             <tr>
                 <td><a href="{% url 'pool_details' pool_id=bosco_pool.id %}">{{ bosco_pool.name }}</a></td>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_boscopool_change' bosco_pool.id %}">{{bosco_pool.id}}</a></td>
                 {% endif %}
 
@@ -113,7 +113,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Pool name</th>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
                 <th>Address</th>
@@ -124,7 +124,7 @@ http://www.gnu.org/licenses/gpl.html
         {% for shared_pool in shared_pools %}
             <tr>
                 <td><a href="{% url 'pool_details' pool_id=shared_pool.id %}">{{ shared_pool.name }}</a></td>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_condorpool_change' shared_pool.id %}">{{shared_pool.id}}</a></td>
                 {% endif %}
 

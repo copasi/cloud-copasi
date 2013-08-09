@@ -519,7 +519,6 @@ class PoolRemoveView(RestrictedView):
 
         kwargs['pool'] = pool
         kwargs['pool_type']=pool.get_pool_type()
-        
         confirmed= kwargs['confirmed']
         
         assert pool.user == request.user
@@ -533,9 +532,12 @@ class PoolRemoveView(RestrictedView):
             if pool.get_pool_type() == 'ec2' and pool.copy_of == None:
                 kwargs['loading_title'] = 'Terminating pool'
                 kwargs['loading_description'] = 'Please do not navigate away from this page. Terminating a pool can take several minutes.'
+                kwargs['button_text']='Terminate pool'
+
             else:
                 kwargs['loading_title'] = 'Removing pool'
                 kwargs['loading_description'] = 'Please do not navigate away from this page. Removing a pool can take several minutes.'
+                kwargs['button_text']='Remove pool'
 
 
             return super(PoolRemoveView, self).dispatch(request, *args, **kwargs)
@@ -545,7 +547,6 @@ class PoolRemoveView(RestrictedView):
             if pool.get_pool_type() == 'ec2' and pool.copy_of == None:
                 pool = EC2Pool.objects.get(id=pool.id)
                 kwargs['pool'] = pool
-                
                 error_list = []
                 #Remove the copied pools first
                 for copied_pool in copied_pools:
@@ -588,7 +589,6 @@ class PoolRemoveView(RestrictedView):
 
                 
             else:
-                #TODO
                 try:
                     pool.delete()
                 except Exception, e:

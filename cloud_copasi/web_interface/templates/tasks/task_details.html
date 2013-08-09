@@ -58,7 +58,7 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Subtask index</th>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <th>Internal id</th>
                 {% endif %}
                 <th>Subtask type</th>
@@ -69,7 +69,7 @@ http://www.gnu.org/licenses/gpl.html
             {% for subtask in task.subtask_set.all %}
             <tr>
                 <td><a href="{% url 'subtask_details' subtask_id=subtask.id%}">{{ subtask.index }}</a></td>
-                {% if user.is_admin %}
+                {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_subtask_change' subtask.id %}">{{subtask.id}}</a></td>
                 {% endif %}
                 <td>{{ subtask.get_type_display }}</td>

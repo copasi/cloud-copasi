@@ -56,10 +56,8 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     
     {% endif %}
-    <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">
-    {% for button in buttons %}
-        <a href="{{button.url}}" class="button button-narrow {{button.class}}">{{button.text}}</a>
-    {% endfor %}
+    <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">{{button_text}}</a>
+
     <a href="{% url 'pool_details' pool_id=pool.id %}" class="button button-alt button-hspace">Cancel</a>
 </article>
 {% endblock %}
