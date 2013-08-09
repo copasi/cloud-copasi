@@ -329,24 +329,50 @@ def assign_ip_address(ec2_instance):
     assert isinstance(ec2_instance, EC2Instance)
     ips = ElasticIP.objects.filter(vpc=ec2_instance.ec2_pool.vpc).filter(instance=None)
     
+    sleep_time=5
+    allocate_new = False
     if ips.count() > 0:
         #Use the first IP address
         log.debug('Using existing IP address')
         elastic_ip=ips[0]
-    else:
+        try:
+            release_ip_address(ec2_instance.condor_pool.vpc.acess_key, allocation_id=elastic_ip.allocation_id, association_id=elastic_ip.association_id)
+        except Exception, e:
+            log.exception(e)
+            allocate_new = True
+    elif ips.count() == 0 or allocate_new:
         #We need to allocate a new ip address first
-        log.debug('Allocating new IP address')
-        address=ec2_connection.allocate_address('vpc')
-        
-        elastic_ip = ElasticIP()
-        elastic_ip.allocation_id = address.allocation_id
-        elastic_ip.public_ip = address.public_ip
-        elastic_ip.vpc = ec2_instance.ec2_pool.vpc
-    
+        max_attempts=5
+        attempt_count=0
+        while attempt_count < max_attempts:
+            try:
+                log.debug('Allocating new IP address')
+                address=ec2_connection.allocate_address('vpc')
+                
+                elastic_ip = ElasticIP()
+                elastic_ip.allocation_id = address.allocation_id
+                elastic_ip.public_ip = address.public_ip
+                elastic_ip.vpc = ec2_instance.ec2_pool.vpc
+                assert elastic_ip.allocation_id != None
+                assert elastic_ip.allocation_id != ''
+                break
+            except Exception, e:
+                #Something is wrong here with the elastic ip
+                log.exception(e)
+                attempt_count += 1
+                try:
+                    elastic_ip.delete()
+                except:
+                    pass
+                try:
+                    ec2_connection.release_address(allocation_id=address.allocation_id)
+                except:
+                    pass
+                sleep(sleep_time)
+                
     #Wait until the instance is in state running, then associate the ip address
     #Sleep 5 seconds between attempts
     #Max 6 attemps...
-    sleep_time=5
     max_attempts=20
     attempt_count=0
     log.debug('Associating IP addresss with EC2 instance')
@@ -360,26 +386,33 @@ def assign_ip_address(ec2_instance):
             sleep(sleep_time)
             attempt_count +=1
     
-    try:
-    
-        assert ec2_connection.associate_address(instance_id=ec2_instance.instance_id, allocation_id=elastic_ip.allocation_id)
-        log.debug('IP associated with instance')
-        elastic_ip.instance=ec2_instance
+    #Now try associating an elastic IP
+    max_attempts=2
+    attempt_count=0
+    while attempt_count < max_attempts:
+        try:
         
-        #Use an inelegent workaround to get the association id of the address, since the api doesn't tell us this
-        #Reload the address object
-        new_address = ec2_connection.get_all_addresses(allocation_ids=[elastic_ip.allocation_id])[0]
-        
-        elastic_ip.association_id=new_address.association_id
-        
-        elastic_ip.save()
-    
+            assert ec2_connection.associate_address(instance_id=ec2_instance.instance_id, allocation_id=elastic_ip.allocation_id)
+            log.debug('IP associated with instance')
+            elastic_ip.instance=ec2_instance
             
-        return elastic_ip
-
-    except Exception, e:
-        log.debug('Unable to associate IP address with instance')
-        raise e
+            #Use an inelegent workaround to get the association id of the address, since the api doesn't tell us this
+            #Reload the address object
+            new_address = ec2_connection.get_all_addresses(allocation_ids=[elastic_ip.allocation_id])[0]
+            
+            elastic_ip.association_id=new_address.association_id
+            
+            elastic_ip.save()
+        
+                
+            return elastic_ip
+    
+        except Exception, e:
+            log.debug('Unable to associate IP address with instance')
+            log.debug(e)
+            attempt_count += 1
+            if attempt_count == max_attempts: raise e
+            sleep(sleep_time)
 
 def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
     """Dissociate and release the IP address with the allocation id and optional association id. Alternatively just use public ip
