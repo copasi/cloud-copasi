@@ -25,11 +25,13 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Key name</th>
+                {% if key.copy_of %}<th>Shared by</th>{% endif %}
                 <th>Access key ID</th>
                 <th>Secret access key</th>
             </tr>
             <tr>
                 <td>{{ key.name }}</td>
+                {% if key.copy_of %}<td>{{key.copy_of.user.username}}</td>{% endif %}
                 <td>{{ key.access_key_id}}</td>
                 <td style="font-style:italic;">**Hidden**</td>
             </tr>
@@ -80,6 +82,8 @@ http://www.gnu.org/licenses/gpl.html
             {% endfor %}
         </table>
     </div>  
+    {% elif key.copy_of != None %}
+    <p>This pool has been shared with you by another user. Deleting it will remove it from your account, but not from the account of the user who shared it with you.</p>
     {% else %}
     <p>This keypair is not currently shared with any other users</p>
     {% endif %}
