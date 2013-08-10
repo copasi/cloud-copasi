@@ -259,8 +259,40 @@ class KeysShareView(RestrictedFormView):
         
         return super(KeysShareView, self).form_valid(*args, **kwargs)
 
+class KeyRenameForm(forms.Form):
+    new_name =forms.CharField(max_length=100)
+    
 class KeysRenameView(RestrictedFormView):
-    pass
+    page_title='Rename pool'
+    template_name = 'account/key_rename.html'
+    form_class = KeyRenameForm
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        key = AWSAccessKey.objects.get(id=kwargs['key_id'])
+        assert key.user == request.user
+        kwargs['key'] = key
+        return super(KeysRenameView, self).dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        new_name = form.cleaned_data['new_name']
+        key = AWSAccessKey.objects.get(id=kwargs['key_id'])
+        assert key.user == self.request.user 
+        
+        existing_keys = AWSAccessKey.objects.filter(user=self.request.user).filter(name=new_name)
+        
+        if existing_keys.count()>0:
+            form._errors[NON_FIELD_ERRORS] = ErrorList(['A key with this name already exists'])
+            return self.form_invalid(self, *args, **kwargs)
+        
+        key.name = new_name
+        key.save()
+        self.success_url = reverse_lazy('my_account_keys',)
+        return super(KeysRenameView, self).form_valid(*args, **kwargs)
+
+
 
 
 class PasswordChangeView(RestrictedFormView):
@@ -291,15 +323,23 @@ class KeysDeleteView(MyAccountView):
         kwargs['key'] = key
         assert key.user == request.user
         
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Removing key and associated VPC'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page.'
+
+        
+        
         #Is this an original key or is it a copy
-        original = key.copy_of == None
+        if key.copy_of == None:
+            original = True
+        else:
+            original = False
         
         if original:
             #Build a list of any pools and running jobs that will be terminated when this pool is terminated
-            
             pools = EC2Pool.objects.filter(vpc__vpc_id = key.vpc.vpc_id)
             shared_keys = AWSAccessKey.objects.filter(copy_of=key)
-            shared_user_ids = [key.user.id for key in shared_keys]
+            shared_user_ids = [shared_key.user.id for shared_key in shared_keys]
             kwargs['shared_users'] = User.objects.filter(id__in=shared_user_ids)
 
         
@@ -326,7 +366,7 @@ class KeysDeleteView(MyAccountView):
             if original:
                 #We also need to delete the vpc (and any associated)
                 related = AWSAccessKey.objects.filter(copy_of=key)
-                for related_key in shared_keys:
+                for related_key in related:
                     related_key.delete()
                 
                 if key.vpc != None:
@@ -338,10 +378,7 @@ class KeysDeleteView(MyAccountView):
                         log.exception(errors)
                         request.session['errors'] = aws_tools.process_errors(errors)
                     
-                try:
-                    key.vpc.delete()
-                except Exception, e:
-                    log.exception(e)
+               
                 #And delete the key
                 key.delete()
             else:
@@ -464,8 +501,8 @@ class AccountRegisterForm(UserCreationForm):
     country = forms.ChoiceField(choices=user_countries.COUNTRIES, initial='GB')
     
     terms = forms.BooleanField(required=True, label='Agree to terms and conditions?',
-                               help_text = 'You must agree to the terms and conditions in order to register. Click <a href="%s" target="new">here</a> for further details')
-    
+                               help_text = 'You must agree to the terms and conditions in order to register. Click <a href="%s" target="new">here</a> for further details',
+                               )    
     
     captcha = ReCaptchaField(attrs={'theme': 'clean'}, label='Enter text')
     
@@ -475,7 +512,7 @@ class AccountRegisterForm(UserCreationForm):
     
     class Meta:
         model=User
-        fields = ('username', 'email_address', 'first_name', 'last_name', 'institution', 'country', )
+        fields = ('username', 'email_address', 'first_name', 'last_name', 'institution', 'country', 'password1', 'password2', 'terms',)
 
 class AccountRegisterView(FormView):
     page_title = 'Register'

@@ -86,7 +86,7 @@ http://www.gnu.org/licenses/gpl.html
     
     
     
-    <a href="{% url 'my_account_keys_delete_confirmed' key_id=key.id %}" class="button button-icon button-icon-check button-hspace">Delete</a><a href="{% url 'my_account_keys' %}" class="button button-alt button-hspace">Cancel</a>
+    <a href="{% url 'my_account_keys_delete_confirmed' key_id=key.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Delete</a><a href="{% url 'my_account_keys' %}" class="button button-alt button-hspace">Cancel</a>
     
     <p />
     <p><a href="{% url 'my_account_keys' %}">Return to keys overview</a></p> 

@@ -38,6 +38,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Secret access key</th>
                 <th>Delete?</th>
                 <th>Share?</th>
+                <th>Rename?</th>
                 <th>VPC Status</th>
             </tr>
         {% for key in owned_keys %}
@@ -47,7 +48,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td style="font-style:italic;">**Hidden**</td>
                 <td><a class="button button-narrow button-alt" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></td>
                 <td><a class="button button-narrow" href="{% url 'my_account_keys_share' key_id=key.id %}">Share</a></td>
-                
+                <td><a class="button button-narrow" href="{% url 'my_account_keys_rename' key_id=key.id %}">Rename</a></td>                
                 <td><a href="{% url 'vpc_config' key_id=key.id %}">{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</a></td>
             </tr>
         {% endfor %}
@@ -67,6 +68,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Access key ID</th>
                 <th>Secret access key</th>
                 <th>Delete?</th>
+                <th>Rename?</th>
                 <th>Status</th>
             </tr>
         {% for key in shared_keys %}
@@ -75,6 +77,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{ key.access_key_id}}</td>
                 <td style="font-style:italic;">**Hidden**</td>
                 <td><a class="button button-narrow button-alt" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></td>
+                <td><a class="button button-narrow" href="{% url 'my_account_keys_rename' key_id=key.id %}">Rename</a></td>
                 <td>{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</td>
             </tr>
         {% endfor %}
