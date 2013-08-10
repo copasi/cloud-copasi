@@ -23,11 +23,10 @@ http://www.gnu.org/licenses/gpl.html
         <span class="byline">Add a new AWS keypair</span>
     </header>
     
-    {% if access_keys.count == 0 %}
-    <h4>You must add an AWS access key to continue</h4>
-    {% endif %}
+    <p>See the documentation for full details on how to create an AWS access key</p>
+    <p>Upload the key file, or enter the information manually below</p>
     
-    {% include 'form.html' with submit_text="Add key"%}
+    {% include 'form.html' with submit_text="Add key" multipart=True %}
 
     
 </article>

@@ -23,7 +23,7 @@ from django.contrib.auth.models import User
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
-from cloud_copasi.web_interface import models
+from cloud_copasi.web_interface import models, form_tools
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
 import boto.exception
@@ -36,6 +36,9 @@ from cloud_copasi.web_interface.account import user_countries
 from cloud_copasi import settings
 from django.views.generic.base import ContextMixin
 from cloud_copasi.web_interface.pools import condor_tools
+import tempfile
+import re
+import os
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +80,7 @@ class KeysView(MyAccountView):
     template_name = 'account/key_view.html'
     page_title = 'Keys'
 
-class AddKeyForm(forms.ModelForm):
+class AddKeyForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super(AddKeyForm, self).__init__(*args, **kwargs)
@@ -94,14 +97,21 @@ class AddKeyForm(forms.ModelForm):
             raise forms.ValidationError('An access key with this ID already exists')
         return access_key_id
 
-    class Meta:
-        model = AWSAccessKey
-        fields = ('name', 'access_key_id', 'secret_key')
-        widgets = {
-            'access_key_id' : forms.TextInput(attrs={'style':'width:20em'}),
-            'secret_key' : forms.TextInput(attrs={'style':'width:40em'}),
-            }
+    
 
+    name = forms.CharField(max_length=50, help_text='For your convenience, assign a unique name to this access key', )
+    
+    access_key_file = forms.FileField(help_text = 'The AWS keypair file, typically called rootkey.csv. Either upload this file, or enter the details manually below.',
+                                      required=False)
+    
+    access_key_id = forms.CharField(max_length=20, min_length=20, required=False, label='Access key ID', 
+                                    help_text='The 20-character AWS access key ID. Only enter this if you do not upload a key file',
+                                    )
+    
+    secret_key = forms.CharField(max_length=40, min_length=40, required=False, label='Secret access key',
+                                 help_text='The 40-character secret access key associated with the access key ID. Only enter this if you do not upload a key file',
+                                 )
+    
 
 class KeysAddView(RestrictedFormView):
     template_name = 'account/key_add.html'
@@ -127,8 +137,49 @@ class KeysAddView(RestrictedFormView):
     def form_valid(self, *args, **kwargs):
         form=kwargs['form']
         #Create the key object and save it
-        key = form.save(commit=False)
+                
+        #Was a file uploaded? If so, first check if access_key_id and secret_key are blank
+        if self.request.FILES.get('access_key_file'):
+            if form.cleaned_data['access_key_id'] != '' or form.cleaned_data['secret_key'] != '':
+                form._errors[NON_FIELD_ERRORS] = 'Either upload a file or enter the key details manually'
+                return self.form_invalid(self, *args, **kwargs)
+            
+            #Try and save the key file to a temp file
+            temp_file_descriptor, temp_filename = tempfile.mkstemp()
+            form_tools.handle_uploaded_file(self.request.FILES['access_key_file'], temp_filename)
+            
+            access_key_re = re.compile(r'AWSAccessKeyId\=(?P<access_key>.{20})\n*')
+            secret_key_re = re.compile(r'AWSSecretKey\=(?P<secret_key>.{40})\n*')
+            
+            access_key=''
+            secret_key=''
+            
+            temp_file = open(temp_filename, 'r')
+            
+            for line in temp_file.readlines():
+                if access_key_re.match(line):
+                    access_key = access_key_re.match(line).group('access_key')
+                elif secret_key_re.match(line):
+                    secret_key = secret_key_re.match(line).group('secret_key')
+            temp_file.close()
+            os.remove(temp_filename)
+
+            if not (access_key and secret_key):
+                form._errors[NON_FIELD_ERRORS] = 'The uploaded access key could not be read'
+                return self.form_invalid(self, *args, **kwargs)
+            
+            key = AWSAccessKey(access_key_id = access_key, secret_key=secret_key)
+        else:
+            if form.cleaned_data['access_key_id'] == '' or  form.cleaned_data['secret_key'] == '':
+                form._errors[NON_FIELD_ERRORS] = 'Either upload a file or enter the key details manually'
+                return self.form_invalid(self, *args, **kwargs)
+            else:
+                key = AWSAccessKey()
+                key.access_key_id = form.cleaned_data['access_key_id']
+                key.secret_key = form.cleaned_data['secret_key']
+
         key.user = self.request.user
+        key.name = form.cleaned_data['name']
         key.save()
         try:
             #Authenticate the keypair
@@ -337,7 +388,10 @@ class KeysDeleteView(MyAccountView):
         
         if original:
             #Build a list of any pools and running jobs that will be terminated when this pool is terminated
-            pools = EC2Pool.objects.filter(vpc__vpc_id = key.vpc.vpc_id)
+            try:
+                pools = EC2Pool.objects.filter(vpc__vpc_id = key.vpc.vpc_id)
+            except:
+                pools = []
             shared_keys = AWSAccessKey.objects.filter(copy_of=key)
             shared_user_ids = [shared_key.user.id for shared_key in shared_keys]
             kwargs['shared_users'] = User.objects.filter(id__in=shared_user_ids)
@@ -345,8 +399,11 @@ class KeysDeleteView(MyAccountView):
         
 
         else:
-            #A copy of a key. If so, we'll not be deleting the real vpc, adn so 
-            pools = EC2Pool.objects.filter(vpc__id=key.vpc.id)
+            #A copy of a key. If so, we'll not be deleting the real vpc, adn so
+            try:
+                pools = EC2Pool.objects.filter(vpc__id=key.vpc.id)
+            except:
+                pools = []
             
         kwargs['pools'] = pools
         errors=[]
@@ -365,20 +422,21 @@ class KeysDeleteView(MyAccountView):
                 
             if original:
                 #We also need to delete the vpc (and any associated)
-                related = AWSAccessKey.objects.filter(copy_of=key)
-                for related_key in related:
-                    related_key.delete()
-                
-                if key.vpc != None:
-                    vpc_connection, ec2_connection = aws_tools.create_connections(key)
+                try:
+                    related = AWSAccessKey.objects.filter(copy_of=key)
+                    for related_key in related:
+                        related_key.delete()
+                    
+                    if key.vpc != None:
+                        vpc_connection, ec2_connection = aws_tools.create_connections(key)
+                            
+                        errors += (vpc_tools.delete_vpc(key.vpc, vpc_connection, ec2_connection))
                         
-                    errors += (vpc_tools.delete_vpc(key.vpc, vpc_connection, ec2_connection))
-                    
-                    if errors != []:
-                        log.exception(errors)
-                        request.session['errors'] = aws_tools.process_errors(errors)
-                    
-               
+                        if errors != []:
+                            log.exception(errors)
+                            request.session['errors'] = aws_tools.process_errors(errors)
+                except Exception, e:
+                    log.exception(e)
                 #And delete the key
                 key.delete()
             else:
