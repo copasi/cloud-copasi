@@ -93,9 +93,9 @@ span.bold {
 form {
 }
 
-form input, form select, form textarea {
+/*form input, form select, form textarea {
     -webkit-appearance: none;
-}
+}*/
 
 br.clear {
     clear: both;
