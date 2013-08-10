@@ -389,10 +389,6 @@ class KeysDeleteView(MyAccountView):
         
         return super(KeysDeleteView, self).dispatch(request, *args, **kwargs)
      
-class VPCStatusView(MyAccountView):
-    template_name='account/vpc_status.html'
-    page_title='VPC status'
-    
 
 class VPCConfigView(MyAccountView):
     template_name = 'account/vpc_config.html'
@@ -411,82 +407,6 @@ class VPCConfigView(MyAccountView):
         
         assert key.copy_of == None
         return super(VPCConfigView,self).dispatch(request, *args, **kwargs)
-
-
-class VPCAddView(RedirectView):
-    
-    def get_redirect_url(self, **kwargs):
-        key_id=kwargs['key_id']
-        return reverse_lazy('vpc_config', kwargs={'key_id':key_id})
-    
-    permanent=False
-    
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        key_id = self.kwargs['key_id']
-        try:
-            key = AWSAccessKey.objects.get(id=key_id)
-            assert key.user == request.user
-        except Exception, e:
-            request.session['errors'] =[e]
-            return super(VPCAddView, self).dispatch(request, *args, **kwargs)
-        kwargs['key'] = key
-        
-        #Create a VPC associated with the key
-        try:
-            vpc_connection, ec2_connection = aws_tools.create_connections(key)
-            
-            vpc_tools.create_vpc(key, vpc_connection, ec2_connection)
-            
-            vpc_connection.close()
-            ec2_connection.close()
-        except Exception, e:
-            request.session['errors'] = aws_tools.process_errors([e])
-        
-        return super(VPCAddView, self).dispatch(request, *args, **kwargs)
-
-class VPCRemoveView(RedirectView):
-    
-    def get_redirect_url(self, **kwargs):
-        key_id=kwargs['key_id']
-        return reverse_lazy('vpc_config', kwargs={'key_id':key_id})
-    
-    permanent=False
-    
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        key_id = self.kwargs['key_id']
-        key = AWSAccessKey.objects.get(id=key_id)
-        vpc = key.vpc
-        assert key.user == request.user
-        kwargs['key'] = key
-        
-        
-        
-        
-        
-        #Make sure there are no pools running on the vpc
-        pools = EC2Pool.objects.filter(vpc__vpc_id=vpc.vpc_id)
-        if pools.count() > 0:
-            error_title='Compute pools still running'
-            error_message='One or more compute pools are still running on this VPC. These must be terminated before the VPC can be removed.'
-            request.session['errors'] = [(error_title, error_message)]
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
-        #Create a VPC associated with the key
-        errors=[]
-        try:
-            vpc_connection, ec2_connection = aws_tools.create_connections(key)
-            
-            errors.append(vpc_tools.delete_vpc(vpc, vpc_connection, ec2_connection))
-
-        except Exception, e:
-            errors.append(e)
-        
-        if errors != []:
-            request.session['errors'] = aws_tools.process_errors(errors)
-            
-        
-        return super(VPCRemoveView, self).dispatch(request, *args, **kwargs)
 
 
 class AccountRegisterForm(UserCreationForm):
