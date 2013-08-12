@@ -155,12 +155,18 @@ class KeysAddView(RestrictedFormView):
             secret_key=''
             
             temp_file = open(temp_filename, 'r')
-            
+            total_read_lines = 5 #How many lines to read before giving up
+            line_count = 0
             for line in temp_file.readlines():
                 if access_key_re.match(line):
                     access_key = access_key_re.match(line).group('access_key')
                 elif secret_key_re.match(line):
                     secret_key = secret_key_re.match(line).group('secret_key')
+                if line_count < total_read_lines:
+                    line_count +=1
+                    #Count the numeber of lines. Should be in the first 2 lines anyway, so this gives a bit of leeway
+                else:
+                    break
             temp_file.close()
             os.remove(temp_filename)
 
