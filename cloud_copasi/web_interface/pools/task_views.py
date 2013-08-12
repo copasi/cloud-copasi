@@ -33,6 +33,7 @@ from cloud_copasi.web_interface.task_plugins import base, tools
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from django.utils.datetime_safe import datetime
+import shutil
 
 log = logging.getLogger(__name__)
 
@@ -91,8 +92,7 @@ class NewTaskView(RestrictedFormView):
         log.debug('Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
         
         ########################################################################
-        #Process the uploaded copasi file (and other files?) and create a list
-        #of files to upload to s3
+        #Process the uploaded copasi file (and other files?)
         ########################################################################
         
         #Handle uploaded files...
@@ -129,7 +129,12 @@ class NewTaskView(RestrictedFormView):
                 extra_fields.append(field_name)
         #Save the custom task fields
         for field_name in extra_fields:
+            
+            #TODO: Check what type the field is. If it's a filefield then we need to upload the files into the user dir
+            #TODO: Is the file a zip file? Try unzipping it...
+            
             task.set_custom_field(field_name, form.cleaned_data[field_name])
+            
             
             
         task.save()
@@ -170,8 +175,11 @@ class NewTaskView(RestrictedFormView):
                                str(valid),
                                ]
             form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
+            shutil.rmtree(task.directory)
             task.delete()
             kwargs['form'] = form
+            
+            
             return self.form_invalid(self, *args, **kwargs)
         
         task_instance.initialize_subtasks()

@@ -761,7 +761,7 @@ class CopasiModel:
                 iterator = 0
                 
                 try:
-                    file = open(os.path.join(self.path, 'output_%d.txt' % (2*i) + max),'r')
+                    file = open(os.path.join(self.path, 'output_1.%d.txt' % (2*i + max)),'r')
                     output=[None for r in range(4)]
                     for f in file.readlines():
                         value = f.rstrip('\n') #Read the file line by line.

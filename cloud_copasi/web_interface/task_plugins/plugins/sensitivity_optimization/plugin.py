@@ -44,7 +44,7 @@ class TaskPlugin(BaseTask):
         #Create the main subtask
         self.create_new_subtask('main')
         #And a subtask to process any results
-        self.create_new_subtask('process')
+        self.create_new_subtask('process', local=True)
         
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
@@ -81,6 +81,10 @@ class TaskPlugin(BaseTask):
         log.debug('Prepared copasi files %s'%model_files)
         log.debug('Prepared condor job %s' %condor_job_file)
         
+        model_count = len(model_files)
+        self.task.set_custom_field('model_count', model_count)
+        
+        
         subtask.spec_file = condor_job_file
         subtask.status = 'ready'
         subtask.save()
@@ -89,9 +93,38 @@ class TaskPlugin(BaseTask):
         
         
     def process_second_subtask(self):
-        print "nothing to see here!"
         subtask=self.get_subtask(2)
-        #self.notify_subtask(subtask, [], [])
+        assert isinstance(subtask, Subtask)
+        
+        
+        #Go through and collate the results
+        #This is a computationally simple task, so we will run locally, not remotely
+        
+        directory = self.task.directory
+        
+        model_count = self.task.get_custom_field('model_count')
+        
+        log.debug('Model count: ')
+        log.debug(model_count)
+        
+        
+        original_subtask = self.get_subtask(1)
+        
+        output_filename = 'output_1.%d.txt'
+        
+        
+        results = self.copasi_model.get_so_results()
+        log.debug('Results:')
+        log.debug(results)
+        
+        subtask.task.set_custom_field('results_file', 'results.txt')
+        
+        log.debug('Setting subtask as finished already')
+        subtask.status = 'finished'
+        subtask.save()
+        
+        return subtask
+
         
     def request_all_files(self, reason):
         #Get a list of all the files we would like to transfer back

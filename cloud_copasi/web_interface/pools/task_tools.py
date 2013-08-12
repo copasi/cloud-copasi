@@ -62,28 +62,45 @@ def update_tasks(user=None, task=None):
             if finished.count() == jobs.count():
                 log.debug('Task %s, subtask %d: all jobs marked as finished. Checking logs' %(task.name, subtask.index))
                 #The subtask has finished!
-                if check_log(subtask):
+                if check_log(subtask) == True:
                     log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                     subtask.status = 'finished'
                     subtask.save()
                     
-                    #Is there another subtask to run?
-                    task_class = tools.get_task_class(subtask.task.task_type)
-                    if subtask.index < task_class.subtasks:
-                        log.debug('Preparing new subtask %d' % (subtask.index + 1))
-                        #Then we have another subtask to prepare and run! (wohoo!)
-                        new_subtask = task_class.prepare_subtask(subtask.index + 1)
-                        condor_tools.submit_task(new_subtask)
-                    else:
-                        #Otherwise the task must have finished. Excellent news.
-                        log.debug('Task %s: all subtasks complete. Marking task as finished')
-                        task.status='finished'
-                        
+                else:
+                    #Log files indicate either job not finished or an error. Which is it?
+                    pass
             else:
                 #Something not right. TODO: determine if bad exit status, files not transferred yet, etc., and respond appropriatley
                 log.debug('message')
             
     
+        #Now go through the subtasks and submit any that are waiting, provided that their preceding one has finished
+        
+        subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
+        for subtask in subtasks:
+            
+            if subtask.index > 1:
+                previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
+                all_previous_subtasks_finished = True
+                for previous_subtask in previous_subtasks:
+                    if previous_subtask.status != 'finished': all_previous_subtasks_finished = False
+                if all_previous_subtasks_finished:
+                    #We have a new subtask to submit
+                    TaskClass = tools.get_task_class(task.task_type)
+                    task_instance = TaskClass(task)
+                    log.debug('Preparing new subtask %d' % (subtask.index))
+                    task_instance.prepare_subtask(subtask.index)
+                    #If this wasn't a local subtask, submit to condor  
+                    if not subtask.local:
+                        condor_tools.submit_task(subtask)
+    
+        #Get the list of subtasks again
+        subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
+        if subtasks.count() == 0:
+            task.status = 'finished'
+            log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
+            task.save()
 
 def check_log(subtask):
     """Checks the logs of each of the condor jobs to determine the status of the condor jobs.

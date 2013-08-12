@@ -376,7 +376,7 @@ class AMI(models.Model):
 class EC2KeyPair(models.Model):
     name = models.CharField(max_length=20, verbose_name='EC2 Key Pair name')
     
-    path = models.FilePathField(verbose_name = 'Location of the public key pair')
+    path = models.CharField(verbose_name = 'Location of the public key pair', max_length=255)
     
     class Meta:
         app_label = 'web_interface'
@@ -418,7 +418,7 @@ class Task(models.Model):
     #Filename of the original model (relative path only)
     original_model = models.CharField(max_length=200)
     #And the full path of the directory the task files are stored in
-    directory = models.FilePathField(blank=True, default='not_set')
+    directory = models.CharField(blank=True, default='not_set', max_length=255)
     
     #Field for storing any task-specific fields
     #Will be stored as a string-based python pickle
@@ -482,10 +482,10 @@ class Task(models.Model):
         self.save()
         
     def get_outgoing_bucket_name(self):
-        return "cloud-copasi-out-%s" % self.uuid
+        return None
 
     def get_incoming_bucket_name(self):
-        return "cloud-copasi-in-%s" % self.uuid
+        return None
 
         
     def get_outgoing_bucket(self):
@@ -538,7 +538,9 @@ class Subtask(models.Model):
     
     cluster_id = models.IntegerField(blank=True, null=True) #The condor cluster ID (i.e. $(Cluster)) 
     
-    spec_file = models.spec_file = models.FilePathField(max_length=255)
+    spec_file = models.spec_file = models.CharField(max_length=255, blank=True)
+    
+    local = models.BooleanField(blank=True, default=False, help_text = 'Is this subtask to be run locally?')
 
     def __unicode__(self):
         return '%s (%d)' % (self.task.name, self.index)
@@ -552,7 +554,7 @@ class CondorJob(models.Model):
     #The log file for the job
     log_file = models.CharField(max_length=255)
     #The error file for the job
-    std_error_file = models.FilePathField(max_length=255)
+    std_error_file = models.CharField(max_length=255)
     #The output file created by the job
     job_output = models.CharField(max_length=255)
     #The status of the job in the queue

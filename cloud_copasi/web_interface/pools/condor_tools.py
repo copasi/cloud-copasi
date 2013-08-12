@@ -257,7 +257,7 @@ def process_condor_q(user=None, subtask=None):
         for job in condor_jobs:
             in_q = False
             for cluster_id, process_id, status in condor_q:
-                if status != 'C' and process_id == job.process_id and cluster_id == job.subtask.cluster_id:
+                if (status != 'C' and status != 'X') and process_id == job.process_id and cluster_id == job.subtask.cluster_id:
                     #Skip if state == 'C' -- means complete, so just assume not in the queue
                     in_q = True
                     job.status = status
