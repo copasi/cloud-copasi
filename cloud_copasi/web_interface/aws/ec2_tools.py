@@ -40,6 +40,14 @@ def get_active_ami(ec2_connection):
 def refresh_pool(ec2_pool):
     """Refresh the state of each instance in a ec2 pool
     """
+    
+    if ec2_pool.copy_of:
+        copied_pool = ec2_pool
+        ec2_pool = EC2Pool.objects.get(id=ec2_pool.copy_of.id)
+    else:
+        copied_pool = None
+    #If this pool is not an original, then don't refresh.
+    
     log.debug('refreshing status of pool %s' % ec2_pool.name)
     difference = utcnow() - ec2_pool.last_update_time.replace(tzinfo=utc)
     log.debug('Time difference %s' % str(difference))
@@ -49,7 +57,9 @@ def refresh_pool(ec2_pool):
     
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     
-    instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(state='terminated')
+    instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
+    
+    instances = instances.exclude(state='terminated')
     #TODO: get list of instance ids
     
     instance_ids = [instance.instance_id for instance in instances]
@@ -76,6 +86,12 @@ def refresh_pool(ec2_pool):
             log.exception(e)
     ec2_pool.last_update_time = utcnow()
     ec2_pool.save()
+    
+    #Did we just update the status of a copied pool?
+    if copied_pool:
+        copied_pool.last_update_time = ec2_pool.last_update_time
+        copied_pool.save()
+    
     #for instance_status in instance_status_list: 
     #id = instance_status.id; state=state_name,
     #if state has changed - get instance.state_reason
