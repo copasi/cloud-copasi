@@ -37,7 +37,7 @@ class ResourceOverviewView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         #Get list of resources
         
-        keys = AWSAccessKey.objects.filter(user=request.user)
+        keys = AWSAccessKey.objects.filter(user=request.user) | AWSAccessKey.objects.filter(copy_of__user=request.user)
         
         overview=[]
         

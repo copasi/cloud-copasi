@@ -29,7 +29,7 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     
     {% for key, recognized, unrecognized in overview %}
-    <h4>AWS Key: {{key.name}}</h4>
+    <h4>AWS Key: {{key.name}}{% if key.copy_of %} (shared with {{key.user.username}} by {{key.copy_of.user.username}}){% endif %}</h4>
     <div class="tablelist">
         <p><a href="{% url 'resource_terminate' key_id=key.id%}">Terminate all unrecognized resources associated with this key</a></p>
         <table>

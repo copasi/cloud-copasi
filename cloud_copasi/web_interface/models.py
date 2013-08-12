@@ -44,7 +44,7 @@ class AWSAccessKey(models.Model):
     copy_of = models.ForeignKey('self', null=True, blank=True, verbose_name = 'Is this key a shared version of an original key?')
     
     def __unicode__(self):
-        return "%s, %s" % (self.name, self.access_key_id)
+        return "%s, %s, %s" % (self.name, self.access_key_id, self.user)
     
     class Meta:
         app_label = 'web_interface'
@@ -447,7 +447,7 @@ class Task(models.Model):
                       ('running', 'Running'),
                       ('finished', 'Finished'),
                       ('error', 'Error'),
-                      ('deleted', 'Deleted'),
+                      ('delete', 'Deleted'),
                       ('cancelled', 'Cancelled'),
                       ('unknown', 'Unknown'),
                       )
@@ -455,8 +455,32 @@ class Task(models.Model):
     
     status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='waiting')
     
-    
-    
+    def update_status(self):
+        """Go through the attached subtasks and update the status based on their status
+        """
+        subtasks = Subtask.objects.filter(task=self)
+        if subtasks.count() == 0:
+            self.status = 'new'
+        else:
+            all_finished = True
+            error = False
+            delete = False
+            for subtask in subtasks:
+                if subtask.status != 'finished' : all_finished = False
+                elif subtask.status == 'error': error = True
+                elif subtask.status == 'delete': delete = True
+            
+            if all_finished:
+                #If all subtasks are marked as finished, then mark the task status as also finished
+                self.status = 'finished' 
+            if error:
+                #A single error - mark the task as error too
+                self.status = 'error'
+            if delete:
+                self.status = 'delete'
+        
+        self.save()
+        
     def get_outgoing_bucket_name(self):
         return "cloud-copasi-out-%s" % self.uuid
 

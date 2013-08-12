@@ -129,17 +129,20 @@ def get_local_resources(user, key=None):
     
     overview = ResourceOverview()
     
-    for ec2_pool in EC2Pool.objects.filter(vpc__access_key__user=user):
+    ec2_pools = EC2Pool.objects.filter(vpc__access_key__user=user) | EC2Pool.objects.filter(vpc__access_key__copy_of__user=user)
+    
+    for ec2_pool in ec2_pools:
         ec2_tools.refresh_pool(ec2_pool)
     
     if key:
         keys=[key]
     else:
-        keys=AWSAccessKey.objects.filter(user=user)
+        keys=AWSAccessKey.objects.filter(user=user) | AWSAccessKey.objects.filter(copy_of__user=user)
     
     for key in keys:
         #EC2 instances
-        ec2_instances = EC2Instance.objects.filter(ec2_pool__vpc__access_key=key)
+        ec2_instances = EC2Instance.objects.filter(ec2_pool__vpc__access_key=key) | EC2Instance.objects.filter(ec2_pool__vpc__access_key__copy_of=key)
+        #ec2_instances = EC2Instance.objects.filter(ec2_pool__id__in=ec2_pool_ids)
         running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
         for instance in running_instances:

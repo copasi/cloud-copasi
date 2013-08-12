@@ -26,6 +26,7 @@ from boto.exception import BotoServerError
 from cloud_copasi.web_interface.models import AWSAccessKey
 from cloud_copasi.web_interface.aws import resource_management_tools
 import logging
+from cloud_copasi import settings
 #Remember - class based views are not thread safe! Don't pass lists, dicts etc as args
 
 log = logging.getLogger(__name__)
@@ -46,6 +47,7 @@ class DefaultView(TemplateView):
         
         kwargs['page_title'] = self.page_title
         #Check for errors in request.session
+        kwargs['debug'] = settings.DEBUG
         errors = request.session.pop('errors', None)
         if errors:
             kwargs['errors'] = errors
