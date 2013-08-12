@@ -141,7 +141,7 @@ def get_local_resources(user, key=None):
     
     for key in keys:
         #EC2 instances
-        ec2_instances = EC2Instance.objects.filter(ec2_pool__vpc__access_key=key) | EC2Instance.objects.filter(ec2_pool__vpc__access_key__copy_of=key)
+        ec2_instances = EC2Instance.objects.all()#filter(ec2_pool__vpc__access_key=key) | EC2Instance.objects.filter(ec2_pool__vpc__access_key__copy_of=key)
         #ec2_instances = EC2Instance.objects.filter(ec2_pool__id__in=ec2_pool_ids)
         running_instances = ec2_instances.filter(state='pending') | ec2_instances.filter(state='running')# | ec2_instances.filter(state='shutting-down')
         
