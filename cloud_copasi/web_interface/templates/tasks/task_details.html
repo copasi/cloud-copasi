@@ -74,7 +74,7 @@ http://www.gnu.org/licenses/gpl.html
                 {% endif %}
                 <td>{{ subtask.get_type_display }}</td>
                 <td>{{subtask.get_status_display }}</td>
-                <td>{{subtask.condorjob_set.count}}</td>
+                <td>{% if subtask.local %}<span style="font-style:italic">Local</span>{% else %}{{subtask.condorjob_set.count}}{% endif %}</td>
             </tr>
 
             {% endfor %}

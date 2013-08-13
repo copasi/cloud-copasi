@@ -11,6 +11,7 @@ import os.path, time
 from cloud_copasi import settings
 import logging
 from cloud_copasi.web_interface.models import EC2Pool, Subtask, CondorJob
+from cloud_copasi.web_interface.pools import condor_log_tools
 
 log = logging.getLogger(__name__)
 
@@ -265,8 +266,34 @@ def process_condor_q(user=None, subtask=None):
             if not in_q:
                 #If not in the queue, then the job must have finished running. Change the status accordingly
                 #TODO: At some point we need to validate the job based on the log file
-                log.debug('Job %d.%d (Task %s) not in queue. Marking status as finished' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
-                job.status = 'F'
+                log.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
+                
+                log_path = os.path.join(job.subtask.task.directory, job.log_file)
+                condor_log = condor_log_tools.Log(log_path)
+                
+                if condor_log.has_terminated:
+                    if condor_log.termination_status == 0:
+                        log.debug('Log indicates normal termination. Checking output files exist')
+                        
+                        if job.job_output != '' or job.job_output != None:
+                            output_filename = os.path.join(job.subtask.task.directory, job.job_output)
+                            
+                            if os.path.isfile(output_filename):
+                                try:
+                                    assert os.path.getsize(output_filename) > 0
+                                    log.debug('Job output exists and is nonempty. Marking job as finished')
+                                    job.status = 'F'
+                                except:
+                                    log.debug('Job output exists but is empty. Leaving status as running')
+                        
+                        else:
+                            log.debug('Job has no output specified. Assuming job has finished.')
+                            job.status = 'F'
+                    else:
+                        log.debug('Log indicates abnormal termination. Marking job as error')
+                        job.status = 'E'
+                else:
+                    log.debug('Log indicates job not terminated. Leaving status as running')
                 job.save()
 
 def cancel_task(task):

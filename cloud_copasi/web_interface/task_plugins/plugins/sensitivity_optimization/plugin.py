@@ -100,26 +100,20 @@ class TaskPlugin(BaseTask):
         #Go through and collate the results
         #This is a computationally simple task, so we will run locally, not remotely
         
-        directory = self.task.directory
-        
-        model_count = self.task.get_custom_field('model_count')
-        
-        log.debug('Model count: ')
-        log.debug(model_count)
-        
+        directory = self.task.directory        
         
         original_subtask = self.get_subtask(1)
         
         output_filename = 'output_1.%d.txt'
         
         
-        results = self.copasi_model.get_so_results()
+        results = self.copasi_model.get_so_results(save=True)
         log.debug('Results:')
         log.debug(results)
         
         subtask.task.set_custom_field('results_file', 'results.txt')
         
-        log.debug('Setting subtask as finished already')
+        log.debug('Setting subtask as finished')
         subtask.status = 'finished'
         subtask.save()
         

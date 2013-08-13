@@ -60,19 +60,14 @@ def update_tasks(user=None, task=None):
             #Next, check to see if all the jobs have finished
             finished = jobs.filter(status='F')
             if finished.count() == jobs.count():
-                log.debug('Task %s, subtask %d: all jobs marked as finished. Checking logs' %(task.name, subtask.index))
                 #The subtask has finished!
-                if check_log(subtask) == True:
-                    log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
-                    subtask.status = 'finished'
-                    subtask.save()
+                log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
+                subtask.status = 'finished'
+                subtask.save()
                     
-                else:
-                    #Log files indicate either job not finished or an error. Which is it?
-                    pass
             else:
                 #Something not right. TODO: determine if bad exit status, files not transferred yet, etc., and respond appropriatley
-                log.debug('message')
+                log.debug('%d jobs still in queue.' % (jobs.count() - finished.count()))
             
     
         #Now go through the subtasks and submit any that are waiting, provided that their preceding one has finished
@@ -101,30 +96,6 @@ def update_tasks(user=None, task=None):
             task.status = 'finished'
             log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
             task.save()
-
-def check_log(subtask):
-    """Checks the logs of each of the condor jobs to determine the status of the condor jobs.
-    """
-    
-    #for job in subtask.condor_job__set
-    #Step 1 - open the log for each subtask
-    ##TODO:
-    
-    #Step 2 - check the exit status
-    ##TODO:
-    
-    #Step 3 - Read the running time
-    ##TODO:
-    
-    #Step 4 - Check the output file exists and has content
-    ##TODO:
-    
-    #Step 5 - Save the changes
-    #job.save()
-    
-    #Step 6 - If everything went ok here, then save the changes to the subtask and task()
-    
-    return True
 
 
 def delete_task(task):
