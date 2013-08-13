@@ -193,21 +193,35 @@ class NewTaskView(RestrictedFormView):
         
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
-class RunningTaskListView(RestrictedView):
+class TaskListView(RestrictedView):
     
-    template_name = 'tasks/running_task_list.html'
-    page_title = 'Running tasks'
+    template_name = 'tasks/task_list.html'
+    page_title = '...tasks'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         
         #Get a list of running tasks for this user
         user_tasks = Task.objects.filter(condor_pool__user=request.user)
-        running_tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
         
-        kwargs['running_tasks'] =running_tasks
+        if kwargs['status'] == 'running':
+            tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
+            self.page_title = 'Running tasks'
+            kwargs['byline'] = 'Tasks that are queued or running'
+        elif kwargs['status'] == 'finished':
+            tasks = user_tasks.filter(status='finished')
+            self.page_title = 'Finished tasks'
+            kwargs['byline'] = 'Tasks that have finished running'
+
+        elif kwargs['status'] == 'error':
+            tasks = user_tasks.filter(status='error')
+            self.page_title = 'Task errors'
+            kwargs['byline'] = 'Tasks that encountered an error while running'
+
         
-        return super(RunningTaskListView, self).dispatch(request, *args, **kwargs)
+        kwargs['tasks'] = tasks
+        
+        return super(TaskListView, self).dispatch(request, *args, **kwargs)
 
 class TaskDetailsView(RestrictedView):
     
@@ -273,3 +287,41 @@ class TaskDeleteView(RestrictedView):
             task.save()
             
             return HttpResponseRedirect(reverse_lazy('running_task_list'))
+        
+        
+class TaskResultView(RestrictedView):    
+    page_title = 'Results'
+    template_name = 'tasks/result_view.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        
+        task = Task.objects.get(id=kwargs['task_id'])
+        assert task.condor_pool.user == request.user
+        
+        task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
+        
+        kwargs['results'] = task_instance.get_results_view_data(request)
+        kwargs['results_view_template_name'] = task_instance.get_results_view_template_name(request)
+        kwargs['task'] = task
+        kwargs['download_url'] = reverse_lazy('task_results_download', kwargs={'task_id':task.id})
+        
+        #If the results object has a form, put it in the top level context data namespace
+        if kwargs['results'].get('form'):
+            kwargs['form'] = kwargs['results'].get('form')
+        
+        return super(TaskResultView, self).dispatch(request, *args, **kwargs)
+
+class TaskResultDownloadView(RestrictedView):
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        task = Task.objects.get(id=kwargs['task_id'])
+        assert task.condor_pool.user == request.user
+        
+        task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
+        
+        return task_instance.get_results_download_data(request)
+        
+class TaskDirectoryDownloadView(RestrictedView):
+    pass

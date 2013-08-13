@@ -94,4 +94,19 @@ class BaseTask(object):
         
         return subtasks.get(index=index)
     
+    def get_results_view_data(self, request):
+        """Return a dict with any data to be used in the task results view page
+        """
+        return {}
+    
+    def get_template_name(self, name):
+        """Return the full path of the template with given name
+        """
+        return '%s/%s.html' % (self.task.task_type, name)
+    
+    def get_results_view_template_name(self, request):
+        """Return a string with the path of the results view page
+        """
+        
+        return self.get_template_name('results_view')
     

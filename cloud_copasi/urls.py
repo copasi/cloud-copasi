@@ -106,9 +106,23 @@ urlpatterns = patterns('',
     
     #Task views
     url('^my_account/tasks/new/$', task_views.NewTaskView.as_view(), name='task_new'),
-    url('^my_account/tasks/running/$', task_views.RunningTaskListView.as_view(), name='running_task_list'),
+    
+    url('^my_account/tasks/running/$', task_views.TaskListView.as_view(), {'status': 'running'}, name='running_task_list'),
+    url('^my_account/tasks/finished/$', task_views.TaskListView.as_view(), {'status': 'finished'}, name='finished_task_list'),
+    url('^my_account/tasks/error/$', task_views.TaskListView.as_view(), {'status': 'error'}, name='error_task_list'),
+
+    
+    
     url('^my_account/tasks/(?P<task_id>\d+)/details/$', task_views.TaskDetailsView.as_view(), name='task_details'),
     url('^my_account/tasks/subtask/(?P<subtask_id>\d+)/details/$', task_views.SubtaskDetailsView.as_view(), name='subtask_details'),
+    
+    url('^my_account/tasks/(?P<task_id>\d+)/results/$', task_views.TaskResultView.as_view(), name='task_results'),
+    url('^my_account/tasks/(?P<task_id>\d+)/results/download/$', task_views.TaskResultDownloadView.as_view(), name='task_results_download'),
+    url('^my_account/tasks/(?P<task_id>\d+)/results/zip/download/$', task_views.TaskDetailsView.as_view(), name='task_results_zip_download'),
+
+    
+    
+    
     url('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
     url('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete_confirmed'),
 

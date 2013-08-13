@@ -915,3 +915,25 @@ div.errorbox div.loadingbox{
     z-index: 9000;
     display:none;
 }
+/*********************************************************************************/
+/* Task status display                                                           */
+/*********************************************************************************/
+
+div.task-status{
+    width:100%;
+    height: 95%;
+    border: 1px solid gray;
+    padding-bottom: 0em;
+    padding-top: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
+    
+
+}
+div.task-status h3{
+    margin-top: 0;
+}
+
+div.task-complete{
+    background-color: #e3f7cd;
+}

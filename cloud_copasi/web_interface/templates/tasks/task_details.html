@@ -22,10 +22,26 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Task details</h2>
         <span class="byline">Details for task {{ task.name }}</span>
     </header>
+    <div class="task-status task-complete">
+
+        <h3>Status - complete</h3>
+        {% comment %}
+        Job status panel, taken from Condor-COPASI
+        {% endcomment %}
+        <p>
+            <ul class="style2">
+                {% if task.result_view %}
+                <li><a class="button button-narrow button-icon button-icon-info" href="{% url 'task_results' task_id=task.id %}">View results</a></li>
+                {% endif %}
+                {% if task.result_download %}
+                <li><a class="button button-narrow button-icon button-icon-check" href="{% url 'task_results_download' task_id=task.id %}">Download results</a></li>
+                {% endif %}
+                <li><a class="button button-narrow button-icon button-icon-check" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a></li>
+                <li><a class="button button-alt button-narrow" href="{% url 'task_delete' task_id=task.id %}">Delete task</a></li>
+            </ul>
+        </p>
+    </div>
     
-    <p>
-        <a class="button button-alt button-hspace" href="{% url 'task_delete' task_id=task.id %}">Delete task</a>
-    </p>
     
     <h3>
         Overview

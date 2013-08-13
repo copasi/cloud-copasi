@@ -425,6 +425,9 @@ class Task(models.Model):
     #Not the most efficient way of doing this, but these fields unlikely to be needed much
     custom_fields = models.CharField(max_length=10000, blank=True, default='')
     
+    result_view = models.BooleanField(blank=True, default=True, verbose_name='Does this task type have a result view page?')
+    result_download = models.BooleanField(blank=True, default=True, verbose_name='Does this task type have a result download page?')
+    
     def set_custom_field(self, field_name, value):
         try:
             custom_fields = cPickle.loads(self.custom_fields)

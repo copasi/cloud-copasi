@@ -12,11 +12,19 @@ from cloud_copasi.web_interface.models import Task, CondorJob, CondorPool
 from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
+from cloud_copasi import settings
 from cloud_copasi.copasi.model import CopasiModel
-import os
+import os, math
 import logging
-
+from django.http.response import HttpResponse
 log = logging.getLogger(__name__)
+
+os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
+import matplotlib
+matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import annotate
+
 
 internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
@@ -118,24 +126,200 @@ class TaskPlugin(BaseTask):
         subtask.save()
         
         return subtask
+    
+    def get_results_view_template_name(self, request):
+        """Return a string with the HTML code to be used in the task results view page
+        """
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+        
+        if page_name == 'main':
+            return self.get_template_name('results_view')
+        elif page_name == 'plot':
+            return self.get_template_name('progress_plot')
+        else: return ''
 
+    
+    def get_results_view_data(self, request):
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+        if page_name == 'main':
+            results = self.copasi_model.get_so_results(save=False)
+            output = {'results': results}
+            output['sensitivity_object'] = self.copasi_model.get_sensitivities_object()
+            
+            return output
+        elif page_name == 'plot':
+            output = {}
+            
+            results = self.copasi_model.get_so_results()
+            variable_choices=[]
+            for result in results:
+                variable_choices.append(result['name'] + '_max')
+                variable_choices.append(result['name'] + '_min')
+            
+            if request.GET.get('custom'):
+                form=SOPlotUpdateForm(request.GET, variable_choices=variable_choices)
+            else:
+                form=SOPlotUpdateForm(variable_choices=variable_choices, initial={'variables' : range(len(variable_choices))})
+                
+            output['form'] = form
+            
+            if form.is_valid():
+                variables = map(int,form.cleaned_data['variables'])
+                log = form.cleaned_data['logarithmic']
+                legend = form.cleaned_data['legend']
+                grid = form.cleaned_data['grid']
+                fontsize = form.cleaned_data['fontsize']
+            else:
+                variables=range(len(variable_choices))
+                log=False
+                legend=False
+                grid=True
+                fontsize = '12'
+               
+            #construct the string to load the image file
+            img_string = '?variables=' + str(variables).strip('[').rstrip(']').replace(' ', '')
+            img_string += '&name=plot'
+            if log:
+                img_string += '&log=true'
+            if legend:
+                img_string += '&legend=true'
+            if grid:
+                img_string += '&grid=true'
+            if fontsize:
+                img_string += '&fontsize=' + str(fontsize)
+            
+            output['img_string']=img_string
+            return output
+        else:
+            return {}
         
-    def request_all_files(self, reason):
-        #Get a list of all the files we would like to transfer back
+    def get_results_download_data(self, request):
+        page_name = request.GET.get('name', 'main')
         
-        #Get the number of condor jobs in the first subtask
-        subtask_1 = self.get_subtask(1)
-        job_count = subtask_1.condorjob_set.all().count()
-        parameter_count = job_count/2
+        if page_name == 'main':
+            return HttpResponse()
+        elif page_name == 'plot':
+            return self.get_progress_plot(request)
+    
+
+    def get_progress_plot(self, request):    
+        """Return the plot image for the progress of a single sensitivity optimization parameter"""
+
+        results = self.copasi_model.get_so_results()
+        #Get parameter names, min and max
+        variable_choices = []
+        for result in results:
+            variable_choices.append(result['name'] + '_max')
+            variable_choices.append(result['name'] + '_min')
+
+        #Look at the GET data to see what chart options have been set:
+        get_variables = request.GET.get('variables')
+        log = request.GET.get('log', 'false')
+    
+        legend = request.GET.get('legend', 'false')
+        grid = request.GET.get('grid', 'false')
+        fontsize = int(request.GET.get('fontsize', '12'))
+       
+        #Check to see if we should return as an attachment in .png or .svg or .pdf
+        download_png = 'download_png' in request.POST
+        download_svg = 'download_svg' in request.POST
+        download_pdf = 'download_pdf' in request.POST
         
-        file_list=[]
         
-        for i in range(parameter_count):
-            for min in [1, 0]:
-                file_list.append('auto_condor_%d.job' % (2*i + min))
-                file_list.append('auto_copasi_%d.cps' % (2*i + min))
-                file_list.append('auto_copasi_%d.cps.log' % (2*i + min))
-                file_list.append('auto_copasi_%d.cps.out' % (2*i + min))
-                file_list.append('auto_copasi_%d.cps.err' % (2*i + min))
+        try:
+            variables = map(int, get_variables.split(','))
+            assert max(variables) < len(variable_choices)
+        except:
+            raise
+            variables = range(len(results))
         
-        #self.notify_file_transfer(reason, file_list, zip=False, delete=False)
+        matplotlib.rc('font', size=fontsize)
+        fig = plt.figure()
+    #        plt.title(job.name + ' (' + str(job.runs) + ' repeats)', fontsize=12, fontweight='bold')
+        plt.xlabel('Iterations')
+        plt.ylabel('Optimization value')
+       
+        color_list = ['red', 'blue', 'green', 'cyan', 'magenta', 'yellow', 'black']        
+       
+        j=0 #used to keep cycle through colors in order
+        jobs = CondorJob.objects.filter(subtask__task=self.task).order_by('id')
+        for i in variables:
+            #Go through each result and plot the progress
+            label = variable_choices[i]
+           
+            #Check if we're plotting a min or a max. Min will be all even numbers, max all odd
+            file_index = int(math.floor(i/2))
+            filename = os.path.join(self.task.directory, jobs.get(process_id=i).job_output)
+            all_evals=[]
+            all_values=[]
+            linenumber=0
+            #Go through line by line; lines repeat every 4th line
+            for line in open(filename, 'r'):
+                if linenumber%4 == 0:
+                    pass
+                elif linenumber%4 == 1:
+                    evals = int(line.split()[2]) # Extract number from 'Evals = n'
+                    all_evals.append(evals)
+                elif linenumber%4 == 2:
+                    pass
+                    #time = float(line.split()[2])
+                elif linenumber%4 == 3:
+                    value = float(line)
+                    all_values.append(value)
+    
+                linenumber += 1
+            #Plot the progress
+            plt.plot(all_evals, all_values, lw=1, label=label, color=color_list[j%len(color_list)])
+           
+            j+=1
+        #Set a logarithmic scale if requested
+        if log != 'false':
+            plt.yscale('log')
+        if legend != 'false':
+            plt.legend(loc=0, prop={'size':fontsize} )
+        if grid != 'false':
+            plt.grid(True)
+           
+        plt.show()
+           
+           
+           
+        if download_png:    
+            response = HttpResponse(mimetype='image/png', content_type='image/png')
+            fig.savefig(response, format='png', transparent=False, dpi=120)
+            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.png'
+        elif download_svg:
+            response = HttpResponse(mimetype='image/svg', content_type='image/svg')
+            fig.savefig(response, format='svg', transparent=False, dpi=120)
+            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.svg'
+        elif download_pdf:
+            response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
+            fig.savefig(response, format='pdf', transparent=False, dpi=120)
+            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.pdf'
+        else:    
+            response = HttpResponse(mimetype='image/png', content_type='image/png')
+            fig.savefig(response, format='png', transparent=False, dpi=120)
+        return response
+
+#form to update the SO progress plots
+class SOPlotUpdateForm(forms.Form):
+    """Form containing controls to update plots"""
+   
+    def __init__(self, *args, **kwargs):
+        variables = kwargs.pop('variable_choices', [])
+        variable_choices = []
+        for i in range(len(variables)):
+            variable_choices.append((i, variables[i]))
+
+        super(SOPlotUpdateForm, self).__init__(*args, **kwargs)
+        self.fields['variables'].choices = variable_choices
+       
+    legend = forms.BooleanField(label='Show figure legend', required=False, initial=False)
+    grid = forms.BooleanField(label='Show grid', required=False, initial=True)
+    logarithmic = forms.BooleanField(label='Logarithmic scale', required=False)
+    variables = forms.MultipleChoiceField(choices=(), widget=forms.CheckboxSelectMultiple(), required=True)
+    fontsize = forms.IntegerField(label='Font size', required=False, initial='12')
+    #Add the name=plot parameter to the GET data so we get the right page back
+    name = forms.CharField(widget=forms.widgets.HiddenInput, required=False, initial='plot')

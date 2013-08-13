@@ -19,11 +19,11 @@ http://www.gnu.org/licenses/gpl.html
 {% block content %}
 <article>
     <header class="major">
-        <h2>Running tasks</h2>
-        <span class="byline">Tasks that are queued or running</span>
+        <h2>{{page_title}}</h2>
+        <span class="byline">{{byline}}</span>
     </header>
 
-    {%if running_tasks %}
+    {%if tasks %}
     <div class="tablelist">
         <table>
             <tr>
@@ -38,7 +38,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Status</th>
                 <th>Details</th>
             </tr>
-        {% for task in running_tasks %}
+        {% for task in tasks %}
             <tr>
                 <td><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></td>
                 {% if user.is_superuser %}
@@ -56,7 +56,7 @@ http://www.gnu.org/licenses/gpl.html
         </table>
     </div>
     {% else %}
-    <p>You currently have no running tasks.</p>
+    <p>No tasks with this status.</p>
     {% endif %}
 
     
