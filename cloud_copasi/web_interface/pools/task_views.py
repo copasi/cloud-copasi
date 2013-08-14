@@ -324,4 +324,23 @@ class TaskResultDownloadView(RestrictedView):
         return task_instance.get_results_download_data(request)
         
 class TaskDirectoryDownloadView(RestrictedView):
-    pass
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        """Generate a tar.bz2 file of the results directory, and return it
+        """
+        try:
+            task = Task.objects.get(id=kwargs['task_id'], condor_pool__user=request.user)
+        except Exception, e:
+            request.session['errors'] = [('Error Finding Job', 'The requested job could not be found')]
+            log.exception(e)
+            return HttpResponseRedirect(reverse_lazy('task_details'), kwargs={'task_id': kwargs['task_id']})
+        
+        filename = task_tools.zip_up_task(task)
+    
+        result_file = open(filename, 'r')
+        response = HttpResponse(result_file, content_type='application/x-bzip2')
+        response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.tar.bz2'
+        response['Content-Length'] = os.path.getsize(filename)
+    
+        return response

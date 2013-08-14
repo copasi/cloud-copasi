@@ -16,6 +16,7 @@ from boto.sqs.message import Message
 from cloud_copasi.web_interface.task_plugins import tools
 import logging
 from cloud_copasi.web_interface.pools import condor_tools
+import tarfile
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
@@ -101,3 +102,15 @@ def update_tasks(user=None, task=None):
 def delete_task(task):
     pass
     #TODO:
+    
+    
+def zip_up_task(task):
+    """Zip up the task directory and return the filename
+    """
+    name = str(task.name).replace(' ', '_')
+    filename = os.path.join(task.directory, name + '.tar.bz2')
+    if not os.path.isfile(filename):
+        tar = tarfile.open(name=filename, mode='w:bz2')
+        tar.add(task.directory, name)
+        tar.close()
+    return filename

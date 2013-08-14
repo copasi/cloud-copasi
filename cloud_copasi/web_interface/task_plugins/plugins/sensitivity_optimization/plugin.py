@@ -16,7 +16,8 @@ from cloud_copasi import settings
 from cloud_copasi.copasi.model import CopasiModel
 import os, math
 import logging
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseRedirect
+from django.core.urlresolvers import reverse_lazy
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -199,7 +200,18 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         
         if page_name == 'main':
-            return HttpResponse()
+            #Return the file results.txt
+            filename = os.path.join(self.task.directory, 'results.txt')
+            if not os.path.isfile(filename):
+                request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
+                return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
+            result_file = open(filename, 'r')
+            response = HttpResponse(result_file, content_type='text/tab-separated-values')
+            response['Content-Disposition'] = 'attachment; filename=%s_results.txt' % (self.task.name.replace(' ', '_'))
+            response['Content-Length'] = os.path.getsize(filename)
+   
+            return response
+            
         elif page_name == 'plot':
             return self.get_progress_plot(request)
     
@@ -284,20 +296,20 @@ class TaskPlugin(BaseTask):
            
         plt.show()
            
-           
-           
+        #Remove spaces from the task name for saving
+        name = self.task.name.replace(' ', '_')
         if download_png:    
             response = HttpResponse(mimetype='image/png', content_type='image/png')
             fig.savefig(response, format='png', transparent=False, dpi=120)
-            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.png'
+            response['Content-Disposition'] = 'attachment; filename=%s.png' % name
         elif download_svg:
             response = HttpResponse(mimetype='image/svg', content_type='image/svg')
             fig.savefig(response, format='svg', transparent=False, dpi=120)
-            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.svg'
+            response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
         elif download_pdf:
             response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
             fig.savefig(response, format='pdf', transparent=False, dpi=120)
-            response['Content-Disposition'] = 'attachment; filename=' + job.name + '.pdf'
+            response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
         else:    
             response = HttpResponse(mimetype='image/png', content_type='image/png')
             fig.savefig(response, format='png', transparent=False, dpi=120)

@@ -13,16 +13,15 @@ http://www.gnu.org/licenses/gpl.html
     <h4>Sensitivities calculated against parameter: <b>{{results.sensitivity_object}}</b></h4>
 </p>
 <p>Click on the name of a parameter, or an optimization value, to view optimization progress</p>
-<p><a href="{{all_plots_url}}">Click here</a> to view optimization progress for all parameters</p>
-
+<p><a href="?name=plot">Click here</a> to view optimization progress for all parameters</p>
 <div class="tablelist">
    <table>
     <tr><th>Parameter</th><th>Minimum value</th><th>Maximum value</th><th>Min CPU time</th><th>Min evals</th><th>Max CPU time</th><th>Max Evals</th></tr>
     {% for result in results.results %}
     <tr>
-        <td><b><a href="?name=plot&variables={{forloop.counter0}}">{{result.name}}</a></b></td>
-        <td><a href="{{result.url_min}}">{{result.min_result}}</a></td>
-        <td><a href="{{result.url_max}}">{{result.max_result}}</a></td>
+        <td><b><a href="?name=plot&custom=true&fontsize=12&&variables={{forloop.counter0|add:forloop.counter0}}&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.name}}</a></b></td>
+        <td><a href="?name=plot&custom=true&fontsize=12&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.min_result}}</a></td>
+        <td><a href="?name=plot&custom=true&fontsize=12&variables={{forloop.counter0|add:forloop.counter0}}">{{result.max_result}}</a></td>
         <td>{{result.min_cpu}}</td>
         <td>{{result.min_evals}}</td>
         <td>{{result.max_cpu}}</td>

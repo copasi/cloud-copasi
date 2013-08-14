@@ -118,7 +118,7 @@ urlpatterns = patterns('',
     
     url('^my_account/tasks/(?P<task_id>\d+)/results/$', task_views.TaskResultView.as_view(), name='task_results'),
     url('^my_account/tasks/(?P<task_id>\d+)/results/download/$', task_views.TaskResultDownloadView.as_view(), name='task_results_download'),
-    url('^my_account/tasks/(?P<task_id>\d+)/results/zip/download/$', task_views.TaskDetailsView.as_view(), name='task_results_zip_download'),
+    url('^my_account/tasks/(?P<task_id>\d+)/results/zip/download/$', task_views.TaskDirectoryDownloadView.as_view(), name='task_results_zip_download'),
 
     
     
