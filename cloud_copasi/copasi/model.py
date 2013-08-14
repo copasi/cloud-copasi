@@ -36,7 +36,7 @@ def get_time_per_job(job):
         return settings.IDEAL_JOB_TIME
     
 
-class CopasiModel:
+class CopasiModel(object):
     """Class representing a Copasi model"""
     def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=settings.COPASI_BINARY_DIR, job=None):
         #Load the copasi binary
@@ -55,8 +55,8 @@ class CopasiModel:
     def is_valid(self, job_type):
         """Check if the model has been correctly set up for a particular condor-copasi task"""
         #Check the version is correct
-        if not (self.__getVersionDevel() >= 33 or self.__getVersionMajor() >= 2012):
-            return 'The model must be saved using a supported version of Copasi. The model you submitted appears to have been saved using version ' + str(self.__getVersionDevel())
+        if not (self._getVersionDevel() >= 33 or self._getVersionMajor() >= 2012):
+            return 'The model must be saved using a supported version of Copasi. The model you submitted appears to have been saved using version ' + str(self._getVersionDevel())
         if job_type == 'SO':
             #Check that a single object has been set for the sensitivities task:
             if self.get_sensitivities_object() == '':
@@ -73,7 +73,7 @@ class CopasiModel:
             return True
         
         elif job_type == 'PS':
-            scanTask = self.__getTask('scan')
+            scanTask = self._getTask('scan')
             problem = scanTask.find(xmlns+'Problem')
             scanItems = problem.find(xmlns + 'ParameterGroup')
             if len(scanItems) == 0:
@@ -101,7 +101,7 @@ class CopasiModel:
             if len(self.get_optimization_parameters()) == 0:
                 return 'No parameters have been set for the optimization task'
             #Check that an object has been set for the sensitivities task
-            if self.__get_optimization_object() == '':
+            if self._get_optimization_object() == '':
                 return 'No objective expression has been set for the optimization task'
             return True
         elif job_type == 'PR':
@@ -117,7 +117,7 @@ class CopasiModel:
         else:
             return True
         
-    def __copasiExecute(self, filename, tempdir, timeout=-1, save=False):
+    def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
         """Private function to run Copasi locally in a temporary folder."""
         import process
         if not save:
@@ -127,19 +127,19 @@ class CopasiModel:
         return returncode, stdout, stderr
         
    
-    def __getVersionMajor(self):
+    def _getVersionMajor(self):
         """Get the major version of COPASI used to generate the model"""
         return int(self.model.getroot().attrib['versionMajor'])
    
-    def __getVersionMinor(self):
+    def _getVersionMinor(self):
         """Get the minor version of COPASI used to generate the model"""
         return int(self.model.getroot().attrib['versionMinor'])
    
-    def __getVersionDevel(self):
+    def _getVersionDevel(self):
         """Get the version of COPASI used to generate the model"""
         return int(self.model.getroot().attrib['versionDevel'])
    
-    def __getTask(self,task_type, model=None):
+    def _getTask(self,task_type, model=None):
         """Get the XML tree representing a task with type: 'type'"""
         if model == None:
             model = self.model
@@ -160,7 +160,7 @@ class CopasiModel:
             raise
         return foundTask
 
-    def __clear_tasks(self):
+    def _clear_tasks(self):
         """Go through the task list, and set all tasks as not scheduled to run"""
         listOfTasks = self.model.find(xmlns + 'ListOfTasks') 
         assert listOfTasks != None
@@ -168,7 +168,7 @@ class CopasiModel:
         for task in listOfTasks:
             task.attrib['scheduled'] = 'false'
     
-    def __get_compartment_name(self, key):
+    def _get_compartment_name(self, key):
         """Go through the list of compartments and return the name of the compartment with a given key"""
         model = self.model.find(xmlns + 'Model')
         compartments = model.find(xmlns + 'ListOfCompartments')
@@ -186,19 +186,19 @@ class CopasiModel:
 
     def get_timecourse_method(self):
         """Returns the algorithm set for the time course task"""
-        timeTask = self.__getTask('timeCourse')
+        timeTask = self._getTask('timeCourse')
         timeMethod = timeTask.find(xmlns + 'Method')
         return timeMethod.attrib['name']
 
     def get_optimization_method(self):
         """Returns the algorithm set for the optimization task"""
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         optMethod = optTask.find(xmlns + 'Method')
         return optMethod.attrib['name']
 
     def get_sensitivities_object(self, friendly=True):
         """Returns the single object set for the sensitvities task"""
-        sensTask = self.__getTask('sensitivities')
+        sensTask = self._getTask('sensitivities')
         sensProblem = sensTask.find(xmlns + 'Problem')
         parameterGroup = sensProblem.find(xmlns + 'ParameterGroup')
         parameter = parameterGroup.find(xmlns + 'Parameter')
@@ -214,9 +214,9 @@ class CopasiModel:
                 value_string = search.group('name')
         return value_string
       
-    def __get_optimization_object(self):
+    def _get_optimization_object(self):
         """Returns the objective expression for the optimization task"""
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         optProblem = optTask.find(xmlns + 'Problem')
         parameterText = optProblem.find(xmlns + 'ParameterText')
         return parameterText.text.strip()
@@ -225,7 +225,7 @@ class CopasiModel:
     def get_optimization_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the sensitvitiy optimization task. Will optionally process names to make them more user friendly"""
         #Get the sensitivities task:
-        sensTask=self.__getTask('optimization')
+        sensTask=self._getTask('optimization')
         sensProblem = sensTask.find(xmlns + 'Problem')
         optimizationItems = sensProblem.find(xmlns + 'ParameterGroup')
         parameters = []
@@ -286,7 +286,7 @@ class CopasiModel:
     def get_parameter_estimation_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the parameter estimation task. Will optionally process names to make them more user friendly"""
         #Get the sensitivities task:
-        fitTask=self.__getTask('parameterFitting')
+        fitTask=self._getTask('parameterFitting')
         fitProblem = fitTask.find(xmlns + 'Problem')
         optimizationItems = fitProblem.find(xmlns + 'ParameterGroup')
         parameters = []
@@ -337,7 +337,7 @@ class CopasiModel:
     
     def get_ps_number(self):
         """Returns the number of runs set up for the parameter scan task"""
-        scanTask = self.__getTask('scan')
+        scanTask = self._getTask('scan')
         problem = scanTask.find(xmlns+'Problem')
         #scanItems contains a list of parameter groups, each of which represents a scan
         scanItems = problem.find(xmlns + 'ParameterGroup')
@@ -372,7 +372,7 @@ class CopasiModel:
         return scan_number
         
     
-    def __create_report(self, report_type, report_key, report_name):
+    def _create_report(self, report_type, report_key, report_name):
         """Create a report for a particular task, e.g. sensitivity optimization, with key report_key
         
         report_type: a string representing the job type, e.g. SO for sensitivity optimization"""
@@ -551,10 +551,10 @@ class CopasiModel:
         
         This involves creating the appropriate temporary .cps files. The .job files are generated seperately"""
         #First clear the task list, to ensure that no tasks are set to run
-        self.__clear_tasks()
+        self._clear_tasks()
         
         #Next, go to the sensitivities task and set the appropriate variables
-        sensTask = self.__getTask('sensitivities')
+        sensTask = self._getTask('sensitivities')
         problem = sensTask.find(xmlns + 'Problem')
         #And open the listofvariables
         for pG in problem:
@@ -584,7 +584,7 @@ class CopasiModel:
         ############
         
         #Next, load the optimization task
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         #And set it scheduled to run, and to update the model
         optTask.attrib['scheduled'] = 'true'
         optTask.attrib['updateModel'] = 'true'
@@ -612,7 +612,7 @@ class CopasiModel:
         ############
         #Create a new report for the optimization task
         report_key = 'condor_copasi_sensitivity_optimization_report'
-        self.__create_report('SO', report_key, report_key)
+        self._create_report('SO', report_key, report_key)
         
         #And set the new report for the optimization task
         report = optTask.find(xmlns + 'Report')
@@ -815,8 +815,8 @@ class CopasiModel:
         
         #Clear tasks, and get the time course task
         
-        self.__clear_tasks()
-        timeTask = self.__getTask('timeCourse')
+        self._clear_tasks()
+        timeTask = self._getTask('timeCourse')
         timeTask.attrib['scheduled'] = 'true'
         
         import tempfile
@@ -828,7 +828,7 @@ class CopasiModel:
         ############
         #Create a new report for the ss task
         report_key = 'condor_copasi_stochastic_simulation_report'
-        self.__create_report('SS', report_key, 'auto_ss_report')
+        self._create_report('SS', report_key, 'auto_ss_report')
         
         #And set the new report for the ss task
         timeReport = timeTask.find(xmlns + 'Report')
@@ -848,7 +848,7 @@ class CopasiModel:
         if not skip_load_balancing: #We can skip the load balancing step entirely if requested
             #Note the start time
             start_time = time.time()
-            self.__copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
+            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
             finish_time = time.time()
             time_per_step = finish_time - start_time
             
@@ -869,9 +869,9 @@ class CopasiModel:
         no_of_jobs = int(math.ceil(float(runs) / repeats_per_job))        
 
         #First clear the task list, to ensure that no tasks are set to run
-        self.__clear_tasks()
+        self._clear_tasks()
         
-        scanTask = self.__getTask('scan')
+        scanTask = self._getTask('scan')
         
         #And set it scheduled to run, and to update the model
         scanTask.attrib['scheduled'] = 'true'
@@ -1058,7 +1058,7 @@ class CopasiModel:
                     output.append(name + ' (Particle Number)')
                 else:
                     #Format the metabolite string as: CN=Root,Model=modelname,Vector=Compartments[compartment],Vector=Metabolites[a],Reference=ParticleNumber
-                    compartment_name = self.__get_compartment_name(compartment_key)
+                    compartment_name = self._get_compartment_name(compartment_key)
                     model_name = self.get_name()
                     
                     output_template = Template('CN=Root,Model=${model_name},Vector=Compartments[${compartment_name}],Vector=Metabolites[${name}],Reference=ParticleNumber')
@@ -1130,8 +1130,8 @@ class CopasiModel:
                 
         
         #First, read in the task
-        scanTask = self.__getTask('scan')
-        self.__clear_tasks()
+        scanTask = self._getTask('scan')
+        self._clear_tasks()
         scanTask.attrib['scheduled'] = 'true'
         problem = scanTask.find(xmlns+'Problem')
         scanTasks = problem.find(xmlns + 'ParameterGroup')
@@ -1193,7 +1193,7 @@ class CopasiModel:
                 
                 #Note the start time
                 start_time = time.time()
-                self.__copasiExecute(temp_filename, tempdir, timeout=600)
+                self._copasiExecute(temp_filename, tempdir, timeout=600)
                 finish_time = time.time()
                 run_time = finish_time - start_time
                 run_times.append(run_time)
@@ -1342,10 +1342,10 @@ class CopasiModel:
         """Prepare jobs for the optimization repeat task"""
         
         #First, clear all tasks
-        self.__clear_tasks()
+        self._clear_tasks()
         
         #Get the optimization task
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         #Set the opt task as scheduled
         optTask.attrib['scheduled'] = 'true'
         
@@ -1357,7 +1357,7 @@ class CopasiModel:
         #Even though we're not interested in the output at the moment, we have to set a report for the optimization task, or Copasi will complain!
         #Create a new report for the or task
         report_key = 'condor_copasi_optimization_repeat_report'
-        self.__create_report('OR', report_key, 'auto_or_report')
+        self._create_report('OR', report_key, 'auto_or_report')
         
         #And set the new report for the or task
         optReport = optTask.find(xmlns + 'Report')
@@ -1382,7 +1382,7 @@ class CopasiModel:
             
             #Note the start time
             start_time = time.time()
-            self.__copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
+            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
             finish_time = time.time()
             time_per_step = finish_time - start_time
             os.remove(temp_filename)
@@ -1401,10 +1401,10 @@ class CopasiModel:
     
     
         #Clear tasks and set the scan task as scheduled
-        self.__clear_tasks()
+        self._clear_tasks()
         
         #Get the scan task
-        scanTask = self.__getTask('scan')
+        scanTask = self._getTask('scan')
         scanTask.attrib['scheduled'] = 'true'
         scanTask.attrib['updateModel'] = 'true'
         
@@ -1515,7 +1515,7 @@ class CopasiModel:
         As we copy, extract the best value, and write the details to results.txt"""
         
         #Check if we're maximising or minimising
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         problem =  optTask.find(xmlns + 'Problem')
         for parameter in problem:
             if parameter.attrib['name']=='Maximize':
@@ -1625,8 +1625,8 @@ class CopasiModel:
         #Benchmarking.
         #As per usual, first calculate how long a single parameter fit will take
         
-        self.__clear_tasks()
-        fitTask = self.__getTask('parameterFitting')
+        self._clear_tasks()
+        fitTask = self._getTask('parameterFitting')
         
         fitTask.attrib['scheduled'] = 'true'
         fitTask.attrib['updateModel'] = 'false'
@@ -1636,7 +1636,7 @@ class CopasiModel:
         if not custom_report:
             #Create a new report for the or task
             report_key = 'condor_copasi_parameter_fitting_repeat_report'
-            self.__create_report('PR', report_key, 'auto_pr_report')
+            self._create_report('PR', report_key, 'auto_pr_report')
             
         #And set the new report for the or task
         fitReport = fitTask.find(xmlns + 'Report')
@@ -1673,7 +1673,7 @@ class CopasiModel:
             
             #Note the start time
             start_time = time.time()
-            self.__copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
+            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
             finish_time = time.time()
             time_per_step = finish_time - start_time
             
@@ -1698,10 +1698,10 @@ class CopasiModel:
         ############
         #Job preparation
         ############
-        self.__clear_tasks()
+        self._clear_tasks()
         fitReport.attrib['target'] = ''
         #Get the scan task
-        scanTask = self.__getTask('scan')
+        scanTask = self._getTask('scan')
         scanTask.attrib['scheduled'] = 'true'
         scanTask.attrib['updateModel'] = 'true'
         #Set the new report for the scan task
@@ -1936,11 +1936,11 @@ class CopasiModel:
         #Step 1 - set up the parameter estimation task
         
         #Clear all tasks
-        self.__clear_tasks()
+        self._clear_tasks()
         
         #get the parameter estimation task
 
-        fitTask = self.__getTask('parameterFitting')
+        fitTask = self._getTask('parameterFitting')
         
         fitTask.attrib['scheduled'] = 'true'
         fitTask.attrib['updateModel'] = 'true'
@@ -1950,7 +1950,7 @@ class CopasiModel:
         if not custom_report:
             #Create a new report for the or task
             report_key = 'condor_copasi_parameter_fitting_repeat_report'
-            self.__create_report('PR', report_key, 'auto_pr_report')
+            self._create_report('PR', report_key, 'auto_pr_report')
             
         #And set the new report for the or task
         fitReport = fitTask.find(xmlns + 'Report')
@@ -2031,7 +2031,7 @@ class CopasiModel:
         ########
         #Step 4 - run CopasiSE locally on this new file to update to the new parameter values
         
-        self.__copasiExecute(filename, self.path, save=True)
+        self._copasiExecute(filename, self.path, save=True)
         
         return
         
@@ -2039,14 +2039,14 @@ class CopasiModel:
         """Prepare the jobs for the optimization with different algorithms task
         
         algorithms is a dict containing the form instance from newTask() in views.py"""
-        self.__clear_tasks()
-        optTask = self.__getTask('optimization')
+        self._clear_tasks()
+        optTask = self._getTask('optimization')
         optTask.attrib['scheduled'] = 'true'
         optTask.attrib['updateModel'] = 'true'
         
         #Create a new report for the or task
         report_key = 'condor_copasi_optimization_report'
-        self.__create_report('OR', report_key, 'auto_or_report')
+        self._create_report('OR', report_key, 'auto_or_report')
         
         #And set the new report for the or task
         report = optTask.find(xmlns + 'Report')
@@ -2497,7 +2497,7 @@ class CopasiModel:
     def process_od_results(self, output_files):
         """Read through the various output files, and find the best result. Return this, along with information about the chosen algorithm"""
         #Check if we're minimizing or maximizing!
-        optTask = self.__getTask('optimization')
+        optTask = self._getTask('optimization')
         problem =  optTask.find(xmlns + 'Problem')
         for parameter in problem:
             if parameter.attrib['name']=='Maximize':
@@ -2618,7 +2618,7 @@ class CopasiModel:
             #For each task, if the report output is set, append it with '_i'
             for taskName in taskList:
                 try:
-                    task = self.__getTask(taskName)
+                    task = self._getTask(taskName)
                     report = task.find(xmlns + 'Report')
                     if i==0:
                         task_report_targets[taskName] = report.attrib['target']
@@ -2689,10 +2689,10 @@ class CopasiModel:
         #Benchmarking.
         #As per usual, first calculate how long a single parameter fit will take
         
-        self.__clear_tasks()                #Program stops here.
+        self._clear_tasks()                #Program stops here.
         
         
-        fitTask = self.__getTask('parameterFitting')
+        fitTask = self._getTask('parameterFitting')
         fitTask.attrib['scheduled'] = 'true'
         fitTask.attrib['updateModel'] = 'false'
         
@@ -2701,7 +2701,7 @@ class CopasiModel:
         #if not custom_report:
         #Create a new report for the or task
         report_key = 'condor_copasi_parameter_fitting_repeat_report'
-        self.__create_report('SP', report_key, 'auto_pr_report')
+        self._create_report('SP', report_key, 'auto_pr_report')
             
         #And set the new report for the or task
         fitReport = fitTask.find(xmlns + 'Report')
@@ -2739,7 +2739,7 @@ class CopasiModel:
             
             #Note the start time
             start_time = time.time()
-            self.__copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
+            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
             finish_time = time.time()
             time_per_step = finish_time - start_time
             
@@ -2763,18 +2763,18 @@ class CopasiModel:
         #Job preparation
         ############
         
-        self.__clear_tasks()    #This also stops the program.
+        self._clear_tasks()    #This also stops the program.
         
         
         fitReport.attrib['target'] = ''
         # Hack - Copasi does not update parameters if only update model set in scan, so we have to set it also in parameterFitting task
         #Get the parameter estimation task
-        fitTask = self.__getTask('parameterFitting')
+        fitTask = self._getTask('parameterFitting')
 
 
         fitTask.attrib['updateModel'] = 'false'
         #Get the scan task
-        scanTask = self.__getTask('scan')
+        scanTask = self._getTask('scan')
         
         
         scanTask.attrib['scheduled'] = 'true'
