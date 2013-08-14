@@ -520,7 +520,7 @@ class Subtask(models.Model):
     active = models.BooleanField(default=False)
     
     type_choices = (
-                    ('benchmark', 'Benchmark'),
+                    ('lb', 'Load balancing'),
                     ('main', 'Main task'),
                     ('process', 'Results processing'),
                     ('other', 'Other'),

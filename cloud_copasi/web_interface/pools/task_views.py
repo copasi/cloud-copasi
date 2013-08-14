@@ -139,33 +139,48 @@ class NewTaskView(RestrictedFormView):
             
         task.save()
         
-        
-        #Create a directory to store the files for the task
-        #This will just be the id of the task
-        task_dir = str(task.id)
-        task_dir_path = os.path.join(user_dir_path, task_dir)
-        
-        if os.path.exists(task_dir_path):
-            os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
-        
-        os.mkdir(task_dir_path)
-        
-        task.directory = task_dir_path
-        task.save()
-                #Next we need to create the directory to store the files for the task
-        
-        #working_dir = tempfile.mkdtemp(dir=settings.STORAGE_DIR)
-        model_file = request.FILES['model_file']
-        
-        full_filename = os.path.join(task_dir_path, task.original_model)
-
-        form_tools.handle_uploaded_file(model_file, full_filename)
-
-        
-        
-        TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
-        
-        task_instance = TaskClass(task)
+        try:
+            #Create a directory to store the files for the task
+            #This will just be the id of the task
+            task_dir = str(task.id)
+            task_dir_path = os.path.join(user_dir_path, task_dir)
+            
+            if os.path.exists(task_dir_path):
+                os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
+            
+            os.mkdir(task_dir_path)
+            
+            task.directory = task_dir_path
+            task.save()
+                    #Next we need to create the directory to store the files for the task
+            
+            #working_dir = tempfile.mkdtemp(dir=settings.STORAGE_DIR)
+            model_file = request.FILES['model_file']
+            
+            full_filename = os.path.join(task_dir_path, task.original_model)
+    
+            form_tools.handle_uploaded_file(model_file, full_filename)
+    
+            
+            
+            TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
+            
+            task_instance = TaskClass(task)
+        except Exception, e:
+            log.exception(e)
+            error_messages = ['An error occured while preparing the task',
+                               str(e),]
+            form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
+            try:
+                shutil.rmtree(task.directory)
+            except:
+                pass
+            try:
+                task.delete()
+            except:
+                pass
+            kwargs['form']=form
+            return self.form_invalid(self, *args, **kwargs)
         
         #Validate the task
         valid = task_instance.validate()
@@ -182,14 +197,31 @@ class NewTaskView(RestrictedFormView):
             
             return self.form_invalid(self, *args, **kwargs)
         
-        task_instance.initialize_subtasks()
+        try:
+            task_instance.initialize_subtasks()
+            
+            subtask = task_instance.prepare_subtask(1)
+            
+            condor_tools.submit_task(subtask)
+            
+            task.status = 'running'
+            task.save()
+        except Exception, e:
+            log.exception(e)
+            error_messages = ['An error occured while preparing the task',
+                               str(e),]
+            form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
+            try:
+                shutil.rmtree(task.directory)
+            except:
+                pass
+            try:
+                task.delete()
+            except:
+                pass
+            kwargs['form']=form
+            return self.form_invalid(self, *args, **kwargs)
         
-        subtask = task_instance.prepare_subtask(1)
-        
-        condor_tools.submit_task(subtask)
-        
-        task.status = 'running'
-        task.save()
         
         return HttpResponseRedirect(reverse_lazy('my_account'))
     
@@ -236,6 +268,11 @@ class TaskDetailsView(RestrictedView):
         assert task.condor_pool.user == request.user
         
         kwargs['task'] = task
+        
+        if task.status == 'error':
+            #Try and determine the cause of the error
+            kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)
+        
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
     
 class SubtaskDetailsView(RestrictedView):

@@ -937,3 +937,10 @@ div.task-status h3{
 div.task-complete{
     background-color: #e3f7cd;
 }
+div.task-error{
+    background-color: #ffe9ea;
+}
+div.task-running{
+    background-color:#fcffbf;
+
+}
