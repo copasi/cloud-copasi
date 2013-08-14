@@ -175,7 +175,7 @@ class TaskPlugin(BaseTask):
             else:
                 variables=range(len(variable_choices))
                 log=False
-                legend=False
+                legend=True
                 grid=True
                 fontsize = '12'
                
@@ -328,7 +328,7 @@ class SOPlotUpdateForm(forms.Form):
         super(SOPlotUpdateForm, self).__init__(*args, **kwargs)
         self.fields['variables'].choices = variable_choices
        
-    legend = forms.BooleanField(label='Show figure legend', required=False, initial=False)
+    legend = forms.BooleanField(label='Show figure legend', required=False, initial=True)
     grid = forms.BooleanField(label='Show grid', required=False, initial=True)
     logarithmic = forms.BooleanField(label='Logarithmic scale', required=False)
     variables = forms.MultipleChoiceField(choices=(), widget=forms.CheckboxSelectMultiple(), required=True)

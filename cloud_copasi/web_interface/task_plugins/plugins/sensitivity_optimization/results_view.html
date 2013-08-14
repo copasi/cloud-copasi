@@ -19,9 +19,9 @@ http://www.gnu.org/licenses/gpl.html
     <tr><th>Parameter</th><th>Minimum value</th><th>Maximum value</th><th>Min CPU time</th><th>Min evals</th><th>Max CPU time</th><th>Max Evals</th></tr>
     {% for result in results.results %}
     <tr>
-        <td><b><a href="?name=plot&custom=true&fontsize=12&&variables={{forloop.counter0|add:forloop.counter0}}&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.name}}</a></b></td>
-        <td><a href="?name=plot&custom=true&fontsize=12&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.min_result}}</a></td>
-        <td><a href="?name=plot&custom=true&fontsize=12&variables={{forloop.counter0|add:forloop.counter0}}">{{result.max_result}}</a></td>
+        <td><b><a href="?name=plot&custom=true&fontsize=12&grid=true&legend=true&variables={{forloop.counter0|add:forloop.counter0}}&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.name}}</a></b></td>
+        <td><a href="?name=plot&custom=true&fontsize=12&grid=true&legend=true&variables={{forloop.counter0|add:forloop.counter0|add:"1"}}">{{result.min_result}}</a></td>
+        <td><a href="?name=plot&custom=true&fontsize=12&grid=true&legend=true&variables={{forloop.counter0|add:forloop.counter0}}">{{result.max_result}}</a></td>
         <td>{{result.min_cpu}}</td>
         <td>{{result.min_evals}}</td>
         <td>{{result.max_cpu}}</td>
