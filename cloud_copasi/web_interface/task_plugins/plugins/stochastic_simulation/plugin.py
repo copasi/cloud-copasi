@@ -42,7 +42,7 @@ class TaskPlugin(BaseTask):
     subtasks = 2
 
     def __init__(self, task):
-        self.use_load_balancing = not task.get_custom_field('skip_load_balancing')
+        self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
         
         if self.use_load_balancing:
             self.subtasks = 3
@@ -54,7 +54,7 @@ class TaskPlugin(BaseTask):
         
         self.copasi_model = SSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         self.repeats = self.task.get_custom_field('repeats')
-
+        repeats = self.repeats
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         return self.copasi_model.is_valid('SS')
@@ -92,9 +92,9 @@ class TaskPlugin(BaseTask):
 
 
     def process_lb_subtask(self):
-        #Prepare the necessary files to run on condor
+        #Prepare the necessary files to run the load balancing task on condor
         
-        filename = self.copasi_model.prepare_ss_load_balancing(self.repeats)
+        filenames = self.copasi_model.prepare_ss_load_balancing()
         #Construct the model files for this task
         timeout = str(settings.IDEAL_JOB_TIME * 60)
         if self.task.get_custom_field('rank'):
@@ -109,14 +109,22 @@ class TaskPlugin(BaseTask):
         #write the load balancing script
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
-                                                                 copasi_binary=copasi_binary,
-                                                                 copasi_file=filename,
+                                                                 copasi_binary='./' + copasi_binary,
+                                                                 copasi_file_1 = ('load_balancing_1.cps'),
+                                                                 copasi_file_10 = ('load_balancing_10.cps'),
+                                                                 copasi_file_100 = ('load_balancing_100.cps'),
+                                                                 copasi_file_1000 = ('load_balancing_1000.cps'),
+
                                                                  )
         load_balancing_script_filename = 'load_balance.sh'
         load_balancing_file = open(os.path.join(self.task.directory, load_balancing_script_filename), 'w')
         load_balancing_file.write(load_balancing_script_string)
         load_balancing_file.close()
         
+        copasi_files_string = ''
+        for repeat in [1, 10, 100, 1000]:
+            copasi_files_string += 'load_balancing_%d.cps, ' % repeat
+        copasi_files_string = copasi_files_string.rstrip(', ') #Remove final comma
         
         load_balancing_condor_template = Template(condor_spec.condor_string_header + condor_spec.load_balancing_spec_string)
         load_balancing_condor_string = load_balancing_condor_template.substitute(pool_type=self.task.condor_pool.pool_type,
@@ -124,8 +132,8 @@ class TaskPlugin(BaseTask):
                                                                    script = load_balancing_script_filename,
                                                                    copasi_binary=settings.COPASI_LOCAL_BINARY,
                                                                    arguments = str(timeout),
-                                                                   copasi_file = (filename),
                                                                    rank=rank,
+                                                                   copasi_files=copasi_files_string,
                                                                    )
         #write to the condor file
         condor_file = open(os.path.join(self.task.directory, 'load_balancing.job'), 'w')
@@ -136,23 +144,67 @@ class TaskPlugin(BaseTask):
         
         subtask.spec_file = 'load_balancing.job'
         subtask.status = 'waiting'
+        
+        subtask.set_custom_field('std_output_file', 'load_balancing.out')
+        subtask.set_custom_field('std_err_file', 'load_balancing.err')
+        subtask.set_custom_field('log_file', 'load_balancing.log')
+        subtask.set_custom_field('job_output', '')
+        subtask.set_custom_field('copasi_model', 'load_balancing.cps')
+
+        
         subtask.save()
         
         return subtask
         
     def process_main_subtask(self):
-        #Get the first subtask
+        
+
+        #Get the correct subtask
         if self.use_load_balancing:
             subtask = self.get_subtask(2)
+            
+            lb_job = CondorJob.objects.get(subtask=self.get_subtask(1))
+            #Read the load_balancing.out file
+            
+            output = open(os.path.join(subtask.task.directory, lb_job.std_output_file), 'r')
+            
+            
+            for line in output.readlines():
+                line = line.rstrip('\n')
+                if line != '':
+                    repeats_str, time_str = line.split(' ')
+                
+                try:
+                    lb_repeats = int(repeats_str)
+                    time = float(time_str)
+                except Exception, e:
+                    log.exception(e)
+                    lb_repeats = 1
+                    time = settings.IDEAL_JOB_TIME
+                
+                time_per_run = time / lb_repeats
+                
+                #Work out the number of repeats per job. If this is more than the original number of repeats specified, then just use the original number
+                repeats_per_job = min(int(round(settings.IDEAL_JOB_TIME * 60 / time_per_run)), self.repeats)
+                
+                if repeats_per_job < 1:
+                    repeats_per_job = 1
+                
+            
+            
         else:
             subtask = self.get_subtask(1)
+            repeats_per_job = 1
+        
+        
+        
         
         #If no load balancing step required:
-        model_files = self.copasi_model.prepare_so_task()
+        model_files = self.copasi_model.prepare_ss_task(self.repeats, repeats_per_job, subtask.index)
         
         condor_pool = self.task.condor_pool
         
-        condor_job_file = self.copasi_model.prepare_so_condor_job(condor_pool.pool_type, condor_pool.address, subtask_index=1, rank='')
+        condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
         
         log.debug('Prepared copasi files %s'%model_files)
         log.debug('Prepared condor job %s' %condor_job_file)
@@ -168,29 +220,43 @@ class TaskPlugin(BaseTask):
         return subtask
         
         
-    def process_second_subtask(self):
+    def process_results_subtask(self):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
         
         #Go through and collate the results
-        #This is a computationally simple task, so we will run locally, not remotely
-        
+        #This is a computationally expensive task, so we will run on condor
+                
         directory = self.task.directory        
         
-        original_subtask = self.get_subtask(1)
         
-        output_filename = 'output_1.%d.txt'
+        if self.use_load_balancing:
+            main_subtask = self.get_subtask(2)
+            subtask = self.get_subtask(3)
+        else:
+            main_subtask = self.get_subtask(1)
+            subtask = self.get_subtask(2)
+        
+        main_jobs = CondorJob.objects.filter(subtask=main_subtask)
+
+        #Get the path of the results_process script        
+        path = os.path.abspath(__file__)
+        dir_path = os.path.dirname(path)
+        script = os.path.join(dir_path, 'results_process.py')
+
         
         
-        results = self.copasi_model.get_so_results(save=True)
-        log.debug('Results:')
-        log.debug(results)
+        condor_job = self.copasi_model.prepare_ss_process_job(subtask.task.condor_pool.pool_type, subtask.task.condor_pool.address, main_jobs, script)
         
-        subtask.task.set_custom_field('results_file', 'results.txt')
-        
-        log.debug('Setting subtask as finished')
-        subtask.status = 'finished'
+        subtask.set_custom_field('std_output_file', 'results.out')
+        subtask.set_custom_field('std_err_file', 'results.err')
+        subtask.set_custom_field('log_file', 'results.log')
+        subtask.set_custom_field('job_output', 'results.txt')
+        subtask.set_custom_field('copasi_model', '')
+        subtask.spec_file = condor_job
+        log.debug('Setting subtask as ready to submit')
+        subtask.status = 'ready'
         subtask.save()
         
         return subtask

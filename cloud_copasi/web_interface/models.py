@@ -423,14 +423,15 @@ class Task(models.Model):
     #Field for storing any task-specific fields
     #Will be stored as a string-based python pickle
     #Not the most efficient way of doing this, but these fields unlikely to be needed much
-    custom_fields = models.CharField(max_length=10000, blank=True, default='')
     
     result_view = models.BooleanField(blank=True, default=True, verbose_name='Does this task type have a result view page?')
     result_download = models.BooleanField(blank=True, default=True, verbose_name='Does this task type have a result download page?')
     
+    custom_fields = models.CharField(max_length=10000, blank=True, default='')
+
     def set_custom_field(self, field_name, value):
         try:
-            custom_fields = cPickle.loads(self.custom_fields)
+            custom_fields = cPickle.loads(str(self.custom_fields))
         except:
             custom_fields = {}
         custom_fields[field_name] = value
@@ -439,10 +440,11 @@ class Task(models.Model):
     
     def get_custom_field(self, field_name):
         try:
-            custom_fields = cPickle.loads(self.custom_fields)
+            custom_fields_str = str(self.custom_fields)
+            custom_fields = cPickle.loads(custom_fields_str)
             output = custom_fields[field_name]
             return output
-        except:
+        except Exception, e:
             return None
     
     status_choices = (
@@ -545,6 +547,26 @@ class Subtask(models.Model):
     
     local = models.BooleanField(blank=True, default=False, help_text = 'Is this subtask to be run locally?')
 
+    custom_fields = models.CharField(max_length=10000, blank=True, default='')
+
+    def set_custom_field(self, field_name, value):
+        try:
+            custom_fields = cPickle.loads(self.custom_fields)
+        except:
+            custom_fields = {}
+        custom_fields[field_name] = value
+        self.custom_fields = cPickle.dumps(custom_fields)
+        self.save()
+    
+    def get_custom_field(self, field_name):
+        try:
+            custom_fields = cPickle.loads(self.custom_fields)
+            output = custom_fields[field_name]
+            return output
+        except:
+            return None
+
+
     def __unicode__(self):
         return '%s (%d)' % (self.task.name, self.index)
     
@@ -559,7 +581,7 @@ class CondorJob(models.Model):
     #The error file for the job
     std_error_file = models.CharField(max_length=255)
     #The output file created by the job
-    job_output = models.CharField(max_length=255)
+    job_output = models.CharField(max_length=255, blank=True)
     #The status of the job in the queue
     QUEUE_CHOICES = (
         ('N', 'Not queued'),

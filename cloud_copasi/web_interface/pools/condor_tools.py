@@ -130,9 +130,13 @@ def condor_submit(condor_file):
         number_of_jobs = int(r.match(process_output).group('n'))
         cluster_id = int(r.match(process_output).group('cluster'))
 
-    except:
+    except Exception, e:
         logging.exception('Failed to submit job')
-        raise Exception('Failed to submit job')
+        logging.exception(e)
+        logging.exception(output)
+        logging.exception(error)
+        logging.exception(exit_status)
+        raise e
     return (cluster_id, number_of_jobs)
 
 def condor_rm(queue_id):
@@ -158,14 +162,66 @@ def submit_task(subtask):
     log.debug('cluster id %d' % cluster_id)
     log.debug('number_of_jobs %d' % number_of_jobs)
     
+    
+    #Check to see if std_output_file, std_err_file, log_file or job_output were specified by the subtask
+    #If not use the defualt values
+    
+    if subtask.get_custom_field('std_output_file') != None:
+        std_output_file = subtask.get_custom_field('std_output_file')
+    else:
+        std_output_file = 'auto_copasi_%d.%%d.cps.out' % subtask.index
+    
+    if subtask.get_custom_field('std_err_file') != None:
+        std_err_file = subtask.get_custom_field('std_err_file')
+    else:
+        std_err_file = 'auto_copasi_%d.%%d.cps.err' % subtask.index
+        
+    if subtask.get_custom_field('log_file') != None:
+        log_file = subtask.get_custom_field('log_file')
+    else:
+        log_file = 'auto_copasi_%d.%%d.cps.log' % subtask.index
+
+
+    if subtask.get_custom_field('job_output') != None:
+        job_output = subtask.get_custom_field('job_output')
+    else:
+        job_output = 'output_%d.%%d.txt' % subtask.index
+
+    if subtask.get_custom_field('copasi_file') != None:
+        copasi_model_filename = subtask.get_custom_field('copasi_file')
+    else:
+        copasi_model_filename = 'auto_copasi_%d.%%d.cps' % subtask.index
+    
+    
     subtask.cluster_id=cluster_id
     for n in range(number_of_jobs):
-        copasi_model_filename = 'auto_copasi_%d.%d.cps' % (subtask.index, n)
+        
+        try:
+            std_output_file = std_output_file % n
+        except:
+            pass
+        try:
+            std_err_file = std_err_file % n
+        except:
+            pass
+        try:
+            log_file = log_file % n
+        except:
+            pass
+        try:
+            copasi_model_filename = copasi_model_filename % n
+        except:
+            pass
+        try:
+            job_output = job_output % n
+        except:
+            pass
+
         job = CondorJob(subtask=subtask,
-                        std_output_file = copasi_model_filename + '.out',
-                        std_error_file = copasi_model_filename + '.err',
-                        log_file = copasi_model_filename + '.log',
-                        job_output = 'output_%d.%d.txt' % (subtask.index, n),
+                        std_output_file = std_output_file,
+                        std_error_file = std_err_file,
+                        log_file = log_file,
+                        job_output = job_output, 
                         status = 'I',
                         process_id = n,
                         run_time = 0.0,
@@ -275,7 +331,7 @@ def process_condor_q(user=None, subtask=None):
                     if condor_log.termination_status == 0:
                         log.debug('Log indicates normal termination. Checking output files exist')
                         
-                        if job.job_output != '' or job.job_output != None:
+                        if job.job_output != '' and job.job_output != None:
                             output_filename = os.path.join(job.subtask.task.directory, job.job_output)
                             
                             if os.path.isfile(output_filename):
@@ -285,6 +341,8 @@ def process_condor_q(user=None, subtask=None):
                                     job.status = 'F'
                                 except:
                                     log.debug('Job output exists but is empty. Leaving status as running')
+                            else:
+                                log.debug('Output file does not exist. Leaving status unchanged')
                         
                         else:
                             log.debug('Job has no output specified. Assuming job has finished.')

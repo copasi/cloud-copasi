@@ -801,30 +801,14 @@ class CopasiModel(object):
 
 
 
-    def prepare_ss_task(self, runs, skip_load_balancing=False):
+    def prepare_ss_task(self, runs, repeats_per_job, subtask_index=1):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
         
-        First sets up the scan task with a repeat, and sets each repeat to run i times. 
-        Uses a the load balancing algorithm to determine how many repeats to run for each scan.
         """ 
-        
-        ############
-        #Benchmarking
-        ############
-        #Measure the time taken to run a single run of the timecourse task
-        
-        #Clear tasks, and get the time course task
-        
         self._clear_tasks()
         timeTask = self._getTask('timeCourse')
-        timeTask.attrib['scheduled'] = 'true'
         
-        import tempfile
-        #Write a temp XML file
-
-        temp_file, temp_filename = tempfile.mkstemp(prefix='condor_copasi_', suffix='.cps')
-        tempdir, rel_filename = os.path.split(temp_filename)
-        
+        #Letover code from benchmark. This bit sets the time course task report to an empty string
         ############
         #Create a new report for the ss task
         report_key = 'condor_copasi_stochastic_simulation_report'
@@ -840,32 +824,8 @@ class CopasiModel(object):
         
         timeReport.set('reference', report_key)
         timeReport.set('append', '1')
-        timeReport.set('target', 'temp_output.txt')
-        
-        self.model.write(temp_filename)
+        timeReport.set('target', '')
             
-            
-        if not skip_load_balancing: #We can skip the load balancing step entirely if requested
-            #Note the start time
-            start_time = time.time()
-            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
-            finish_time = time.time()
-            time_per_step = finish_time - start_time
-            
-            os.remove(temp_filename)
-            
-            #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds) (or whatever the settings parameter is set to)
-            #time_per_job = repeats_per_job * time_per_step => repeats_per_job = time_per_job/time_per_step
-            
-            #time_per_job = settings.IDEAL_JOB_TIME * 60
-            time_per_job = get_time_per_job(self.job) * 60
-            
-            #Calculate the number of repeats for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
-            repeats_per_job = min(int(round(float(time_per_job) / time_per_step)), runs)
-            
-        else: #Otherwise, skip the load balancing step entirely, and simply use 1 repeat per job
-            repeats_per_job = 1
-        
         no_of_jobs = int(math.ceil(float(runs) / repeats_per_job))        
 
         #First clear the task list, to ensure that no tasks are set to run
@@ -944,6 +904,8 @@ class CopasiModel(object):
 
         runs_left=runs # Decrease this value as we generate the jobs
         
+        model_files = []
+        
         for i in range(no_of_jobs):
             #Calculate the number of runs per job. This will either be repeats_per_job, or if this is the last job, runs_left
             
@@ -951,90 +913,106 @@ class CopasiModel(object):
             p1.attrib['value'] = str(no_of_steps)
             runs_left -= no_of_steps
             
-            report.set('target', str(i) + '_out.txt')
-            filename = os.path.join(self.path, 'auto_copasi_' + str(i) + '.cps')
+            report.set('target', 'output_%d.%d.txt' % (subtask_index, i))
+            filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
             self.model.write(filename)
+            model_files.append(filename)
             
             #Also, write a file called filename.runs.txt containing the number of runs per job
-            runs_file = open(filename + '.runs.txt', 'w')
+            runs_file = open(filename + 'runs.txt', 'w')
             runs_file.write('Repeats per job:\n')
             runs_file.write(str(no_of_steps))
             runs_file.close()
             
-        return no_of_jobs
+        return model_files
             
-    def prepare_ss_condor_jobs(self, jobs, rank='0'):
-        """Prepare the neccessary .job files to submit to condor for the stochastic simulation task"""
+    def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
+        """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+        #New: only prepares a single job which allows multiple jobs to be queued
+        #We must change the ownership of each of the copasi files to the user running this script
+        #
+        #We assume that we have write privileges on each of the files through our group, but don't have permission to actually change ownership (must be superuser to do this)
+        #Thus, we workaround this by copying the original file, deleting the original, and moving the copy back to the original filename
+        
+#         import shutil
+#         for i in range(len(self.get_optimization_parameters())):
+#             for max in (0, 1):
+#                 copasi_file = os.path.join(self.path, 'auto_copasi_%d.cps' % (2*i + max))
+#                 temp_file = os.path.join(self.path, 'temp.cps')
+#                 shutil.copy2(copasi_file, temp_file)
+#                 os.remove(copasi_file)
+#                 os.rename(temp_file, copasi_file)
+#                 os.chmod(copasi_file, 0664) #Set as group readable and writable
+        
         ############
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
         condor_jobs = []
-                    
-        for i in range(jobs):
-            copasi_file = Template('auto_copasi_$index.cps').substitute(index=i)
-            condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
-            condor_job_filename = os.path.join(self.path, Template('auto_condor_$index.job').substitute(index=i))
-            condor_file = open(condor_job_filename, 'w')
-            condor_file.write(condor_job_string)
-            condor_file.close()
-            #Append a dict contining (job_filename, std_out, std_err, log_file, job_output)
-            condor_jobs.append({
-                'spec_file': condor_job_filename,
-                'std_output_file': str(copasi_file) + '.out',
-                'std_error_file': str(copasi_file) + '.err',
-                'log_file': str(copasi_file) + '.log',
-                'job_output': str(i) + '_out.txt'
-            })
-
-        return condor_jobs
         
-    def prepare_ss_process_job(self, jobs, runs, rank='0'):
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+        
+        
+        
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin/'
+            transfer_executable = 'NO'
+        else:
+            binary_dir = settings.COPASI_BINARY_DIR
+            transfer_executable = 'YES'
+        
+        
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file, 
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+        
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
+        
+    def prepare_ss_process_job(self, pool_type, pool_address, jobs, script_path, rank='0'):
         """Collate the results from the stochastic simulation task"""
-        #First, read through the various output files, and concatenate into a single file raw_results.txt
-        assert jobs >0
-        #Copy the whole of the first file
-        output = open(os.path.join(self.path, 'raw_results.txt'), 'w')
-        
-        file0 = open(os.path.join(self.path, '0_out.txt'), 'r')
-        for line in file0:
-            output.write(line)
-        file0.close()       
-        output.flush()
-        #Now, copy over all but the first line of the other files
-        for i in range(jobs)[1:]:
-
-            file = open(os.path.join(self.path, str(i) + '_out.txt'), 'r')
-            firstline = True
-            for line in file:
-                if not firstline:
-                    output.write(line)
-                firstline = False
-            file.close()
-            output.flush()
-        output.close()
-                
-     
         ############
         #The rest of the processing is moved to condor, by the file ss_results_process.py
         ############
         
         #Prepare the condor job file
-        script = os.path.join(settings.MEDIA_ROOT, 'ss_results_process.py')
-        raw_results = os.path.join(self.path, 'raw_results.txt')
+        
+        input_file_string = ''
+        for job in jobs:
+            input_file_string += job.job_output + ', '
+        input_file_string = input_file_string.rstrip(', ')
+        
+        output = 'results.txt'
+        
+        job_template = Template(condor_spec.condor_string_header + condor_spec.results_process_spec_string)
 
-        job_template = Template(condor_spec.stochastic_processing_spec_string)
-
-        job_string = job_template.substitute(script=script, raw_results=raw_results, rank=rank)
-        job_file = open(os.path.join(self.path, 'results.job'), 'w')
+        job_string = job_template.substitute(pool_type=pool_type,
+                                             pool_address=pool_address,
+                                             script=script_path,
+                                             args=input_file_string,
+                                             input_files=input_file_string,
+                                             output='results',
+                                             output_files = output,
+                                             rank=rank)
+        job_filename = 'results.job'
+        job_file = open(os.path.join(self.path, job_filename), 'w')
         job_file.write(job_string)
         job_file.close()
         
-        return {
-            'spec_file': os.path.join(self.path, 'results.job'),
-            'std_output_file': 'results.out',
-            'std_error_file': 'results.err',
-            'log_file': 'results.log',
-            'job_output': 'results.txt',
-        }
+        return job_filename
         
     def get_variables(self, pretty=False):
         """Returns a list of all variable metabolites, compartments and global quantities in the model.

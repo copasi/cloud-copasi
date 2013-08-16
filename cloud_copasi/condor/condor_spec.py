@@ -72,12 +72,27 @@ queue\n"""
 load_balancing_spec_string = """
 executable = ${script}
 arguments = 
-transfer_input_files = ${copasi_file}, ${copasi_binary}
-log =  ${copasi_file}.log
-error = ${copasi_file}.err
-output = ${copasi_file}.out
+transfer_input_files = ${copasi_files}, ${copasi_binary}
+log =  load_balancing.log
+error = load_balancing.err
+output = load_balancing.out
 rank = ${rank}
 Requirements = ( OpSys == "LINUX") && ( Arch=="X86_64")
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
+queue\n"""
+
+
+results_process_spec_string = """
+executable = ${script}
+arguments = ${args}
+transfer_input_files = ${input_files}
+log =  ${output}.log
+error = ${output}.err
+output = ${output}.out
+rank = ${rank}
+Requirements = ( OpSys == "LINUX") && ( Arch=="X86_64")
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_output_files = ${output_files}
 queue\n"""
