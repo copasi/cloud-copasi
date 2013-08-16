@@ -20,6 +20,7 @@ import cPickle
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from cloud_copasi.web_interface.fields import UUIDField
+import json
 
 
 class Profile(models.Model):
@@ -431,17 +432,17 @@ class Task(models.Model):
 
     def set_custom_field(self, field_name, value):
         try:
-            custom_fields = cPickle.loads(str(self.custom_fields))
+            custom_fields = json.loads(self.custom_fields)
         except:
             custom_fields = {}
         custom_fields[field_name] = value
-        self.custom_fields = cPickle.dumps(custom_fields)
+        self.custom_fields = str(json.dumps(custom_fields))
         self.save()
     
     def get_custom_field(self, field_name):
         try:
             custom_fields_str = str(self.custom_fields)
-            custom_fields = cPickle.loads(custom_fields_str)
+            custom_fields = json.loads(custom_fields_str)
             output = custom_fields[field_name]
             return output
         except Exception, e:
@@ -551,19 +552,20 @@ class Subtask(models.Model):
 
     def set_custom_field(self, field_name, value):
         try:
-            custom_fields = cPickle.loads(self.custom_fields)
+            custom_fields = json.loads(self.custom_fields)
         except:
             custom_fields = {}
         custom_fields[field_name] = value
-        self.custom_fields = cPickle.dumps(custom_fields)
+        self.custom_fields = str(json.dumps(custom_fields))
         self.save()
     
     def get_custom_field(self, field_name):
         try:
-            custom_fields = cPickle.loads(self.custom_fields)
+            custom_fields_str = str(self.custom_fields)
+            custom_fields = json.loads(custom_fields_str)
             output = custom_fields[field_name]
             return output
-        except:
+        except Exception, e:
             return None
 
 

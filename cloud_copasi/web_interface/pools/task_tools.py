@@ -92,8 +92,9 @@ def update_tasks(user=None, task=None):
                         condor_tools.submit_task(subtask)
     
         #Get the list of subtasks again
-        subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
-        if subtasks.count() == 0:
+        task_subtasks = Subtask.objects.filter(task=task)
+        finished = task_subtasks.filter(status='finished').order_by('index')
+        if task_subtasks.count() == finished.count():
             task.status = 'finished'
             log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
             task.save()

@@ -255,7 +255,7 @@ class TaskPlugin(BaseTask):
         subtask.set_custom_field('job_output', 'results.txt')
         subtask.set_custom_field('copasi_model', '')
         subtask.spec_file = condor_job
-        log.debug('Setting subtask as ready to submit')
+        log.debug('Setting subtask as ready to submit with spec file %s'%subtask.spec_file)
         subtask.status = 'ready'
         subtask.save()
         
