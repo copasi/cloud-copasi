@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 #-------------------------------------------------------------------------------
 # Cloud-COPASI
 # Copyright (c) 2013 Edward Kent.

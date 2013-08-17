@@ -919,7 +919,7 @@ class CopasiModel(object):
             model_files.append(filename)
             
             #Also, write a file called filename.runs.txt containing the number of runs per job
-            runs_file = open(filename + 'runs.txt', 'w')
+            runs_file = open(filename + '.runs.txt', 'w')
             runs_file.write('Repeats per job:\n')
             runs_file.write(str(no_of_steps))
             runs_file.close()
@@ -991,10 +991,12 @@ class CopasiModel(object):
         #Prepare the condor job file
         
         input_file_string = ''
+        args_string = ''
         for job in jobs:
             input_file_string += job.job_output + ', '
+            args_string += job.job_output + ' '
         input_file_string = input_file_string.rstrip(', ')
-        
+        args_string = args_string.rstrip(' ')
         output = 'results.txt'
         
         job_template = Template(condor_spec.condor_string_header + condor_spec.results_process_spec_string)
@@ -1002,7 +1004,7 @@ class CopasiModel(object):
         job_string = job_template.substitute(pool_type=pool_type,
                                              pool_address=pool_address,
                                              script=script_path,
-                                             args=input_file_string,
+                                             args=args_string,
                                              input_files=input_file_string,
                                              output='results',
                                              output_files = output,

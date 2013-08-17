@@ -126,7 +126,7 @@ def condor_submit(condor_file):
     
     try:
         assert exit_status == 0
-        r=re.compile(r'.*(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
+        r=re.compile(r'^(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
         number_of_jobs = int(r.match(process_output).group('n'))
         cluster_id = int(r.match(process_output).group('cluster'))
 
@@ -154,6 +154,7 @@ def submit_task(subtask):
     """
     
     assert isinstance(subtask, Subtask)
+    assert subtask.spec_file != ''
     
     spec_file_path = os.path.join(subtask.task.directory, subtask.spec_file)
     
@@ -167,55 +168,55 @@ def submit_task(subtask):
     #If not use the defualt values
     
     if subtask.get_custom_field('std_output_file') != None:
-        std_output_file = subtask.get_custom_field('std_output_file')
+        std_output_file_n = subtask.get_custom_field('std_output_file')
     else:
-        std_output_file = 'auto_copasi_%d.%%d.cps.out' % subtask.index
+        std_output_file_n = 'auto_copasi_%d.%%d.cps.out' % subtask.index
     
     if subtask.get_custom_field('std_err_file') != None:
-        std_err_file = subtask.get_custom_field('std_err_file')
+        std_err_file_n = subtask.get_custom_field('std_err_file')
     else:
-        std_err_file = 'auto_copasi_%d.%%d.cps.err' % subtask.index
+        std_err_file_n = 'auto_copasi_%d.%%d.cps.err' % subtask.index
         
     if subtask.get_custom_field('log_file') != None:
-        log_file = subtask.get_custom_field('log_file')
+        log_file_n = subtask.get_custom_field('log_file')
     else:
-        log_file = 'auto_copasi_%d.%%d.cps.log' % subtask.index
+        log_file_n = 'auto_copasi_%d.%%d.cps.log' % subtask.index
 
 
     if subtask.get_custom_field('job_output') != None:
-        job_output = subtask.get_custom_field('job_output')
+        job_output_n = subtask.get_custom_field('job_output')
     else:
-        job_output = 'output_%d.%%d.txt' % subtask.index
+        job_output_n = 'output_%d.%%d.txt' % subtask.index
 
     if subtask.get_custom_field('copasi_file') != None:
-        copasi_model_filename = subtask.get_custom_field('copasi_file')
+        copasi_model_filename_n = subtask.get_custom_field('copasi_file')
     else:
-        copasi_model_filename = 'auto_copasi_%d.%%d.cps' % subtask.index
+        copasi_model_filename_n = 'auto_copasi_%d.%%d.cps' % subtask.index
     
     
     subtask.cluster_id=cluster_id
     for n in range(number_of_jobs):
         
         try:
-            std_output_file = std_output_file % n
+            std_output_file = std_output_file_n % n
         except:
-            pass
+            std_output_file = std_output_file_n
         try:
-            std_err_file = std_err_file % n
+            std_err_file = std_err_file_n % n
         except:
-            pass
+            std_err_file = std_err_file_n
         try:
-            log_file = log_file % n
+            log_file = log_file_n % n
         except:
-            pass
+            log_file = log_file_n
         try:
-            copasi_model_filename = copasi_model_filename % n
+            copasi_model_filename = copasi_model_filename_n % n
         except:
-            pass
+            copasi_model_filename = copasi_model_filename_n
         try:
-            job_output = job_output % n
+            job_output = job_output_n % n
         except:
-            pass
+            job_output = job_output_n
 
         job = CondorJob(subtask=subtask,
                         std_output_file = std_output_file,
