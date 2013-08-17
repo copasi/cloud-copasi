@@ -1237,7 +1237,7 @@ class CopasiModel(object):
                 parameters['no_of_steps'].attrib['value'] = str(job_no_of_intervals)
                 
                 #Set the report output
-                report.attrib['target'] = str(i) + 'output_%d.%d.txt' % (subtask_index, i)
+                report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
                 
                 filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
                 self.model.write(os.path.join(self.path, filename))

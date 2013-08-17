@@ -80,8 +80,8 @@ class PSCopasiModel(CopasiModel):
         ############
         #Benchmarking
         ############
-        #Set report output to be blank
-        report.attrib['target'] = ''
+        #Set report output to be something
+        report.attrib['target'] = 'output'
 
         import tempfile
         #Set the number of steps as 1, 10, 100, 1000, and write files
