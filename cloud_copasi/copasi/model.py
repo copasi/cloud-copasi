@@ -1082,7 +1082,7 @@ class CopasiModel(object):
                     
         return output
         
-    def prepare_ps_jobs(self, skip_load_balancing=False):
+    def prepare_ps_jobs(self, subtask_index, time_per_step=None):
         """Prepare the parallel scan task
         
         Efficiently splitting multiple nested scans is a hard problem, and currently beyond the scope of this project.
@@ -1149,58 +1149,23 @@ class CopasiModel(object):
             else:
                 log = True
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
-        
-        ############
-        #Benchmarking
-        ############
-        #Measure the time taken to run a single run of the first-level scan
-        report.attrib['target'] = 'temp_output.txt'
-
-        if not skip_load_balancing:
-            import tempfile
-            #Set the number of steps as 1, and write a temp XML file
-            
-            #Do this 5 times, and take the average
-            
-            run_times = []
-            for i in range(5):
-                temp_file, temp_filename = tempfile.mkstemp(prefix='condor_copasi_', suffix='.cps')
-                tempdir, rel_filename = os.path.split(temp_filename)
-
-                parameters['no_of_steps'].attrib['value'] = '1'
-                
-                self.model.write(temp_filename)
-                
-                #Note the start time
-                start_time = time.time()
-                self._copasiExecute(temp_filename, tempdir, timeout=600)
-                finish_time = time.time()
-                run_time = finish_time - start_time
-                run_times.append(run_time)
-                
-                os.remove(temp_filename)
-                #If running for >10 seconds, assume this is a good enough measure, and don't take any more averages to save time
-                if run_time > 10:
-                    break
-            #Calculate the mean
-            time_per_step = sum(run_times)/len(run_times)
-            
-            #If this was a scan task, not a repeat, then we'll have actually run two steps, not one. Adjust the time accordingly
-            if task_type == 1:
+            if time_per_step:
                 time_per_step = time_per_step/2
+
+                
             
-            #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
-            #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
-            
-            #time_per_job = settings.IDEAL_JOB_TIME * 60
-            time_per_job = get_time_per_job(self.job) * 60
-            
+        #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
+        #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
+        
+        time_per_job = settings.IDEAL_JOB_TIME * 60
+        #time_per_job = get_time_per_job(self.job) * 60
+        
+        if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
             no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
-        
         else:
             no_of_steps_per_job = 1
-
+            
         #Because of a limitation of Copasi, each parameter must have at least one interval, or two steps per job - corresponding to the max and min parameters
         #Force this limitation:
         if task_type == 1:
@@ -1217,6 +1182,9 @@ class CopasiModel(object):
         ##############
         #Job preparation
         ##############
+        
+        model_files = [] #Store the relative file names of the model files created here
+        
         #Set the model to update
         scanTask.attrib['updateModel'] = 'true'
         #First, deal with the easy case -- where the top-level item is a repeat.
@@ -1232,10 +1200,10 @@ class CopasiModel(object):
                 
                 if steps > 0:
                     parameters['no_of_steps'].attrib['value'] = str(steps)
-                    report.attrib['target'] = str(i) + '_out.txt'
-                    filename = os.path.join(self.path, 'auto_copasi_' + str(i) + '.cps')
-                    self.model.write(filename)
-                
+                    report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
+                    filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
+                    self.model.write(os.path.join(self.path, filename))
+                    model_files.append(filename)
             
         
         
@@ -1269,35 +1237,48 @@ class CopasiModel(object):
                 parameters['no_of_steps'].attrib['value'] = str(job_no_of_intervals)
                 
                 #Set the report output
-                report.attrib['target'] = str(i) + '_out.txt'
+                report.attrib['target'] = str(i) + 'output_%d.%d.txt' % (subtask_index, i)
                 
-                filename = os.path.join(self.path, 'auto_copasi_' + str(i) + '.cps')
-                self.model.write(filename)
-        return no_of_jobs
+                filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
+                self.model.write(os.path.join(self.path, filename))
+                model_files.append(filename)
         
-    def prepare_ps_condor_jobs(self, jobs, rank='0'):
-        """Prepare the condor jobs for the parallel scan task"""
-                ############
-        #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
-        condor_jobs = []
-                    
-        for i in range(jobs):
-            copasi_file = Template('auto_copasi_$index.cps').substitute(index=i)
-            condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles='', rank=rank)
-            condor_job_filename = os.path.join(self.path, Template('auto_condor_$index.job').substitute(index=i))
-            condor_file = open(condor_job_filename, 'w')
-            condor_file.write(condor_job_string)
-            condor_file.close()
-            #Append a dict contining (job_filename, std_out, std_err, log_file, job_output)
-            condor_jobs.append({
-                'spec_file': condor_job_filename,
-                'std_output_file': str(copasi_file) + '.out',
-                'std_error_file': str(copasi_file) + '.err',
-                'log_file': str(copasi_file) + '.log',
-                'job_output': str(i) + '_out.txt'
-            })
+        return model_files
+        
+    def prepare_ps_condor_jobs(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+        
+        
+        
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin/'
+            transfer_executable = 'NO'
+        else:
+            binary_dir = settings.COPASI_BINARY_DIR
+            transfer_executable = 'YES'
+        
+        
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file, 
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+        
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
 
-        return condor_jobs
+        return condor_job_filename
         
     def process_ps_results(self, jobs):
         output_file = open(os.path.join(self.path, 'results.txt'), 'w')
