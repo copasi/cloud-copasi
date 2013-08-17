@@ -86,10 +86,10 @@ def update_tasks(user=None, task=None):
                     TaskClass = tools.get_task_class(task.task_type)
                     task_instance = TaskClass(task)
                     log.debug('Preparing new subtask %d' % (subtask.index))
-                    task_instance.prepare_subtask(subtask.index)
+                    prepared_subtask = task_instance.prepare_subtask(subtask.index)
                     #If this wasn't a local subtask, submit to condor  
                     if not subtask.local:
-                        condor_tools.submit_task(subtask)
+                        condor_tools.submit_task(prepared_subtask)
     
         #Get the list of subtasks again
         task_subtasks = Subtask.objects.filter(task=task)
