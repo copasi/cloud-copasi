@@ -268,7 +268,6 @@ class TaskDetailsView(RestrictedView):
         assert task.condor_pool.user == request.user
         
         kwargs['task'] = task
-        
         if task.status == 'error':
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)

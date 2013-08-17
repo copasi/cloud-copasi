@@ -85,5 +85,8 @@ http://www.gnu.org/licenses/gpl.html
         This subtask currently has no computing jobs associated
     </p>
     {% endif %}
+    
+    <p><a href="{% url 'task_details' task_id=subtask.task.id %}">Return to task details</a>
+
 </article>
 {% endblock %}

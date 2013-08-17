@@ -23,9 +23,9 @@ http://www.gnu.org/licenses/gpl.html
     </header>
     <ul class="style2">
         <li><a href="{% url 'task_new' %}" class="button button-narrow button-alt button-icon button-icon-check">Submit new task</a></li>
-        <li><a href="{% url 'running_task_list' %}">Running tasks</a></li>
-        <li><a href="{% url 'finished_task_list' %}">Finished tasks</a></li>
-        <li><a href="{% url 'error_task_list' %}">Task errors</a></li>
+        <li><a href="{% url 'running_task_list' %}">Running tasks ({{running_tasks.count}})</a></li>
+        <li><a href="{% url 'finished_task_list' %}">Finished tasks ({{finished_tasks.count}})</a></li>
+        <li><a href="{% url 'error_task_list' %}">Task errors ({{task_errors.count}})</a></li>
     </ul>
 </section>
 

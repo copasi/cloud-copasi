@@ -23,7 +23,8 @@ from django.contrib.auth import logout
 from django import forms
 import sys
 from boto.exception import BotoServerError
-from cloud_copasi.web_interface.models import AWSAccessKey
+from cloud_copasi.web_interface.models import AWSAccessKey, CondorPool, Task,\
+    EC2Instance, ElasticIP
 from cloud_copasi.web_interface.aws import resource_management_tools
 import logging
 from cloud_copasi import settings
@@ -73,14 +74,51 @@ class RestrictedView(DefaultView):
         #    log.debug('Unrecognized resources for user %s'%request.user)
         #kwargs['show_warning_bar']= not resource_overview.is_empty()
         #kwargs['resource_overview']=resource_overview
+        kwargs['compute_nodes'] = EC2Instance.objects.filter(ec2_pool__vpc__access_key__user=user)
+        kwargs['elastic_ips'] = ElasticIP.objects.filter(vpc__access_key__user=user)
         
+        
+        
+        kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
+        kwargs['owned_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=True)
+        kwargs['shared_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=False)
+        
+        
+        
+        kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
+        
+        tasks = Task.objects.filter(condor_pool__user = user)
+        kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
+        kwargs['finished_tasks'] =  tasks.filter(status='finished')
+        kwargs['task_errors'] =  tasks.filter(status='error')
+
         return super(RestrictedView, self).dispatch(request, *args, **kwargs)
 
 class RestrictedFormView(RestrictedView, FormMixin, ProcessFormView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
+        user=request.user
         kwargs['form'] = self.get_form(self.get_form_class())
+        kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
         
+        kwargs['compute_nodes'] = EC2Instance.objects.filter(ec2_pool__vpc__access_key__user=user)
+        kwargs['elastic_ips'] = ElasticIP.objects.filter(vpc__access_key__user=user)
+        
+        
+        
+        kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
+        kwargs['owned_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=True)
+        kwargs['shared_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=False)
+        
+        
+        
+        kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
+        
+        tasks = Task.objects.filter(condor_pool__user = user)
+        kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
+        kwargs['finished_tasks'] =  tasks.filter(status='finished')
+        kwargs['task_errors'] =  tasks.filter(status='error')
+
         return super(RestrictedFormView, self).dispatch(request, *args,**kwargs)
             
     def form_valid(self, *args, **kwargs):

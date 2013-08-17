@@ -53,23 +53,6 @@ class MyAccountView(RestrictedView):
         
         user = request.user
        
-        kwargs['compute_nodes'] = EC2Instance.objects.filter(ec2_pool__vpc__access_key__user=user)
-        kwargs['elastic_ips'] = ElasticIP.objects.filter(vpc__access_key__user=user)
-        
-        
-        
-        kwargs['access_keys'] = AWSAccessKey.objects.filter(user=user)
-        kwargs['owned_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=True)
-        kwargs['shared_keys'] = AWSAccessKey.objects.filter(user=user, copy_of__isnull=False)
-        
-        
-        
-        kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
-        
-        tasks = Task.objects.filter(condor_pool__user = user)
-        kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
-        kwargs['finished_tasks'] =  tasks.filter(status='finished')
-        kwargs['task_errors'] =  tasks.filter(status='error')
         
         return super(MyAccountView, self).dispatch(request, *args, **kwargs)
     
