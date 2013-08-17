@@ -62,9 +62,9 @@ class TaskPlugin(BaseTask):
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        
-        #Create the load balancing module
-        self.create_new_subtask('lb')
+        if self.use_load_balancing:
+            #Create the load balancing module
+            self.create_new_subtask('lb')
         
         #The main module
         self.create_new_subtask('main')
