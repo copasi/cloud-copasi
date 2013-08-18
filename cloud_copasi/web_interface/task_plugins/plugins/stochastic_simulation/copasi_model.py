@@ -131,7 +131,7 @@ class SSCopasiModel(CopasiModel):
             
             report.set('target', str(repeat) + '_out.txt') #target doesn't really matter, since it won't be transferred back
             filename = os.path.join(self.path, 'load_balancing_' + str(repeat) + '.cps')
-            self.model.write(filename)
+            self.write(filename)
             
             
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]

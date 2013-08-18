@@ -15,9 +15,9 @@ import os, time, math
 
 xmlns = model.xmlns
 
-class ORCopasiModel(CopasiModel):
+class PRCopasiModel(CopasiModel):
     
-    def prepare_or_load_balancing(self, repeats=None):
+    def prepare_pr_load_balancing(self, repeats=None):
         """Prepare copasi model files that can be used for the benchmarking step
 
         First sets up the scan task with a repeat. Write 3 files with 1, 10 and 100 repeats respectively
@@ -25,35 +25,40 @@ class ORCopasiModel(CopasiModel):
 
         if not repeats:
             repeats = [1, 10, 100, 1000]
-        #Clear tasks and set the scan task as scheduled
+       
+       
+       
+       #Benchmarking.
+        #As per usual, first calculate how long a single parameter fit will take
+        
         self._clear_tasks()
-        optTask = self._getTask('optimization')
-        
-        #Create a report
-        report_key = 'condor_copasi_optimization_repeat_report'
-        self._create_report('OR', report_key, 'auto_or_report')
-        
+        fitTask = self._getTask('parameterFitting')
+                
+        #Even though we're not interested in the output at the moment, we have to set a report for the parameter fitting task, or Copasi will complain!
+        #Only do this if custom_report is false
+        #Create a new report for the or task
+        report_key = 'condor_copasi_parameter_fitting_repeat_report'
+        self._create_report('PR', report_key, 'auto_pr_report')
+            
         #And set the new report for the or task
-        optReport = optTask.find(xmlns + 'Report')
+        fitReport = fitTask.find(xmlns + 'Report')
+    
     
         #If no report has yet been set, report == None. Therefore, create new report
-        if optReport == None:
-            optReport = etree.Element(xmlns + 'Report')
-            optTask.insert(0,optReport)
+        if fitReport == None:
+            fitReport = etree.Element(xmlns + 'Report')
+            fitTask.insert(0,fitReport)
         
-        optReport.set('reference', report_key)
-        optReport.set('append', '1')
-        optReport.set('target', '') # We don't want any output from the opt task. Will set later for scan task
-
+        fitReport.set('reference', report_key)
+    
+        fitReport.set('append', '1')
+        fitReport.set('target', '') #No output for this task
+        
         #Get the scan task
         scanTask = self._getTask('scan')
         scanTask.attrib['scheduled'] = 'true'
         scanTask.attrib['updateModel'] = 'true'
-        
-        #Remove the report output for the optTask to avoid any unwanted output when running the scan task
-        optReport.attrib['target'] = ''
-        
-        #Set the new report for the or task
+        #Set the new report for the scan task
         report = scanTask.find(xmlns + 'Report')
     
         #If no report has yet been set, report == None. Therefore, create new report
@@ -63,16 +68,18 @@ class ORCopasiModel(CopasiModel):
         
         report.set('reference', report_key)
         report.set('append', '1')
-                     
+        
+        #Prepare the scan task
+        
         #Open the scan problem, and clear any subelements
         scan_problem = scanTask.find(xmlns + 'Problem')
         scan_problem.clear()
         
-        #Add a subtask parameter (value 4 for optimization)
+        #Add a subtask parameter (value 5 for parameter estimation)
         subtask_parameter = etree.SubElement(scan_problem, xmlns + 'Parameter')
         subtask_parameter.attrib['name'] = 'Subtask'
         subtask_parameter.attrib['type'] = 'unsignedInteger'
-        subtask_parameter.attrib['value'] = '4'
+        subtask_parameter.attrib['value'] = '5'
         
         #Add a single ScanItem for the repeats
         subtask_pg = etree.SubElement(scan_problem, xmlns + 'ParameterGroup')
@@ -105,6 +112,11 @@ class ORCopasiModel(CopasiModel):
         p5.attrib['name'] = 'Adjust initial conditions'
         p5.attrib['type'] = 'bool'
         p5.attrib['value'] = '0'
+        
+        
+        ############
+        #Prepare the Copasi files
+        ############
 
         for repeat in repeats:
             #Write a new file with 1, 10 and 100 repeats

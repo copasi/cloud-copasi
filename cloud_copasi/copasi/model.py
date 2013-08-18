@@ -52,6 +52,11 @@ class CopasiModel(object):
     def __string__(self):
         return self.name
         
+    def write(self, filename):
+        """Write the contents of the model to the specified filename, preserving xml declaration"""
+        
+        return self.model.write(filename,xml_declaration=True, encoding='utf-8')
+        
     def is_valid(self, job_type):
         """Check if the model has been correctly set up for a particular condor-copasi task"""
         #Check the version is correct
@@ -646,7 +651,7 @@ class CopasiModel(object):
             
             target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' %(subtask_index, i))
             
-            self.model.write(target)
+            self.write(target)
             file_list.append(target)
             
             maximizeParameter.attrib['value'] = '0'
@@ -654,7 +659,7 @@ class CopasiModel(object):
             report.attrib['target'] = output
             
             target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i+1))
-            self.model.write(target)
+            self.write(target)
             file_list.append(target)
             i = i + 2
             
@@ -915,7 +920,7 @@ class CopasiModel(object):
             
             report.set('target', 'output_%d.%d.txt' % (subtask_index, i))
             filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
-            self.model.write(filename)
+            self.write(filename)
             model_files.append(filename)
             
             #Also, write a file called filename.runs.txt containing the number of runs per job
@@ -1202,7 +1207,7 @@ class CopasiModel(object):
                     parameters['no_of_steps'].attrib['value'] = str(steps)
                     report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
                     filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
-                    self.model.write(os.path.join(self.path, filename))
+                    self.write(os.path.join(self.path, filename))
                     model_files.append(filename)
             
         
@@ -1240,7 +1245,7 @@ class CopasiModel(object):
                 report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
                 
                 filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
-                self.model.write(os.path.join(self.path, filename))
+                self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
         
         return model_files
@@ -1414,7 +1419,7 @@ class CopasiModel(object):
             report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
             
             filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
-            self.model.write(os.path.join(self.path, filename))
+            self.write(os.path.join(self.path, filename))
             model_files.append(filename)
         
         return model_files
@@ -1562,7 +1567,7 @@ class CopasiModel(object):
         return output
         
         
-    def prepare_pr_jobs(self, repeats, skip_load_balancing=False, custom_report=False):
+    def prepare_pr_jobs(self, repeats, repeats_per_job, subtask_index, custom_report=False):
         """Prepare jobs for the parameter estimation repeat task"""
         
         
@@ -1572,7 +1577,6 @@ class CopasiModel(object):
         self._clear_tasks()
         fitTask = self._getTask('parameterFitting')
         
-        fitTask.attrib['scheduled'] = 'true'
         fitTask.attrib['updateModel'] = 'false'
         
         #Even though we're not interested in the output at the moment, we have to set a report for the parameter fitting task, or Copasi will complain!
@@ -1598,43 +1602,9 @@ class CopasiModel(object):
             fitReport.set('reference', report_key)
     
         fitReport.set('append', '1')
-        fitReport.set('target', 'copasi_temp_output.txt')        
+        fitReport.set('target', '')        
 
-        if not skip_load_balancing:
-            import tempfile
-            tempdir = tempfile.mkdtemp()
-            
-            temp_filename = os.path.join(tempdir, 'auto_copasi_temp.cps')
-            
-            #Copy the data file(s) over to the temp dir
-            import shutil
-            for data_file_line in open(os.path.join(self.path, 'data_files_list.txt'),'r'):
-                data_file = data_file_line.rstrip('\n')
-                shutil.copy(os.path.join(self.path, data_file), os.path.join(tempdir, data_file))
-            
-            #Write a temp XML file
-            self.model.write(temp_filename)
-            
-            #Note the start time
-            start_time = time.time()
-            self._copasiExecute(temp_filename, tempdir, timeout=int(settings.IDEAL_JOB_TIME*60))
-            finish_time = time.time()
-            time_per_step = finish_time - start_time
-            
-            #Remove the temp directory tree
-            shutil.rmtree(tempdir)
-
-            
-            #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
-            #time_per_job = repeats_per_job * time_per_step => repeats_per_job = time_per_job/time_per_step
-            
-            time_per_job = settings.IDEAL_JOB_TIME * 60
-            
-            #Calculate the number of repeats for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
-            repeats_per_job = min(int(round(float(time_per_job) / time_per_step)), repeats)
-
-        else:
-            repeats_per_job = 1
+        
             
         no_of_jobs = int(math.ceil(float(repeats) / repeats_per_job))
         
@@ -1710,7 +1680,7 @@ class CopasiModel(object):
         ############
         #Prepare the Copasi files
         ############
-        
+        model_files = []
         repeat_count = 0
         for i in range(no_of_jobs):
             if repeats_per_job + repeat_count > repeats:
@@ -1722,51 +1692,57 @@ class CopasiModel(object):
             #Set the number of repeats for the scan task
             p1.attrib['value'] = str(no_of_repeats)
             #And the report target output
-            report.attrib['target'] = str(i) + '_out.txt'
+            report.attrib['target'] = 'output_%d.%d.txt' % (subtask_index, i)
             
-            filename = os.path.join(self.path, 'auto_copasi_' + str(i) +'.cps')
-            self.model.write(filename)
+            filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
+            self.write(os.path.join(self.path, filename))
+            model_files.append(filename)
+        
+        return model_files
         
         
-        return no_of_jobs
-        
-        
-    def prepare_pr_condor_jobs(self, jobs, rank='0'):
+    def prepare_pr_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
         """Prepare the condor jobs for the parallel scan task"""
         ############
-        #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
-        condor_jobs = []
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
         
-        #Build up a string containing a comma-seperated list of data files
-        files_string = ','
-        for data_file_line in open(os.path.join(self.path, 'data_files_list.txt'), 'r'):
-            data_file = data_file_line.rstrip('\n')
-            files_string += data_file + ','
         
+        
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin/'
+            transfer_executable = 'NO'
+        else:
+            binary_dir = settings.COPASI_BINARY_DIR
+            transfer_executable = 'YES'
+        
+        input_files_string = ', '
+        for data_file in data_files:
+            input_files_string += (data_file + ', ')
+        input_files_string = input_files_string.rstrip(', ')
 
-        files_string = files_string.rstrip(',')
-
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file, 
+                                                                                   otherFiles=input_files_string,
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
         
-        for i in range(jobs):
-            copasi_file = Template('auto_copasi_$index.cps').substitute(index=i)
-            #In addition to the copasi file, also transmit the data files. These are listed in files_string
-            condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiPath=self.binary_dir, copasiFile=copasi_file, otherFiles=files_string, rank=rank)            
-            condor_job_filename = os.path.join(self.path, Template('auto_condor_$index.job').substitute(index=i))
-            condor_file = open(condor_job_filename, 'w')
-            condor_file.write(condor_job_string)
-            condor_file.close()
-            #Append a dict contining (job_filename, std_out, std_err, log_file, job_output)
-            condor_jobs.append({
-                'spec_file': condor_job_filename,
-                'std_output_file': str(copasi_file) + '.out',
-                'std_error_file': str(copasi_file) + '.err',
-                'log_file': str(copasi_file) + '.log',
-                'job_output': str(i) + '_out.txt'
-            })
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
 
-        return condor_jobs
+        return condor_job_filename
         
-    def process_pr_results(self, jobs, custom_report=False):
+    def process_pr_results(self, results_files, custom_report):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
         
@@ -1785,7 +1761,7 @@ class CopasiModel(object):
         best_line = None
         
         #Copy the contents of the first file to results.txt
-        for line in open(os.path.join(self.path, '0_out.txt'), 'r'):
+        for line in open(os.path.join(self.path, results_files[0]), 'r'):
             output_file.write(line)
             try:
                 if line != '\n':
@@ -1800,16 +1776,16 @@ class CopasiModel(object):
                             best_line = line
                 else:
                     pass
-            except:
+            except Exception, e:
                 if custom_report:
                     pass
                 else:
-                    raise
+                    raise e
                 
         #And for all other files, copy everything but the last line
-        for i in range(jobs)[1:]:
+        for filename in results_files[1:]:
             firstLine = True
-            for line in open(os.path.join(self.path, str(i) + '_out.txt'), 'r'):
+            for line in open(os.path.join(self.path, filename), 'r'):
                 if not firstLine:
                     output_file.write(line)
                     try:
@@ -1821,11 +1797,11 @@ class CopasiModel(object):
                                     best_line = line
                         else:
                             pass
-                    except:
+                    except Exception, e:
                         if custom_report:
                             pass
                         else:
-                            raise
+                            raise e
                 firstLine = False
                 
                 
@@ -1856,6 +1832,11 @@ class CopasiModel(object):
             output_file.write('\t')
         output_file.close()
         
+        if best_value != None:
+            return True
+        else:
+            return False
+        
     def get_pr_best_value(self):
         """Read the best value and best parameters from results.txt"""
         best_values = open(os.path.join(self.path, 'results.txt'),'r').readlines()
@@ -1871,7 +1852,7 @@ class CopasiModel(object):
 
         return output
         
-    def create_pr_best_value_model(self, filename, custom_report=False):
+    def create_pr_best_value_model(self, subtask_index, custom_report=False):
         """Create a .CPS model containing the best parameter values found by the PR task, and save it to filename"""
         #We do this in an indirect way - set up the parameter estimation task again, set to executable,
         # set the start values as the best values found by the task, set to current solution statistics,
@@ -1968,16 +1949,51 @@ class CopasiModel(object):
         
         #Save to filename
         
-        filename = os.path.join(self.path, filename)
-        self.model.write(filename)
+        filename = 'auto_copasi_%d.0.cps' % subtask_index
+        self.write(os.path.join(self.path, filename))
+
+        return filename
+    
+    def prepare_pr_optimal_model_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
+        """Prepare the condor jobs for the parallel scan task"""
+        ############
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = ''
         
         
-        ########
-        #Step 4 - run CopasiSE locally on this new file to update to the new parameter values
         
-        self._copasiExecute(filename, self.path, save=True)
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin/'
+            transfer_executable = 'NO'
+        else:
+            binary_dir = settings.COPASI_BINARY_DIR
+            transfer_executable = 'YES'
         
-        return
+        input_files_string = ', '
+        for data_file in data_files:
+            input_files_string += (data_file + ', ')
+        input_files_string = input_files_string.rstrip(', ')
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file, 
+                                                                                   otherFiles=input_files_string,
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+        
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
         
     def prepare_od_jobs(self, algorithms):
         """Prepare the jobs for the optimization with different algorithms task
@@ -2017,7 +2033,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
             if algorithm['prefix'] == 'genetic_algorithm':
                 if algorithm['form_instance'].cleaned_data['enabled']:
@@ -2048,7 +2064,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'genetic_algorithm_sr':
@@ -2085,7 +2101,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'hooke_and_jeeves':
@@ -2112,7 +2128,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'levenberg_marquardt':
@@ -2135,7 +2151,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'evolutionary_programming':
@@ -2167,7 +2183,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'random_search':
@@ -2195,7 +2211,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
                     
@@ -2224,7 +2240,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'particle_swarm':
@@ -2262,7 +2278,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
                     
@@ -2279,7 +2295,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'truncated_newton':
@@ -2290,7 +2306,7 @@ class CopasiModel(object):
                     
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'simulated_annealing':
@@ -2328,7 +2344,7 @@ class CopasiModel(object):
 
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
                     
@@ -2366,7 +2382,7 @@ class CopasiModel(object):
 
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
             if algorithm['prefix'] == 'steepest_descent':
@@ -2389,7 +2405,7 @@ class CopasiModel(object):
 
                     report.attrib['target'] = algorithm['prefix'] + '_out.txt'
                     output_files.append(algorithm['prefix']+'_out.txt')
-                    self.model.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
+                    self.write(os.path.join(self.path, 'auto_copasi_' + str(output_counter) + '.cps'))
                     output_counter += 1
                     
                     
@@ -2573,7 +2589,7 @@ class CopasiModel(object):
                     
             target = os.path.join(self.path, 'auto_copasi_%s.cps'%i)
                     
-            self.model.write(target)
+            self.write(target)
          
         #Return the number of jobs that will run, which in this case is simply the number of repeats 
         return repeats
@@ -2679,7 +2695,7 @@ class CopasiModel(object):
                 shutil.copy(os.path.join(self.path, data_file), os.path.join(tempdir, data_file))
             
             #Write a temp XML file
-            self.model.write(temp_filename)
+            self.write(temp_filename)
             
             #Note the start time
             start_time = time.time()
@@ -2805,7 +2821,7 @@ class CopasiModel(object):
             report.attrib['target'] = str(j) + '_out.txt'
             
             filename = os.path.join(self.path, str(j), 'auto_copasi_' + str(j) +'.cps')
-            self.model.write(filename)
+            self.write(filename)
                     
         return no_of_jobs
         

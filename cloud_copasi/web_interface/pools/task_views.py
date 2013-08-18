@@ -34,6 +34,8 @@ from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from django.utils.datetime_safe import datetime
 import shutil
+from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
+import zipfile
 
 log = logging.getLogger(__name__)
 
@@ -126,29 +128,86 @@ class NewTaskView(RestrictedFormView):
         base_form = base.BaseTaskForm
         for field_name in self.form_class.base_fields:
             if field_name not in base_form.base_fields:
-                extra_fields.append(field_name)
+                extra_fields.append((field_name, self.form_class.base_fields[field_name]))
+        
+        #We have not yet created the directory to hold the files
+        directory_created = False
+        task.save() # Save the task so we can get a valid id
+        
         #Save the custom task fields
-        for field_name in extra_fields:
+        for field_name, field_object in extra_fields:
             
             #TODO: Check what type the field is. If it's a filefield then we need to upload the files into the user dir
             #TODO: Is the file a zip file? Try unzipping it...
+            if isinstance(field_object, forms.FileField) and isinstance(form.cleaned_data[field_name], UploadedFile):
+                try:
+                    #Create a directory to store the files for the task
+                    #This will just be the id of the task
+                    task_dir = str(task.id)
+                    task_dir_path = os.path.join(user_dir_path, task_dir)
+                
+                    if os.path.exists(task_dir_path):
+                        os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
+                
+                    os.mkdir(task_dir_path)
+                    directory_created = True
+                    
+                    data_file = request.FILES['parameter_estimation_data']
+                    filename = data_file.name
+                    data_destination = os.path.join(task_dir_path, filename)
+                    form_tools.handle_uploaded_file(data_file, data_destination)
+                           
+                    #Next, attempt to extract the file
+                    #If this fails, assume the file is an ASCII data file, not a zip file
+                    try:
+                        data_files_list=[]
+                        z = zipfile.ZipFile(data_destination)
+                        #Record the name of each file in the zipfile
+                        
+                        for name in  z.namelist():
+                            data_files_list.append(name)
+                        
+                        z.extractall(task_dir_path)
+                    except zipfile.BadZipfile:
+                        data_files_list=[]
+                        #Assume instead that, if not a zip file, the file must be a data file, so leave it be.
+                        #Write the name of the data file to data_files_list
+                        data_files_list.append(filename)
+                    task.set_custom_field('data_files', data_files_list)
+                except Exception, e:
+                    log.exception(e)
+                    error_messages = ['An error occured while preparing the task',
+                                       str(e),]
+                    form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
+                    try:
+                        shutil.rmtree(task.directory)
+                    except:
+                        pass
+                    try:
+                        task.delete()
+                    except:
+                        pass
+                    kwargs['form']=form
+                    return self.form_invalid(self, *args, **kwargs)
             
-            task.set_custom_field(field_name, form.cleaned_data[field_name])
+            else:
+                task.set_custom_field(field_name, form.cleaned_data[field_name])
             
             
             
         task.save()
         
         try:
-            #Create a directory to store the files for the task
-            #This will just be the id of the task
-            task_dir = str(task.id)
-            task_dir_path = os.path.join(user_dir_path, task_dir)
-            
-            if os.path.exists(task_dir_path):
-                os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
-            
-            os.mkdir(task_dir_path)
+            if not directory_created:
+                #Create a directory to store the files for the task
+                #This will just be the id of the task
+                task_dir = str(task.id)
+                task_dir_path = os.path.join(user_dir_path, task_dir)
+                
+                if os.path.exists(task_dir_path):
+                    os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
+                
+                os.mkdir(task_dir_path)
             
             task.directory = task_dir_path
             task.save()

@@ -91,7 +91,7 @@ class PSCopasiModel(CopasiModel):
 
             parameters['no_of_steps'].attrib['value'] = '%d'%repeat
             
-            self.model.write(filename)
+            self.write(filename)
             
             
         #############################

@@ -22,7 +22,7 @@ grid_resource = batch ${pool_type} ${pool_address}
 #CopasiSE binary now X86_64 only...
 condor_string_args = """executable = ${binary_dir}CopasiSE
 transfer_executable = ${transfer_executable}
-arguments = --nologo --home . ${copasiFile} --save ${copasiFile}
+arguments = --nologo --home . ${copasiFile} --save run_${copasiFile}
 """
 
 #For raw mode. Allows for custom arguments to be added
@@ -39,15 +39,13 @@ rank = ${rank}
 Requirements = ( Arch == "X86_64" && OpSys == "LINUX") 
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_output_files = ${outputFile}
+transfer_output_files = run_${copasiFile}, ${outputFile}
 ${extraArgs}
 queue ${n}\n"""
 
 raw_condor_job_string = condor_string_header + condor_string_args + condor_string_body
 
 raw_mode_string = condor_string_header + condor_string_no_args + condor_string_body
-
-
 
 #This spec is used for the stochastic simulation results processing task
 #Since processing for this task is quite computationally expensive, we run it

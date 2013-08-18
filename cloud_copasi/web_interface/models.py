@@ -526,6 +526,7 @@ class Subtask(models.Model):
                     ('lb', 'Load balancing'),
                     ('main', 'Main task'),
                     ('process', 'Results processing'),
+                    ('file', 'Creating file with optimal values'),
                     ('other', 'Other'),
                     )
     
