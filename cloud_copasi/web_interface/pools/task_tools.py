@@ -17,6 +17,7 @@ from cloud_copasi.web_interface.task_plugins import tools
 import logging
 from cloud_copasi.web_interface.pools import condor_tools
 import tarfile
+import datetime
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
@@ -96,6 +97,7 @@ def update_tasks(user=None, task=None):
         finished = task_subtasks.filter(status='finished').order_by('index')
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
+            task.finish_time = datetime.datetime.utcnow()
             log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
             task.save()
 
