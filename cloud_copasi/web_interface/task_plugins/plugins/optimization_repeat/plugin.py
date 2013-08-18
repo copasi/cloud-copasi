@@ -13,15 +13,14 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface.task_plugins.plugins.parallel_scan.copasi_model import PSCopasiModel
+from copasi_model import ORCopasiModel # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from cloud_copasi.condor import condor_spec
-from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
+from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 log = logging.getLogger(__name__)
 
@@ -32,35 +31,34 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
 
-internal_type = ('parallel_scan', 'Scan in parallel')
+internal_type = ('optimization_repeat', 'Optimization repeat')
 
 class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
     skip_load_balancing_step = forms.BooleanField(required=False, help_text='Select this to skip the automatic load balancing step, and make the run time of each parallel job as short as possible. <span class="bold">Use with caution! This has the potential to overload the Condor system with huge numbers of parallel jobs.</span> Not applicable for some job types - see documentation for further details.')
-
-
+    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform')
 
 class TaskPlugin(BaseTask):
     
-    subtasks = 3
+    subtasks = 2
 
     def __init__(self, task):
         self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
-
+        
         if self.use_load_balancing:
             self.subtasks = 3
         else:
             self.subtasks = 2
             task.set_custom_field('repeats_per_job', 1)
-            task.save()
             
         super(TaskPlugin, self).__init__(task)
-        self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-
         
+        self.copasi_model = ORCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        self.repeats = self.task.get_custom_field('repeats')
+        repeats = self.repeats
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        return self.copasi_model.is_valid('PS')
+        return self.copasi_model.is_valid('OR')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
@@ -97,7 +95,7 @@ class TaskPlugin(BaseTask):
     def process_lb_subtask(self):
         #Prepare the necessary files to run the load balancing task on condor
         
-        filenames = self.copasi_model.prepare_ps_load_balancing()
+        filenames = self.copasi_model.prepare_or_load_balancing()
         #Construct the model files for this task
         timeout = str(settings.IDEAL_JOB_TIME * 60)
         if self.task.get_custom_field('rank'):
@@ -185,21 +183,33 @@ class TaskPlugin(BaseTask):
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
                 
-                time_per_step = time / lb_repeats
+                time_per_run = time / lb_repeats
                 
-
+                #Work out the number of repeats per job. If this is more than the original number of repeats specified, then just use the original number
+                repeats_per_job = min(int(round(settings.IDEAL_JOB_TIME * 60 / time_per_run)), self.repeats)
+                
+                if repeats_per_job < 1:
+                    repeats_per_job = 1
+                
+            
+            
         else:
             subtask = self.get_subtask(1)
-            time_per_step = None
+            repeats_per_job = 1
+        
         
         
         
         #If no load balancing step required:
-        model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
+        model_files = self.copasi_model.prepare_or_jobs(self.repeats, repeats_per_job, subtask.index)
         
         condor_pool = self.task.condor_pool
         
-        condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
+        condor_job_file = self.copasi_model.prepare_or_condor_job(condor_pool.pool_type,
+                                                                  condor_pool.address,
+                                                                  len(model_files),
+                                                                  subtask.index,
+                                                                  rank='')
         
         log.debug('Prepared copasi files %s'%model_files)
         log.debug('Prepared condor job %s' %condor_job_file)
@@ -237,23 +247,51 @@ class TaskPlugin(BaseTask):
         
         results_files = [job.job_output for job in main_jobs]
         
-        self.copasi_model.process_ps_results(results_files)
+        self.copasi_model.process_or_results(results_files)
                 
         subtask.status = 'finished'
         subtask.save()
         
-        self.task.results_view=False
-        self.task.save()
+        subtask.task.results_view=False
+        subtask.task.save()
         
         return subtask
     
     
     
     #===========================================================================
-    # Results download code. No results view page for this task
+    # Results view code, including a form to update the plot
     #===========================================================================
     
     
+    def get_results_view_template_name(self, request):
+        """Return a string with the HTML code to be used in the task results view page
+        """
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+        
+        if page_name == 'main':
+            return self.get_template_name('results_view')
+        
+        else: return ''
+
+    
+    def get_results_view_data(self, request):
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+        if page_name == 'main':
+            model = self.copasi_model
+            results = model.get_or_best_value()
+            
+            best_value = results[0][1]
+            
+            best_params = results[1:]
+            
+            output = {'best_value' : best_value,
+                      'best_params' : best_params,
+                      }
+            
+            return output
         
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
@@ -271,3 +309,17 @@ class TaskPlugin(BaseTask):
    
             return response
             
+        elif page_name == 'raw_results':
+            filename = os.path.join(self.task.directory, 'raw_results.txt')
+            if not os.path.isfile(filename):
+                request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
+                return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
+            result_file = open(filename, 'r')
+            response = HttpResponse(result_file, content_type='text/tab-separated-values')
+            response['Content-Disposition'] = 'attachment; filename=%s_raw_results.txt' % (self.task.name.replace(' ', '_'))
+            response['Content-Length'] = os.path.getsize(filename)
+   
+            return response
+
+    
+
