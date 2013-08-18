@@ -20,6 +20,7 @@ SUBNET_CIDR_BLOCK = IP_RANGE + '/24'
 SSH_PORT = 22
 CONDOR_FROM_PORT = 9600
 CONDOR_TO_PORT = 9700
+ALLOW_ALL_TRAFFIC = True #Allow only specific condor ports, or allow all traffic (for debuging only)
 
 def create_vpc(key, vpc_connection, ec2_connection):
     
@@ -57,16 +58,25 @@ def create_vpc(key, vpc_connection, ec2_connection):
     master_group = ec2_connection.create_security_group(master_sg_name, 'created_by_cloud_copasi', vpc.id)
     worker_group = ec2_connection.create_security_group(worker_sg_name, 'created_by_cloud_copasi', vpc.id)
     time.sleep(5)
-    #Set up the master security group
-    master_group.authorize(ip_protocol='TCP', from_port=22, to_port=22, cidr_ip='0.0.0.0/0')
-    master_group.authorize(ip_protocol='TCP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
-    master_group.authorize(ip_protocol='UDP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
-    time.sleep(5)
-    #Set up the worker security group
-    worker_group.authorize(ip_protocol='TCP', from_port=22, to_port=22, cidr_ip=VPC_CIDR_BLOCK)
-    worker_group.authorize(ip_protocol='TCP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
-    worker_group.authorize(ip_protocol='UDP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
-    
+    if not ALLOW_ALL_TRAFFIC:
+        #Set up the master security group
+        master_group.authorize(ip_protocol='TCP', from_port=22, to_port=22, cidr_ip='0.0.0.0/0')
+        master_group.authorize(ip_protocol='TCP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
+        master_group.authorize(ip_protocol='UDP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
+        time.sleep(5)
+        #Set up the worker security group
+        worker_group.authorize(ip_protocol='TCP', from_port=22, to_port=22, cidr_ip=VPC_CIDR_BLOCK)
+        worker_group.authorize(ip_protocol='TCP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
+        worker_group.authorize(ip_protocol='UDP', from_port=9600, to_port=9700, cidr_ip=VPC_CIDR_BLOCK)
+    else:
+        #Set up the master security group and worker group to allow all traffic
+        master_group.authorize(ip_protocol='TCP', from_port=0, to_port=65535, cidr_ip='0.0.0.0/0')
+        master_group.authorize(ip_protocol='UDP', from_port=0, to_port=65535, cidr_ip='0.0.0.0/0')
+        time.sleep(5)
+        #Set up the worker security group
+        worker_group.authorize(ip_protocol='TCP', from_port=0, to_port=65535, cidr_ip='0.0.0.0/0')
+        worker_group.authorize(ip_protocol='UDP', from_port=0, to_port=65535, cidr_ip='0.0.0.0/0')
+
     vpc_model = models.VPC(
                            access_key = key,
                            vpc_id = vpc.id,
