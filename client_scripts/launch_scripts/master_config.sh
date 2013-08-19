@@ -23,6 +23,11 @@ echo "$IP $(hostname)" >> /etc/hosts
 #Use the Condor host config file
 ln -s /etc/condor/condor_config.master /etc/condor/condor_config.local
 
+
+#Set the network interface to the current IP address
+sed -i "s:^\(NETWORK_INTERFACE\s*=\s*\).*$:\1$IP:" /etc/condor/condor_config.local
+
+
 #Set the instance hostname as the Condor
 #sed -i "s:^\(CONDOR_HOST\s*=\s*\).*$:\1$CONDOR_HOST:" /etc/condor/condor_config.local
 

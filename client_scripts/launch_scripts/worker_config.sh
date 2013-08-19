@@ -26,6 +26,10 @@ ln -s /etc/condor/condor_config.worker /etc/condor/condor_config.local
 #Set the instance hostname as the Condor
 sed -i "s:^\(CONDOR_HOST\s*=\s*\).*$:\1$CONDOR_HOST:" /etc/condor/condor_config.local
 
+#Set the network interface to the current IP address
+sed -i "s:^\(NETWORK_INTERFACE\s*=\s*\).*$:\1$IP:" /etc/condor/condor_config.local
+
+
 #Set the domain correctly
 #DOMAIN=`hostname -d`
 #sed -i "s:<domain>:$DOMAIN:" /etc/condor/condor_config.local
