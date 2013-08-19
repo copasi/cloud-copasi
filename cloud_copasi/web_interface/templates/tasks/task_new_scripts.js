@@ -16,6 +16,11 @@ function getExtraFormData(task_type){
             }
         }
         $('.formrow-extra').fadeIn('slow');
+        
+        //Hide again if class is hidden
+        $('.hidden_form').parent().parent().hide();
+        $('.hidden_form').parent().parent().next().hide();
+
         $('#form-submit-link').fadeIn('slow');
         $('#continue-text').hide();
     });
@@ -48,6 +53,38 @@ function clearExtraFormData(next_task){
 }
 
 
+function toggle(class_name)
+{
+    $('.hidden_form.' + class_name).parent().parent().fadeToggle('slow');
+    $('.hidden_form.' + class_name).parent().parent().next().fadeToggle('slow');
+}
+
+function hide_if_not_selected()
+{
+    var selectors;
+    selectors   = $('.selector');
+    
+    selectors.each(
+        function()
+        {
+            var id = $(this).attr('id');
+            //id will be of the form id_somename_enabled
+            var name = id.slice(2, 8)
+            console.log(name)
+            
+            selector_checked = $('this : checked').length > 0;
+    
+            if (selector_checked != true)
+            {
+                $('.hidden_form.' + class_name).parent().parent().hide();
+                $('.hidden_form.' + class_name).parent().parent().next().hide();
+            }
+    
+}
+
+        }
+    );
+    
 
 //bind the task type change event
 $(document).ready(function() {
@@ -67,4 +104,9 @@ $(document).ready(function(){
         //If a task type is already selected, disable the choice to chainge it since it will not load properly
         $('#id_task_type').prop('disabled', true);
     }
+    
+    //Hide any non-selected form elements if they have class hidden-form
+    
+    hide_if_not_selected();
+    
 })
