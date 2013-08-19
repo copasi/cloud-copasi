@@ -137,7 +137,6 @@ class NewTaskView(RestrictedFormView):
         #Save the custom task fields
         for field_name, field_object in extra_fields:
             
-            #TODO: Check what type the field is. If it's a filefield then we need to upload the files into the user dir
             #TODO: Is the file a zip file? Try unzipping it...
             if isinstance(field_object, forms.FileField) and isinstance(form.cleaned_data[field_name], UploadedFile):
                 try:
@@ -152,7 +151,7 @@ class NewTaskView(RestrictedFormView):
                     os.mkdir(task_dir_path)
                     directory_created = True
                     
-                    data_file = request.FILES['parameter_estimation_data']
+                    data_file = request.FILES[field_name]
                     filename = data_file.name
                     data_destination = os.path.join(task_dir_path, filename)
                     form_tools.handle_uploaded_file(data_file, data_destination)

@@ -26,7 +26,7 @@ arguments = --nologo --home . ${copasiFile} --save run_${copasiFile}
 """
 
 #For raw mode. Allows for custom arguments to be added
-condor_string_no_args = """executable = ${binary_dir}CopasiSE.${OpSys}.${Arch}
+condor_string_no_args = """executable = ${binary_dir}CopasiSE
 transfer_executable = ${transfer_executable}
 arguments = $args
 """
