@@ -7,6 +7,12 @@ function getExtraFormData(task_type){
             $('#formtable').append('<tr class="formrow-extra" style="display:none"><td class="topline" colspan="2"> </td></tr>')
             //And the row for the field
             field = data.fields[i];
+            //TODO: if field_class contains form-group, add the field to a div....
+            //Alternatively, just get rid of the topline and bottomline elements. Probably much easier...
+            field_dom = $(field.field);
+            field_class = field_dom.attr('class')
+            console.log(field_class)
+            
             $('#formtable').append('<tr class="formrow formrow-extra" style="display:none"><th class="fieldlabel ' + 
             field.required + '"> <label for= "' + field.id + '">' + field.label + '</label></th>' + 
             '<td class="fielddata">' + field.field + '</td></tr>');
@@ -14,15 +20,15 @@ function getExtraFormData(task_type){
             {
                 $('#formtable').append('<tr class="formrow-extra" style="display:none"><td> </td><td class="fieldhelp">' + field.help_text + ' </td></tr>');
             }
+            $('#formtable').append('<tr class="formrow-extra" style="display:none"><td class="bottomline" colspan="2"> </td></tr>')
         }
         $('.formrow-extra').fadeIn('slow');
         
-        //Hide again if class is hidden
-        $('.hidden_form').parent().parent().hide();
-        $('.hidden_form').parent().parent().next().hide();
 
         $('#form-submit-link').fadeIn('slow');
         $('#continue-text').hide();
+        
+        hide_if_not_selected();
     });
 }
 //Remove any extra fields that have been added
@@ -57,6 +63,8 @@ function toggle(class_name)
 {
     $('.hidden_form.' + class_name).parent().parent().fadeToggle('slow');
     $('.hidden_form.' + class_name).parent().parent().next().fadeToggle('slow');
+    $('.hidden_form.' + class_name).parent().parent().prev().fadeToggle('slow');
+
 }
 
 function hide_if_not_selected()
@@ -68,22 +76,22 @@ function hide_if_not_selected()
         function()
         {
             var id = $(this).attr('id');
-            //id will be of the form id_somename_enabled
-            var name = id.slice(2, 8)
-            console.log(name)
+            //id will be of the form id_taskname
+            var class_name = id.slice(3)
             
-            selector_checked = $('this : checked').length > 0;
-    
+            console.log(id)
+            
+            selector_checked = $(this).prop('checked');
+            console.log(selector_checked);
             if (selector_checked != true)
             {
+                console.log('.hidden_form.'+class_name);
                 $('.hidden_form.' + class_name).parent().parent().hide();
                 $('.hidden_form.' + class_name).parent().parent().next().hide();
+                $('.hidden_form.' + class_name).parent().parent().prev().hide();
             }
-    
-}
-
-        }
-    );
+        });
+    }
     
 
 //bind the task type change event

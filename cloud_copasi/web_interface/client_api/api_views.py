@@ -363,46 +363,50 @@ class ExtraTaskFieldsView(APIView):
     """Return the extra fields required for a specific task. Typically called asynchronously
     """
     def get(self, request, *args, **kwargs):
-        task_type = request.GET['task_type']
-        
-        task_form = tools.get_form_class(task_type)
-        
-        base_form = base.BaseTaskForm
-        
-        #Get a list of all fields that are only in the task form, and not in the base
-        extra_fields = []
-        for field_name in task_form.base_fields:
-            if field_name not in base_form.base_fields:
-                extra_fields.append(field_name)
-        
-        #Create a bound instance of the task form so we can get at the html
-        bound_form = task_form(user=None, task_types=[])
-        field_list = []
-        
-        #Return the complete html here:
-        
-        
-        for field_name in extra_fields:
-            field = bound_form[field_name]
-            field_data=  {}
-            #print field
-            field_data['label'] = field.label
-            field_data['field'] = str(field) #should be html
-            if field.field.required:
-                field_data['required'] = 'required'
-            else:
-                field_data['required'] = ' '
-            if field.help_text:
-                field_data['help_text'] = field.help_text
-            else:
-                field_data['help_text'] = ' '
-            field_data['id'] = field.id_for_label
-            field_data['html_name'] = field.html_name
+        try:
+            task_type = request.GET['task_type']
             
-            field_list.append(field_data)
-        response_data={}
-        response_data['fields'] = field_list
-        json_response=json.dumps(response_data)
+            task_form = tools.get_form_class(task_type)
+            
+            base_form = base.BaseTaskForm
+            
+            #Create a bound instance of the task form so we can get at the html
+            bound_form = task_form(user=None, task_types=[])
+
+            #Get a list of all fields that are only in the task form, and not in the base
+            extra_fields = []
+            for field_name in bound_form.fields:
+                if field_name not in base_form.base_fields:
+                    extra_fields.append(field_name)
+            
+            field_list = []
+            
+            #Return the complete html here:
+            
+            
+            for field_name in extra_fields:
+                field = bound_form[field_name]
+                field_data=  {}
+                #print field
+                field_data['label'] = field.label
+                field_data['field'] = str(field) #should be html
+                if field.field.required:
+                    field_data['required'] = 'required'
+                else:
+                    field_data['required'] = ' '
+                if field.help_text:
+                    field_data['help_text'] = field.help_text
+                else:
+                    field_data['help_text'] = ' '
+                field_data['id'] = field.id_for_label
+                field_data['html_name'] = field.html_name
+                
+                field_list.append(field_data)
+            response_data={}
+            response_data['fields'] = field_list
+            json_response=json.dumps(response_data)
+        except Exception, e:
+            log.debug(e)
         return HttpResponse(json_response, content_type="application/json", status=200)
     
 class TerminateInstanceAlarm(APIView):

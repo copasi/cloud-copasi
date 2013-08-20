@@ -42,23 +42,184 @@ class HiddenTextInput(forms.TextInput):
         
         return super(HiddenTextInput, self).__init__(*args, **kwargs)
 
-class TaskForm(BaseTaskForm):
-    current_solution_statistics_enabled = forms.BooleanField(label='Current solution statistics', required=False, widget=forms.CheckboxInput(attrs={'class': 'firstElement selector'}))
+algorithms = []
+algorithms.append({
+    'prefix': 'current_solution_statistics',
+    'name': 'Current Solution Statistics',
+    'params': []
+})
+
+algorithms.append({
+    'prefix': 'genetic_algorithm',
+    'name': 'Genetic Algorithm',
+    #params = (prefix, name, default, type, min, max)
+    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+               ]
+})
+algorithms.append({
+    'prefix': 'genetic_algorithm_sr',
+    'name': 'Genetic Algorithm SR',
+    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+               ('pf', 'Pf', 0.475, int, 0, 1),
+               ]
+})
+algorithms.append({
+    'prefix': 'hooke_and_jeeves',
+    'name': 'Hooke & Jeeves',
+    'params': [('iteration_limit', 'Iteration limit', 50, int, 1, None),
+               ('tolerance', 'Tolerance', 1e-5, float, 0, None),
+               ('rho', 'Rho', 0.2, float, 0, 1),
+               ]
+})
+algorithms.append({
+    'prefix': 'levenberg_marquardt',
+    'name': 'Levenberg-Marquardt',
+    'params': [('iteration_limit', 'Iteration limit', 50, int, 1, None),
+               ('tolerance', 'Tolerance', 1e-5, float, 0, None),
+               ]
+
+})
+algorithms.append({
+    'prefix': 'evolutionary_programming',
+    'name': 'Evolutionary Programming',
+    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+               ]
     
-    genetic_algorithm_enabled = forms.BooleanField(label='Genetic Algorithm', required=False, widget=forms.CheckboxInput(attrs={'onclick': "toggle('genetic_algorithm')"}))
-    genetic_algorithm_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-    genetic_algorithm_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-    genetic_algorithm_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-    genetic_algorithm_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
+})
+algorithms.append({
+    'prefix': 'random_search',
+    'name': 'Random Search',
+    'params': [('no_of_iterations', 'Number of iterations', 10000, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+              ]
 
+    
+})
+algorithms.append({
+    'prefix': 'nelder_mead',
+    'name': 'Nelder-Mead',
+    'params': [('iteration_limit', 'Iteration limit', 200, int, 1, None),
+               ('tolerance', 'Tolerance', 1e-5, float, 0, None),
+               ('scale', 'Scale', 10, float, 0, None),
+               ]
 
+    
+})
+algorithms.append({
+    'prefix': 'particle_swarm',
+    'name': 'Particle Swarm',
+    'params': [('iteration_limit', 'Iteration limit', 2000, int, 1, None),
+               ('swarm_size', 'Swarm size', 200, int, 1, None),
+               ('std_deviation', 'Standard deviation', 1e-6, float, 0, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+               ]
 
-    genetic_algorithm_sr_enabled = forms.BooleanField(label='Genetic algorithm SR', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('genetic_algorithm_sr', this);",}))
-    genetic_algorithm_sr_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-    genetic_algorithm_sr_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-    genetic_algorithm_sr_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-    genetic_algorithm_sr_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-    genetic_algorithm_sr_pf = forms.FloatField(label='Pf', initial=0.475, min_value=0, max_value=1)    
+})
+algorithms.append({
+    'prefix': 'praxis',
+    'name': 'Praxis',
+     'params': [('tolerance', 'Tolerance', 1e-5, float, 0, None),
+       ]
+})
+algorithms.append({
+    'prefix': 'truncated_newton',
+    'name': 'Truncated Newton',
+    'params' : []
+})
+algorithms.append({
+    'prefix': 'simulated_annealing',
+    'name': 'Simulated Annealing',
+    'params' : [('start_temperature', 'Start temperature', 1, float, 0, None),
+                ('cooling_factor', 'Cooling factor', 0.85, float, 0, None),
+                ('tolerance', 'Tolerance', 1e-6, float, 0, None),
+                ('random_number_generator', 'Random number generator', 1, int, 0, None),
+                ('seed', 'Seed', 0, float, 0, None),
+                ]
+})
+algorithms.append({
+    'prefix': 'evolution_strategy',
+    'name': 'Evolution Strategy',
+    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, float, 0, None),
+               ('pf', 'Pf', 0.475, int, 0, 1),
+               ]
+
+})
+algorithms.append({
+    'prefix': 'steepest_descent',
+    'name': 'Steepest Descent',
+    'params': [('iteration_limit', 'Iteration limit', 100, int, 1, None),
+               ('tolerance', 'Tolerance', 1e-6, float, 0, None),
+               ]
+
+})    
+     
+
+class TaskForm(BaseTaskForm):
+    
+    def __init__(self, *args, **kwargs):
+        try:
+            super(TaskForm, self).__init__(*args, **kwargs)
+            
+            for algorithm in algorithms:
+                self.fields[algorithm['prefix']] = forms.BooleanField(required=False,
+                                                                      label=algorithm['name'],
+                                                                      widget=forms.CheckboxInput(attrs={'class':'form-group selector',
+                                                                                                        'onclick': "toggle('%s')" % algorithm['prefix']}))
+                for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
+                    if typeof==int:
+                        field_class=forms.IntegerField
+                    else:
+                        field_class=forms.FloatField
+                        
+                    field = field_class(required=False,
+                                       label=name,
+                                       min_value=minimum,
+                                       max_value=maximum,
+                                       initial=value,
+                                       widget=forms.TextInput(attrs={'class':'form-group hidden_form %s' % algorithm['prefix']})
+                                       )
+                    
+                    self.fields[algorithm['prefix'] + '_' + prefix] = field
+                    
+
+                    
+        
+        except Exception, e:
+            log.debug(e)
+#     
+# 
+#     current_solution_statistics_enabled = forms.BooleanField(label='Current solution statistics', required=False, widget=forms.CheckboxInput(attrs={'class': 'firstElement selector'}))
+#     
+#     genetic_algorithm_enabled = forms.BooleanField(label='Genetic Algorithm', required=False, widget=forms.CheckboxInput(attrs={'onclick': "toggle('genetic_algorithm')",
+#                                                                                                                                 'class':'selector'}))
+#     genetic_algorithm_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
+#     genetic_algorithm_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
+#     genetic_algorithm_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
+#     genetic_algorithm_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
+# 
+# 
+# 
+#     genetic_algorithm_sr_enabled = forms.BooleanField(label='Genetic algorithm SR', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('genetic_algorithm_sr', this);",
+#                                                                                                                                       'class':'selector'}))
+#     genetic_algorithm_sr_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
+#     genetic_algorithm_sr_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
+#     genetic_algorithm_sr_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
+#     genetic_algorithm_sr_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
+#     genetic_algorithm_sr_pf = forms.FloatField(label='Pf', initial=0.475, min_value=0, max_value=1)    
 
 #----------------------------
 #Forms for the optimization repeat w/different algorithms task
