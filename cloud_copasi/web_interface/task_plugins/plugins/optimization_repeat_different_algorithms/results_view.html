@@ -29,7 +29,11 @@ http://www.gnu.org/licenses/gpl.html
         {% else %}
         {% for item in line %}
         <td>
-        {{item}}
+            {% if item == results.best_value %}
+            <h4>{{item}}</h4>
+            {%else%}
+            {{item}}
+            {% endif %}
         </td>
         {% if forloop.counter0 == 1 %}
         <td>
