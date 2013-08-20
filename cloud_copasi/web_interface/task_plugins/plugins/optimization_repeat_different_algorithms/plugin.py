@@ -24,6 +24,7 @@ from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 from django.utils import html
 from django.utils.safestring import mark_safe
+from django.forms.util import ErrorList
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -47,7 +48,7 @@ algorithms.append({
     'prefix': 'genetic_algorithm',
     'name': 'Genetic Algorithm',
     #params = (prefix, name, default, type, min, max)
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -56,7 +57,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'genetic_algorithm_sr',
     'name': 'Genetic Algorithm SR',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -82,7 +83,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'evolutionary_programming',
     'name': 'Evolutionary Programming',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -144,7 +145,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'evolution_strategy',
     'name': 'Evolution Strategy',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -187,7 +188,7 @@ class TaskForm(BaseTaskForm):
     def __init__(self, *args, **kwargs):
         try:
             super(TaskForm, self).__init__(*args, **kwargs)
-            
+                        
             for algorithm in algorithms:
                 self.fields[algorithm['prefix']] = forms.BooleanField(required=False,
                                                                       label=algorithm['name'],
@@ -220,16 +221,24 @@ class TaskForm(BaseTaskForm):
         cleaned_data = super(TaskForm, self).clean()
         
         #Raise a validation error if fields are blank when checkbox is selected
-        
+        at_least_one_selected = False
+
         for algorithm in algorithms:
             if cleaned_data.get(algorithm['prefix']) == True:
+                at_least_one_selected = True
                 for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
                     clean_value = cleaned_data.get(algorithm['prefix'] + '_' + prefix, None)
                     if clean_value == None:
                         msg = 'This field is required when %s is selected' % algorithm['name']
                         self._errors[algorithm['prefix'] + '_' + prefix] = self.error_class([msg])
                         del cleaned_data[algorithm['prefix'] + '_' + prefix]
-                        
+        
+        if not at_least_one_selected:
+            self._errors['__all__'] = ErrorList(['At least one algorithm must be selected'])
+            
+        return cleaned_data
+    
+    
 class TaskPlugin(BaseTask):
     
     subtasks = 2
@@ -266,56 +275,28 @@ class TaskPlugin(BaseTask):
         
     def process_main_subtask(self):
         
+        #Build a list of the submitted algorithms
+        subtask = self.get_subtask(1)
+        
+        submitted_algorithms = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                params = {}
+                for prefix, name, value, type, minimum, maximum in algorithm['params']:
+                    params[prefix] = str(self.task.get_custom_field(algorithm['prefix'] + '_' + prefix))
+                
+                submitted_algorithms.append({'prefix': algorithm['prefix'],
+                                             'params': params
+                                             })
 
-        #Get the correct subtask
-        if self.use_load_balancing:
-            subtask = self.get_subtask(2)
-            
-            lb_job = CondorJob.objects.get(subtask=self.get_subtask(1))
-            #Read the load_balancing.out file
-            
-            output = open(os.path.join(subtask.task.directory, lb_job.std_output_file), 'r')
-            
-            
-            for line in output.readlines():
-                line = line.rstrip('\n')
-                if line != '':
-                    repeats_str, time_str = line.split(' ')
-                
-                try:
-                    lb_repeats = int(repeats_str)
-                    time = float(time_str)
-                except Exception, e:
-                    log.exception(e)
-                    lb_repeats = 1
-                    time = settings.IDEAL_JOB_TIME
-                
-                time_per_run = time / lb_repeats
-                
-                #Work out the number of repeats per job. If this is more than the original number of repeats specified, then just use the original number
-                repeats_per_job = min(int(round(settings.IDEAL_JOB_TIME * 60 / time_per_run)), self.repeats)
-                
-                if repeats_per_job < 1:
-                    repeats_per_job = 1
-                
-            
-            
-        else:
-            subtask = self.get_subtask(1)
-            repeats_per_job = 1
-        
-        
-        
-        
         #If no load balancing step required:
-        model_files = self.copasi_model.prepare_or_jobs(self.repeats, repeats_per_job, subtask.index)
+        model_files, output_files = self.copasi_model.prepare_od_jobs(submitted_algorithms)
         
         condor_pool = self.task.condor_pool
         
         condor_job_file = self.copasi_model.prepare_or_condor_job(condor_pool.pool_type,
                                                                   condor_pool.address,
                                                                   len(model_files),
-                                                                  subtask.index,
                                                                   rank='')
         
         log.debug('Prepared copasi files %s'%model_files)
@@ -336,25 +317,24 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
-        
+        main_subtask = self.get_subtask(1)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
                 
         directory = self.task.directory        
         
-        
-        if self.use_load_balancing:
-            main_subtask = self.get_subtask(2)
-            subtask = self.get_subtask(3)
-        else:
-            main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2)
-        
+
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
         
         results_files = [job.job_output for job in main_jobs]
         
-        self.copasi_model.process_or_results(results_files)
+        #Get a list of algorithm names
+        algorithm_list = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                algorithm_list.append(algorithm['name'])
+        
+        self.copasi_model.process_od_results(algorithm_list, results_files)
                 
         subtask.status = 'finished'
         subtask.save()
@@ -388,21 +368,26 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         if page_name == 'main':
             model = self.copasi_model
-            results = model.get_or_best_value()
-            
-            best_value = results[0][1]
-            
-            best_params = results[1:]
-            
-            output = {'best_value' : best_value,
-                      'best_params' : best_params,
-                      }
-            
-            return output
+            results = model.get_od_results()
+            best_value=results[1][1]
+            return {'results':results, 'best_value':best_value}
         
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
+        main_subtask = self.get_subtask(1)
+        #Go through and collate the results
+        #This is reasonably computationally simple, so we run locally
+
+        main_jobs = CondorJob.objects.filter(subtask=main_subtask)
         
+        results_files = [job.job_output for job in main_jobs]
+        
+        #Get a list of algorithm names
+        algorithm_list = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                algorithm_list.append(algorithm['name'])
+
         if page_name == 'main':
             #Return the file results.txt
             filename = os.path.join(self.task.directory, 'results.txt')
@@ -416,17 +401,48 @@ class TaskPlugin(BaseTask):
    
             return response
             
-        elif page_name == 'raw_results':
-            filename = os.path.join(self.task.directory, 'raw_results.txt')
+        elif page_name == 'model':
+            index = request.GET.get('index')
+            #Name will be an algorithm index
+            assert int(index) < len(algorithms)
+            
+            index = int(index) - 1 #Account for 1-indexing
+            
+            key = self.copasi_model.process_od_results(algorithm_list, results_files, write=False, return_list=True)
+            
+            model_index = key[index]
+            
+            filename = os.path.join(self.task.directory, 'run_auto_copasi_1.%d.cps'%model_index)
+            if not os.path.isfile(filename):
+                request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
+                return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
+            result_file = open(filename, 'r')
+            response = HttpResponse(result_file, content_type='application/xml')
+            response['Content-Disposition'] = 'attachment; filename=%s_model.cps' % algorithms[model_index]['prefix']
+            response['Content-Length'] = os.path.getsize(filename)
+   
+            return response
+
+        elif page_name == 'output':
+            index = request.GET.get('index')
+            #Name will be an algorithm index
+            assert int(index) < len(algorithms)
+            
+            index = int(index) - 1 #Account for 1-indexing
+            
+            key = self.copasi_model.process_od_results(algorithm_list, results_files, write=False, return_list=True)
+            
+            model_index = key[index]
+
+            filename = os.path.join(self.task.directory, 'output_1.%s.txt'%model_index)
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
             result_file = open(filename, 'r')
             response = HttpResponse(result_file, content_type='text/tab-separated-values')
-            response['Content-Disposition'] = 'attachment; filename=%s_raw_results.txt' % (self.task.name.replace(' ', '_'))
+            response['Content-Disposition'] = 'attachment; filename=%s_results.txt' % algorithms[model_index]['prefix']
             response['Content-Length'] = os.path.getsize(filename)
    
             return response
 
-    
 

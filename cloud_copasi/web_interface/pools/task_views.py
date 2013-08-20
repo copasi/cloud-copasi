@@ -126,9 +126,9 @@ class NewTaskView(RestrictedFormView):
         
         extra_fields = []
         base_form = base.BaseTaskForm
-        for field_name in self.form_class.base_fields:
+        for field_name in form.fields:
             if field_name not in base_form.base_fields:
-                extra_fields.append((field_name, self.form_class.base_fields[field_name]))
+                extra_fields.append((field_name, form.fields[field_name]))
         
         #We have not yet created the directory to hold the files
         directory_created = False
