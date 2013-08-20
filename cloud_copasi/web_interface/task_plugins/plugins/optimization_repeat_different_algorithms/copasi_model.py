@@ -633,5 +633,5 @@ class ODCopasiModel(CopasiModel):
         """Open results.txt, parse the output and return it"""
         output = []
         for line in open(os.path.join(self.path, 'results.txt')):
-            output.append(line.rstrip('\n').rstrip('\t').split('\t'))
+            output.append(line.rstrip('\n').rstrip('\t').split('\t')[0:4])#Only return the first 4 columns, not param values
         return output
