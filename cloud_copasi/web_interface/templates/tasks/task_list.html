@@ -31,26 +31,27 @@ http://www.gnu.org/licenses/gpl.html
                 {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
-
+                {% if show_finish_time %}
+                <th>Finish time</th>
+                {% endif %}
                 <th>Submit time</th>
                 <th>Compute pool</th>
                 <th>Subtasks</th>
                 <th>Status</th>
-                <th>Details</th>
             </tr>
         {% for task in tasks %}
             <tr>
-                <td><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></td>
+                <th><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></th>
                 {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_task_change' task.id %}">{{task.id}}</a></th>
                 {% endif %}
-
+                {% if show_finish_time %}
+                <td>{{task.finish_time }}</td>
+                {% endif %}
                 <td>{{task.submit_time }}</td>
                 <td ><a href="{% url 'pool_details' pool_id=task.condor_pool.id %}">{{task.condor_pool.name}}</a></td>
                 <td>{{ task.subtask_set.count }}</td>
                 <td> {{ task.get_status_display }}</td>
-
-                <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'task_details' task_id=task.id %}">Details</a></td>
             </tr>
         {% endfor %}
         </table>

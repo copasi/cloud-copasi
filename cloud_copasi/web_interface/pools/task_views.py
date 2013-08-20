@@ -296,15 +296,19 @@ class TaskListView(RestrictedView):
         
         if kwargs['status'] == 'running':
             tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
+            
+            tasks = tasks.order_by('-submit_time')
+            
             self.page_title = 'Running tasks'
             kwargs['byline'] = 'Tasks that are queued or running'
         elif kwargs['status'] == 'finished':
-            tasks = user_tasks.filter(status='finished')
+            tasks = user_tasks.filter(status='finished').order_by('-finish_time')
             self.page_title = 'Finished tasks'
             kwargs['byline'] = 'Tasks that have finished running'
-
+            kwargs['show_finish_time'] = True
+            
         elif kwargs['status'] == 'error':
-            tasks = user_tasks.filter(status='error')
+            tasks = user_tasks.filter(status='error').order_by('-submit_time')
             self.page_title = 'Task errors'
             kwargs['byline'] = 'Tasks that encountered an error while running'
 
