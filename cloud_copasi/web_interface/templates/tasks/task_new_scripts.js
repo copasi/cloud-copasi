@@ -64,7 +64,7 @@ function clearExtraFormData(next_task){
 
 function toggle(class_name)
 {
-    $('.hidden_form.' + class_name).parent().parent().fadeToggle('slow');
+    $('.hidden_form.' + class_name).parent().parent().fadeToggle('medium');
     
     $('.hidden_form.' + class_name).each(
         function()
@@ -88,19 +88,11 @@ function toggle(class_name)
             }
             
             
-            row.hide();
-            
-            //if ( $(this).hasClass('selector') )
-            //{
-             ///   //If a selector, toggle the topline too
-              //  row_class.prev().fadeToggle('slow')
-            //}
-                
+            row.fadeToggle('medium');
         }
     );
     
     
-    //$('.hidden_form.' + class_name).parent().parent().prev().fadeToggle('slow');
 
 }
 

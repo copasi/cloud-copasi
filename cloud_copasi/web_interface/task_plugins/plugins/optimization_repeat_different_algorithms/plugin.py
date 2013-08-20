@@ -193,7 +193,22 @@ class TaskForm(BaseTaskForm):
         except Exception, e:
             log.debug(e)
 
-
+    
+    def clean(self):
+        
+        cleaned_data = super(TaskForm, self).clean()
+        
+        #Raise a validation error if fields are blank when checkbox is selected
+        
+        for algorithm in algorithms:
+            if cleaned_data.get(algorithm['prefix']) == True:
+                for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
+                    clean_value = cleaned_data.get(algorithm['prefix'] + '_' + prefix, None)
+                    if clean_value == None:
+                        msg = 'This field is required when %s is selected' % algorithm['name']
+                        self._errors[algorithm['prefix'] + '_' + prefix] = self.error_class([msg])
+                        del cleaned_data[algorithm['prefix'] + '_' + prefix]
+                        
 class TaskPlugin(BaseTask):
     
     subtasks = 2
