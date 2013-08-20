@@ -166,6 +166,30 @@ function hide_if_not_selected()
     );
     
 }
+
+function select_all_selectors()
+{
+    $('.selector').each(function()
+    {
+        if ($(this).prop('checked') == false)
+        {
+            toggle($(this).attr('name'));
+            $(this).prop('checked', true);
+        }
+    });
+}
+function deselect_all_selectors()
+{
+    $('.selector').each(function()
+    {
+        if ($(this).prop('checked') == true)
+        {
+            toggle($(this).attr('name'));
+            $(this).prop('checked', false);
+        }
+    });
+}
+
 //bind the task type change event
 $(document).ready(function() {
     $('#id_task_type').change(function(){
