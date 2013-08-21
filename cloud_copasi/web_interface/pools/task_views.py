@@ -32,6 +32,7 @@ from cloud_copasi.web_interface import task_plugins
 from cloud_copasi.web_interface.task_plugins import base, tools, plugins
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
+from datetime import timedelta
 from django.utils.datetime_safe import datetime
 import shutil
 from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
@@ -334,7 +335,24 @@ class TaskDetailsView(RestrictedView):
         
         kwargs['task'] = task
         kwargs['task_display_type'] = task_plugins.tools.get_task_display_name(task.task_type)
-        kwargs['task_custom_fields'] = task_custom_fields
+        kwargs['config_options'] = task_custom_fields
+        
+        if task.status == 'finished':
+            
+            try:
+                wall_clock_time = task.finish_time - task.submit_time
+                wall_clock_time = timedelta(seconds=round(wall_clock_time.total_seconds()))
+            except Exception, e:
+                wall_clock_time = ''
+            total_cpu = task.get_run_time()
+            try:
+                speed_up_factor = (total_cpu * 86400) / wall_clock_time.total_seconds()
+                speed_up_factor = '%0.2f' % speed_up_factor
+            except Exception, e:
+                speed_up_factor = ''
+            kwargs['speed_up_factor'] = speed_up_factor
+            kwargs['wall_clock_time'] = wall_clock_time
+        
         if task.status == 'error':
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)

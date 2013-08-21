@@ -20,7 +20,7 @@ http://www.gnu.org/licenses/gpl.html
 <article>
     <header class="major">
         <h2>Task details</h2>
-        <span class="byline">Details for task {{ task.name }}</span>
+        <span class="byline">{{ task.name }} ({{task_display_type}})</span>
     </header>
         <p>
         {% if task.status == 'running' %}
@@ -36,8 +36,10 @@ http://www.gnu.org/licenses/gpl.html
     {% if task.status == 'finished' %}
     <div class="task-status task-complete">
     
-        <h3>{{task.name}} - complete</h3>
-        <p><h4>Task type: {{task_display_type}}</h4>
+            <header class="minor">
+                <h3>Status - finished</h3>
+                <span class="byline">The task finished running successfully</span>
+            </header>
             <ul class="style2">
                 {% if task.result_view %}
                 <li><a class="button button-narrow button-icon button-icon-info" href="{% url 'task_results' task_id=task.id %}">View results</a></li>
@@ -49,24 +51,49 @@ http://www.gnu.org/licenses/gpl.html
                 <li><a class="button button-alt button-narrow" href="{% url 'task_delete' task_id=task.id %}">Delete task</a></li>
             </ul>
         </p>
-    </div>
     
+        <div class="tablelist">
+            <table>
+                <tr>
+                    <th>Number of parallel jobs</th>
+                    <td>{{task.get_job_count}}</td>
+                </tr>
+                <tr>
+                    <th>Total CPU time used</th>
+                    <td>{{task.get_run_time_timedelta}}</td>
+                </tr>
+                <tr>
+                    <th>Wall clock time</th>
+                    <td>{{wall_clock_time}}</td>
+                </tr>
+                <tr>
+                    <th>Speed up factor</th>
+                    <td>{{speed_up_factor}}</td>
+                </tr>
+                
+            </table>
+        </div>
     {% elif task.status == 'running' or task.status == 'new' %}
     <div class="task-status task-running">
-        <h3>{{task.name}} - running</h3>
-        <p>
+        <header class="minor">
+            <h3>Status - running</h3>
+            <span class="byline">The task is currently running, or is queued to be run</span>
+        </header>
+        
             <ul class="style2">
                 <li><a class="button button-alt button-narrow" href="{% url 'task_delete' task_id=task.id %}">Cancel     task</a></li>
             </ul>
         </p>
 
-    </div>
     
     {% elif task.status == 'error'%}
     <div class="task-status task-error">
-
-    <h3>Status - error</h3>
-    <p>An error occurred with this job.</p>
+    <header class="minor">
+        <h3>Status - error</h3>
+        <span class="byline">An error occurred with this task</span>
+    </header>
+    
+    <p></p>
     {% if not was_submitted %}
     <p>The logs indicate that no parallel jobs were submitted. The most likely cause of the error is a malformed COPASI model file.</p>
     {% endif %}
@@ -80,11 +107,30 @@ http://www.gnu.org/licenses/gpl.html
             <li><a class="button button-alt button-narrow" href="{% url 'task_delete' task_id=task.id %}">Delete task</a></li>
         </ul>
     </p>
-</div>
     
     
     {% endif %}
-    
+    <p><a href="#!" onclick="$('#config-options').slideToggle('medium');">Click here to view the configuration options for this task</a></p>
+    <div id="config-options" style="display:none">
+        <div class="tablelist">
+            <table>
+                <tr>
+                    <th>Option</th>
+                    <th>Value</th>
+                </tr>
+                
+                {% for option, value in config_options.items %}
+                <tr>
+                    <td>{{option}}</td>
+                    <td>{{value}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <p><a href="#!" onclick="$('#config-options').slideToggle('medium') ;">Click here to hide the configuration options for this task</a></p>
+        </div>
+        
+    </div>
+</div>    
     <h3>
         Overview
     </h3>
