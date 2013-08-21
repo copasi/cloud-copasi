@@ -23,7 +23,7 @@ from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 import datetime
-from django.contrib.humanize.tests import now
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
