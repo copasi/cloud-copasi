@@ -121,7 +121,7 @@ def update_tasks(user=None, task=None):
             log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
             task.set_run_time()
             task.set_job_count()
-            task.trim_condor_jobs()
+            #task.trim_condor_jobs() Don't do this, it breaks plugin functionality
             
             task.save()
             
