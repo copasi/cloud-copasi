@@ -69,7 +69,7 @@ class TaskPlugin(BaseTask):
         #The main module
         self.create_new_subtask('main')
         #And a subtask to process any results
-        self.create_new_subtask('process', local=True)
+        self.create_new_subtask('process')
         
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
