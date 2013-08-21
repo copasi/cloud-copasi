@@ -25,6 +25,7 @@ import re
 from django.utils import html
 from django.utils.safestring import mark_safe
 from django.forms.util import ErrorList
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -317,6 +318,8 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
+        subtask.start_time = now()
+        
         main_subtask = self.get_subtask(1)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
@@ -337,6 +340,8 @@ class TaskPlugin(BaseTask):
         self.copasi_model.process_od_results(algorithm_list, results_files)
                 
         subtask.status = 'finished'
+        subtask.finish_time = now()
+        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         subtask.save()
         
         subtask.task.results_view=False

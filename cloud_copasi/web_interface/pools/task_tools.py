@@ -18,6 +18,7 @@ import logging
 from cloud_copasi.web_interface.pools import condor_tools
 import tarfile
 import datetime
+from django.utils.timezone import now
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
@@ -53,6 +54,7 @@ def update_tasks(user=None, task=None):
                     log.debug('Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
                 subtask.status = 'error'
                 subtask.task.status = 'error'
+                subtask.finish_time = now()
                 subtask.save()
                 task.save()
                 break
@@ -65,6 +67,9 @@ def update_tasks(user=None, task=None):
                 #The subtask has finished!
                 log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                 subtask.status = 'finished'
+                subtask.set_run_time() #Set the run time as the sum from the associated jobs
+                subtask.set_job_count() #And the number of condor jobs
+                subtask.finish_time = now()
                 subtask.save()
                     
             else:
@@ -76,36 +81,68 @@ def update_tasks(user=None, task=None):
         
         subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
         for subtask in subtasks:
-            
-            if subtask.index > 1:
-                previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
-                all_previous_subtasks_finished = True
-                for previous_subtask in previous_subtasks:
-                    if previous_subtask.status != 'finished': all_previous_subtasks_finished = False
-                if all_previous_subtasks_finished:
-                    #We have a new subtask to submit
-                    TaskClass = tools.get_task_class(task.task_type)
-                    task_instance = TaskClass(task)
-                    log.debug('Preparing new subtask %d' % (subtask.index))
-                    prepared_subtask = task_instance.prepare_subtask(subtask.index)
-                    #If this wasn't a local subtask, submit to condor  
-                    if not subtask.local:
-                        condor_tools.submit_task(prepared_subtask)
-    
+            try:
+                if subtask.index > 1:
+                    previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
+                    all_previous_subtasks_finished = True
+                    for previous_subtask in previous_subtasks:
+                        if previous_subtask.status != 'finished': all_previous_subtasks_finished = False
+                    if all_previous_subtasks_finished:
+                        #We have a new subtask to submit
+                        TaskClass = tools.get_task_class(task.task_type)
+                        task_instance = TaskClass(task)
+                        log.debug('Preparing new subtask %d' % (subtask.index))
+                        prepared_subtask = task_instance.prepare_subtask(subtask.index)
+                        #If this wasn't a local subtask, submit to condor  
+                        if not subtask.local:
+                            condor_tools.submit_task(prepared_subtask)
+            except Exception, e:
+                subtask.status = 'error'
+                subtask.set_job_count()
+                subtask.set_run_time()
+                subtask.finish_time=  now()
+                subtask.save()
+                
+                task.status = 'error'
+                
+                task.set_job_count()
+                task.set_run_time()
+                task.set_custom_field('error', str(e))
+                task.finish_time = now()
+                task.save()
+                
+                
         #Get the list of subtasks again
         task_subtasks = Subtask.objects.filter(task=task)
         finished = task_subtasks.filter(status='finished').order_by('index')
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
-            task.finish_time = datetime.datetime.utcnow()
+            task.finish_time = now()
             log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
+            task.set_run_time()
+            task.set_job_count()
+            task.trim_condor_jobs()
+            
             task.save()
-
+            
+        task.last_update_time=now()
+        task.save()
 
 def delete_task(task):
-    pass
-    #TODO:
-    
+    #Mark the task as deleted, update the run time from any associated subtasks, remove the subtasks and associated condor jobs
+    subtasks = task.subtask_set.all()
+    for subtask in subtasks:
+        subtask.set_job_count()
+        subtask.set_run_time()
+        jobs = subtask.condorjob_set.all()
+        for job in jobs:
+            job.delete()
+    task.set_job_count()
+    task.set_run_time()
+    for subtask in subtasks:
+        subtask.delete()    
+    task.status = 'deleted'
+    task.save()
     
 def zip_up_task(task):
     """Zip up the task directory and return the filename

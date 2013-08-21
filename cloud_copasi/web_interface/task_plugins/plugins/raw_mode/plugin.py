@@ -24,6 +24,7 @@ from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
 import re
 import datetime
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -124,7 +125,7 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
-        
+        subtask.start_time = now()
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
                 
@@ -157,6 +158,8 @@ class TaskPlugin(BaseTask):
         self.task.save()
         
         subtask.status = 'finished'
+        subtask.finish_time = now()
+        subtask.set_run_time(time_delta=subtask.finish_time-subtask.start_time)
         subtask.save()
         
 
