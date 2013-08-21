@@ -333,7 +333,7 @@ class TaskDetailsView(RestrictedView):
         if task.status == 'error':
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)
-        
+            kwargs['error_message'] = task.get_custom_field('error')
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
     
 class SubtaskDetailsView(RestrictedView):

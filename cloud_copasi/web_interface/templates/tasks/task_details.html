@@ -22,7 +22,17 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Task details</h2>
         <span class="byline">Details for task {{ task.name }}</span>
     </header>
-    
+        <p>
+        {% if task.status == 'running' %}
+        <a href="{% url 'running_task_list' %}">Return to running task list</a>
+        {% elif task.status == 'finished' %}
+        <a href="{% url 'finished_task_list' %}">Return to finished task list</a>
+        {% elif task.status == 'error' %}
+        <a href="{% url 'error_task_list' %}">Return to error task list</a>
+        {% else %}
+        <a href="{% url 'my_account' %}">Return to account home</a>
+        {% endif %}
+    </p>
     {% if task.status == 'finished' %}
     <div class="task-status task-complete">
 
@@ -56,7 +66,14 @@ http://www.gnu.org/licenses/gpl.html
     <div class="task-status task-error">
 
     <h3>Status - error</h3>
-    <p>An error occurred with this job. To determine the cause of the error, check if any parallel jobs were submitted to the compute pool.</p>
+    <p>An error occurred with this job.</p>
+    {% if not was_submitted %}
+    <p>The logs indicate that no parallel jobs were submitted. The most likely cause of the error is a malformed COPASI model file.</p>
+    {% endif %}
+    {% if error_message %}
+    <p>The following error message was given: <br/><span class="bold">{{error_message}}</span></p>
+    
+    {% endif %}
     <p>
         <ul class="style2">
             <li><a class="button button-narrow button-icon button-icon-check" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a></li>
@@ -76,6 +93,9 @@ http://www.gnu.org/licenses/gpl.html
             <tr>
                 <th>Task name</th>
                 <th>Submit time</th>
+                {% if task.finish_time %}
+                <th>Finish time</th>
+                {% endif %}
                 <th>Compute pool</th>
                 <th>Subtasks</th>
                 <th>Status</th>
@@ -84,6 +104,9 @@ http://www.gnu.org/licenses/gpl.html
             <tr>
                 <td>{{ task.name }}</td>
                 <td>{{task.submit_time }}</td>
+                {% if task.finish_time %}
+                <td> {{ task.finish_time }}</td>
+                {% endif %}
                 <td >{{task.condor_pool.name}}</td>
                 <td>{{ task.subtask_set.count }}</td>
                 <td> {{ task.get_status_display }}</td>
@@ -105,23 +128,39 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Subtask type</th>
                 <th>Status</th>
                 <th>Jobs</th>
+                <th>Total CPU time</th>
+                <th>Start time</th>
+                <th>Finish time</th>
             </tr>
 
             {% for subtask in task.subtask_set.all %}
             <tr>
-                <td><a href="{% url 'subtask_details' subtask_id=subtask.id%}">{{ subtask.index }}</a></td>
+                <td>{%if subtask.status != 'finished'%}<a href="{% url 'subtask_details' subtask_id=subtask.id%}">{{ subtask.index }}</a>{% else %}{{ subtask.index }}{% endif %}</td>
                 {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_subtask_change' subtask.id %}">{{subtask.id}}</a></td>
                 {% endif %}
                 <td>{{ subtask.get_type_display }}</td>
                 <td>{{subtask.get_status_display }}</td>
-                <td>{% if subtask.local %}<span style="font-style:italic">Local</span>{% else %}{{subtask.condorjob_set.count}}{% endif %}</td>
+                <td>{% if subtask.local %}<span style="font-style:italic">Local</span>{% else %}{{subtask.get_job_count}}{% endif %}</td>
+                <td>{% if subtask.status == 'finished' or stubtask.status == 'error'%}{{ subtask.get_run_time_timedelta| default_if_none:''}}{% endif %}</td>
+                <td>{{subtask.start_time|default:''}}</td>
+                <td>{{subtask.finish_time|default:''}}</td>
+
             </tr>
 
             {% endfor %}
         </table>
     </div>
-    <p><a href="{% url 'my_account' %}">Return to account overview</a>
-
+    <p>
+        {% if task.status == 'running' %}
+        <a href="{% url 'running_task_list' %}">Return to running task list</a>
+        {% elif task.status == 'finished' %}
+        <a href="{% url 'finished_task_list' %}">Return to finished task list</a>
+        {% elif task.status == 'error' %}
+        <a href="{% url 'error_task_list' %}">Return to error task list</a>
+        {% else %}
+        <a href="{% url 'my_account' %}">Return to account home</a>
+        {% endif %}
+    </p>
 </article>
 {% endblock %}

@@ -43,7 +43,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{subtask.task.name }}</td>
                 <td>{{ subtask.index }}</td>
                 <td>{{ subtask.get_type_display}}</td>
-                <td>{{ subtask.condorjob_set.count }}</td>
+                <td>{{ subtask.get_job_count }}</td>
                 <td>{{ finished_count }}</td>
                 <td>{{ running_count }}</td>
                 <td>{{ idle_count }}</td>

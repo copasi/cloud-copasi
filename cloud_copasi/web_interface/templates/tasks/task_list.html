@@ -22,7 +22,9 @@ http://www.gnu.org/licenses/gpl.html
         <h2>{{page_title}}</h2>
         <span class="byline">{{byline}}</span>
     </header>
-
+    <p>
+        <a href="{% url 'my_account' %}" %}>Return to account home</a>
+    </p>
     {%if tasks %}
     <div class="tablelist">
         <table>

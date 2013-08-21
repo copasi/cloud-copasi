@@ -12,6 +12,8 @@ from cloud_copasi import settings
 import logging
 from cloud_copasi.web_interface.models import EC2Pool, Subtask, CondorJob
 from cloud_copasi.web_interface.pools import condor_log_tools
+import datetime
+from django.utils.timezone import now
 
 log = logging.getLogger(__name__)
 
@@ -231,6 +233,7 @@ def submit_task(subtask):
         job.save()
         
     subtask.status='running'
+    subtask.start_time = now()
     subtask.save()
 
 def remove_task(subtask):
@@ -338,12 +341,18 @@ def process_condor_q(user=None, subtask=None):
                             if os.path.isfile(output_filename):
                                 try:
                                     assert os.path.getsize(output_filename) > 0
-                                    log.debug('Job output exists and is nonempty. Marking job as finished')
+                                    try:
+                                        run_time =  condor_log.running_time_in_days
+                                        job.run_time = run_time
+                                        run_time_minutes = run_time * 24 * 60
+                                    except:
+                                        run_time_minutes = None
+                                    log.debug('Job output exists and is nonempty. Marking job as finished with run time %s minutes' % run_time_minutes)
                                     job.status = 'F'
                                 except:
                                     log.debug('Job output exists but is empty. Leaving status as running')
                             else:
-                                log.debug('Output file does not exist. Leaving status unchanged')
+                                log.debug('Output file does not exist. Leaving status as running')
                         
                         else:
                             log.debug('Job has no output specified. Assuming job has finished.')

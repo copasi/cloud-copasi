@@ -21,6 +21,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from cloud_copasi.web_interface.fields import UUIDField
 import json
+import datetime
 
 
 class Profile(models.Model):
@@ -413,7 +414,7 @@ class Task(models.Model):
     
     submit_time = models.DateTimeField(auto_now_add=True)
     finish_time = models.DateTimeField(null=True, blank=True)
-    
+    last_update_time = models.DateTimeField(auto_now=True)
     task_type = models.CharField(max_length=128, )
     
     #Filename of the original model (relative path only)
@@ -461,6 +462,13 @@ class Task(models.Model):
     
     status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='waiting')
     
+    
+    def update_cpu_time(self):
+        """Go through each of the subtasks, and in turn the CondorJobs, and collate the run times
+        """
+        #TODO:
+        pass
+    
     def update_status(self):
         """Go through the attached subtasks and update the status based on their status
         """
@@ -505,6 +513,43 @@ class Task(models.Model):
         bucket=s3_connection.get_bucket(self.get_incoming_bucket_name())
         return bucket
 
+    def get_job_count(self):
+        """Return the number of jobs associated.
+        If the number of CondorJobs is 0, return self.job_count instead
+        """
+        
+        if self.job_count > 0:
+            return self.job_count
+        else:
+            count = 0
+            subtasks = Subtask.objects.filter(task=self) 
+            for subtask in subtasks:
+                count += subtask.get_job_count()
+            return count
+    def set_job_count(self):
+        self.job_count = self.get_job_count()
+        self.save()
+        
+    job_count = models.IntegerField(default=-1, help_text = 'The count of the number of condor jobs. Only set after the subtask has finished. Use get_job_count() instead to find out job count')
+    
+    def get_run_time(self):
+        """Return the run time of the subtask. If the value hasn't been set, the look through the associated condor jobs and get from there
+        """
+        
+        if self.run_time > 0:
+            return self.run_time
+        else:
+            subtasks = self.subtask_set.all()
+            count = 0
+            for subtask in subtasks:
+                count += subtask.get_run_time()
+            return count
+    def set_run_time(self):
+        self.run_time = self.get_run_time()
+        self.save()
+    
+    def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())    
+    run_time = models.FloatField(default=-1.0, help_text = 'The run time of associated condor jobs. Only set after the subtask has finished. Use get_run_time() to access.')
 
     
     class Meta:
@@ -512,6 +557,22 @@ class Task(models.Model):
         
     def __unicode__(self):
         return self.name
+    
+    
+    def trim_condor_jobs(self):
+        """Delete all the associated condor jobs.
+        Typically used when a task has finished or is being marked as deleted
+        Updates job_count and run_time before deleting
+        """
+        
+        self.set_run_time()
+        self.set_job_count()
+        
+        subtasks = self.subtask_set.all()
+        for subtask in subtasks:
+            jobs = subtask.condorjob_set.all()
+            for job in jobs:
+                job.delete()
     
     
 class Subtask(models.Model):
@@ -569,13 +630,56 @@ class Subtask(models.Model):
         except Exception, e:
             return None
 
-
+    def get_job_count(self):
+        """Return the number of jobs associated.
+        If the number of CondorJobs is 0, return self.job_count instead
+        """
+        if self.job_count > 0:
+            return self.job_count
+        else:
+            jobs = self.condorjob_set.all()
+            return max(jobs.count(), 0)
+   
+    def set_job_count(self):
+        self.job_count = self.get_job_count()
+        self.save() 
+    job_count = models.IntegerField(default=-1, help_text = 'The count of the number of condor jobs. Only set after the subtask has finished. Use get_job_count() instead to find out job count')
+    
+    
+    def get_run_time(self):
+        """Return the run time of the subtask. If the value hasn't been set, the look through the associated condor jobs and get from there
+        """
+        
+        if self.run_time > 0:
+            return self.run_time
+        else:
+            jobs = self.condorjob_set.all()
+            count = 0
+            for job in jobs:
+                count += job.run_time
+            return count
+    def set_run_time(self, time_delta=None):
+        if not time_delta:
+            self.run_time = self.get_run_time()
+        else:
+            assert isinstance(time_delta, datetime.timedelta)
+            #Calculate run time in days
+            self.run_time = time_delta.days +  (float(time_delta.seconds) / 86400.00)
+        self.save()
+    def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())
+    
+    run_time = models.FloatField(default=-1.0, help_text = 'The cumulative run time of associated condor jobs in days. Only set after the subtask has finished. Use get_run_time() to access.')
+    
+    start_time=models.DateTimeField(blank=True, null=True, help_text= 'The time this subtask started running')
+    finish_time = models.DateTimeField(blank=True, null=True, help_text = 'The time the subtask stopped running')
+    
+    
     def __unicode__(self):
         return '%s (%d)' % (self.task.name, self.index)
     
 class CondorJob(models.Model):
     
-   #The parent job
+    #The parent job
     subtask = models.ForeignKey(Subtask, null=True)
     #The std output file for the job
     std_output_file = models.CharField(max_length=255)
@@ -600,7 +704,7 @@ class CondorJob(models.Model):
     
     #The id of the job process in the cluster. Only set once the job has been queued. 
     process_id = models.IntegerField(null=True, blank=True)
-    #The amount of computation time in seconds that the condor job took to finish. Note, this does not include any interrupted runs. Will not be set until the condor job finishes.
+    #The amount of computation time in days that the condor job took to finish. Note, this does not include any interrupted runs. Will not be set until the condor job finishes.
     run_time = models.FloatField(null=True)
     
     runs = models.PositiveIntegerField(verbose_name='The number of runs this particular job is performing', blank=True, null=True)
