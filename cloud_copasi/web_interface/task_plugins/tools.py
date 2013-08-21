@@ -37,8 +37,12 @@ def get_task_types(subpackages=None):
         output.append(task_type)
     return output
 
-#subpackages = get_subpackages(task_plugins.__path__)
-
+def get_task_display_name(name):
+    types = get_task_types()
+    for internal_name, display_name in types:
+        if internal_name == name:
+            return display_name
+    return 'Unknown'
 #task_types = get_task_types(subpackages)
 def get_task_class(task_type):
     module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')

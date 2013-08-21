@@ -29,13 +29,14 @@ import tempfile, os
 from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
-from cloud_copasi.web_interface.task_plugins import base, tools
+from cloud_copasi.web_interface.task_plugins import base, tools, plugins
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from django.utils.datetime_safe import datetime
 import shutil
 from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
 import zipfile
+import json
 
 log = logging.getLogger(__name__)
 
@@ -281,7 +282,7 @@ class NewTaskView(RestrictedFormView):
             return self.form_invalid(self, *args, **kwargs)
         
         
-        return HttpResponseRedirect(reverse_lazy('my_account'))
+        return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':task.id}))
     
 class TaskListView(RestrictedView):
     
@@ -329,7 +330,11 @@ class TaskDetailsView(RestrictedView):
         task = Task.objects.get(id=task_id)
         assert task.condor_pool.user == request.user
         
+        task_custom_fields = json.loads(task.custom_fields)
+        
         kwargs['task'] = task
+        kwargs['task_display_type'] = task_plugins.tools.get_task_display_name(task.task_type)
+        kwargs['task_custom_fields'] = task_custom_fields
         if task.status == 'error':
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)

@@ -35,9 +35,9 @@ http://www.gnu.org/licenses/gpl.html
     </p>
     {% if task.status == 'finished' %}
     <div class="task-status task-complete">
-
-        <h3>Status - complete</h3>
-        <p>
+    
+        <h3>{{task.name}} - complete</h3>
+        <p><h4>Task type: {{task_display_type}}</h4>
             <ul class="style2">
                 {% if task.result_view %}
                 <li><a class="button button-narrow button-icon button-icon-info" href="{% url 'task_results' task_id=task.id %}">View results</a></li>
@@ -53,7 +53,7 @@ http://www.gnu.org/licenses/gpl.html
     
     {% elif task.status == 'running' or task.status == 'new' %}
     <div class="task-status task-running">
-        <h3>Status - running</h3>
+        <h3>{{task.name}} - running</h3>
         <p>
             <ul class="style2">
                 <li><a class="button button-alt button-narrow" href="{% url 'task_delete' task_id=task.id %}">Cancel     task</a></li>
