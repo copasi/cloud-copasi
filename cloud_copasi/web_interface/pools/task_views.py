@@ -70,7 +70,7 @@ class NewTaskView(RestrictedFormView):
         #Ensure we have at least 1 running condor pool
         pools = CondorPool.objects.filter(user=request.user)
         if pools.count() == 0:
-            request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a job')]
+            request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a task')]
             return HttpResponseRedirect(reverse_lazy('pool_list'))
         
         kwargs['show_loading_screen'] = True
@@ -117,6 +117,7 @@ class NewTaskView(RestrictedFormView):
         task = Task()
         task.name = form.cleaned_data['name']
         task.condor_pool = form.cleaned_data['compute_pool']
+        task.user = request.user
         task.task_type = form.cleaned_data['task_type']
         
         task.original_model = 'original_model.cps'
@@ -294,7 +295,7 @@ class TaskListView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         #Get a list of running tasks for this user
-        user_tasks = Task.objects.filter(condor_pool__user=request.user)
+        user_tasks = Task.objects.filter(user=request.user)
         
         if kwargs['status'] == 'running':
             tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
@@ -329,7 +330,7 @@ class TaskDetailsView(RestrictedView):
         
         task_id = kwargs.pop('task_id')
         task = Task.objects.get(id=task_id)
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         task_custom_fields = json.loads(task.custom_fields)
         
@@ -369,7 +370,7 @@ class SubtaskDetailsView(RestrictedView):
         
         subtask_id = kwargs.pop('subtask_id')
         subtask = Subtask.objects.get(id=subtask_id)
-        assert subtask.task.condor_pool.user == request.user
+        assert subtask.task.user == request.user
         
         kwargs['subtask'] = subtask
         
@@ -390,7 +391,7 @@ class TaskDeleteView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         confirmed = kwargs['confirmed']
         
@@ -403,9 +404,13 @@ class TaskDeleteView(RestrictedView):
             return super(TaskDeleteView, self).dispatch(request, *args, **kwargs)
         
         else:
-            task_tools.delete_task(task)
-            task.status='delete'
-            task.save()
+            for subtask in task.subtask_set.all():
+                try:
+                    condor_tools.remove_task(subtask)
+                except:
+                    pass
+            task.delete()
+                    
             
             return HttpResponseRedirect(reverse_lazy('running_task_list'))
         
@@ -418,7 +423,7 @@ class TaskResultView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
         
@@ -438,7 +443,7 @@ class TaskResultDownloadView(RestrictedView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
         
@@ -451,7 +456,7 @@ class TaskDirectoryDownloadView(RestrictedView):
         """Generate a tar.bz2 file of the results directory, and return it
         """
         try:
-            task = Task.objects.get(id=kwargs['task_id'], condor_pool__user=request.user)
+            task = Task.objects.get(id=kwargs['task_id'], user=request.user)
         except Exception, e:
             request.session['errors'] = [('Error Finding Job', 'The requested job could not be found')]
             log.exception(e)

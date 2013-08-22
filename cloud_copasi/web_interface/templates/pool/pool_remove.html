@@ -56,6 +56,25 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     {% endif %}
     
+    {% if running_tasks %}
+    <h3>The following tasks are running on this pool, and will be cancelled and removed</h3>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Parallel jobs</th>
+            </tr>
+            {% for task in running_tasks %}
+            <tr>
+                <td><a href="{% url 'task_details' task_id=task.id %}">{{task.name}}</a></td>
+                <td>{{task.get_task_type_name}}</td>
+                <td>{{task.get_job_count}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     
     {% if copied_pools %}
     <h3>This pool is shared with the following users. {%if pool_type == 'ec2'%}Terminating{%else%}Removing{%endif%} this pool will cause any running tasks to be terminated, potentially resulting in a loss of data! </h3>

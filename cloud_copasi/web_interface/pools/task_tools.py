@@ -34,7 +34,7 @@ def update_tasks(user=None, task=None):
     log.debug('Checking running tasks')
     tasks = Task.objects.filter(status='running')
     if user:
-        tasks = tasks.filter(condor_pool__user = user)
+        tasks = tasks.filter(user = user)
     if task:
         tasks = tasks.filter(id=task.id)
     
@@ -118,7 +118,7 @@ def update_tasks(user=None, task=None):
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
             task.finish_time = now()
-            log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.condor_pool.user.username))
+            log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
             task.set_run_time()
             task.set_job_count()
             #task.trim_condor_jobs() Don't do this, it breaks plugin functionality
@@ -129,21 +129,7 @@ def update_tasks(user=None, task=None):
         task.save()
 
 def delete_task(task):
-    #Mark the task as deleted, update the run time from any associated subtasks, remove the subtasks and associated condor jobs
-    subtasks = task.subtask_set.all()
-    for subtask in subtasks:
-        subtask.set_job_count()
-        subtask.set_run_time()
-        jobs = subtask.condorjob_set.all()
-        for job in jobs:
-            job.delete()
-    task.set_job_count()
-    task.set_run_time()
-    for subtask in subtasks:
-        subtask.delete()    
-    task.status = 'deleted'
-    task.save()
-    
+    task.delete()
 def zip_up_task(task):
     """Zip up the task directory and return the filename
     """

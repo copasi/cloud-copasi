@@ -141,12 +141,7 @@ def condor_submit(condor_file):
         raise e
     return (cluster_id, number_of_jobs)
 
-def condor_rm(queue_id):
-    
-    p = subprocess.Popen([CONDOR_RM, str(queue_id)])
-    p.communicate()
-    time.sleep(0.5)
-    
+
     
     
     
@@ -240,12 +235,21 @@ def remove_task(subtask):
     """Call condor_rm on the condor jobs belonging to a subtask
     """
     assert isinstance(subtask, Subtask)
-    
-    output, error, exit_status = run_bosco_command([CONDOR_RM, subtask.cluster_id], error=True)
-    
-    assert exit_status == 0
-    
-    return True
+    if subtask.status == 'running' or subtask.status == 'error':
+        log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
+        try:
+            output, error, exit_status = run_bosco_command([CONDOR_RM, subtask.cluster_id], error=True)
+            assert exit_status == 0 
+            return output, error, exit_status
+
+        except:
+            log.debug('Error removing subtask from condor_q')
+            try:
+                log.debug('%s, %s, %s' % (output, error, exit_status))
+            except:
+                pass
+    else:
+        return (None, None, None)
     
 def read_condor_q():
     
@@ -302,7 +306,7 @@ def process_condor_q(user=None, subtask=None):
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
     
     if user:
-        condor_jobs = condor_jobs.filter(subtask__condor_pool__user=user)
+        condor_jobs = condor_jobs.filter(subtask__task__user=user)
     if subtask:
         condor_jobs = condor_jobs.filter(subtask=subtask)
     

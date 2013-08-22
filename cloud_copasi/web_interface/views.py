@@ -87,7 +87,7 @@ class RestrictedView(DefaultView):
         
         kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
         
-        tasks = Task.objects.filter(condor_pool__user = user)
+        tasks = Task.objects.filter(user = user)
         kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
         kwargs['finished_tasks'] =  tasks.filter(status='finished')
         kwargs['task_errors'] =  tasks.filter(status='error')
@@ -114,7 +114,7 @@ class RestrictedFormView(RestrictedView, FormMixin, ProcessFormView):
         
         kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
         
-        tasks = Task.objects.filter(condor_pool__user = user)
+        tasks = Task.objects.filter(user = user)
         kwargs['running_tasks'] = tasks.filter(status='new')|tasks.filter(status='running')|tasks.filter(status='transfer')
         kwargs['finished_tasks'] =  tasks.filter(status='finished')
         kwargs['task_errors'] =  tasks.filter(status='error')

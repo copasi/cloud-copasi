@@ -22,7 +22,12 @@ from django.contrib.contenttypes import generic
 from cloud_copasi.web_interface.fields import UUIDField
 import json
 import datetime
+import shutil
+from cloud_copasi.web_interface.task_plugins import tools
 
+import logging
+
+log = logging.getLogger(__name__)
 
 class Profile(models.Model):
     """Stores additional profile information for a user
@@ -408,8 +413,15 @@ class Task(models.Model):
     """High-level representation of a computing job
     """
 
-    condor_pool = models.ForeignKey(CondorPool)
-     
+    condor_pool = models.ForeignKey(CondorPool, null=True)#Allowed to be null now
+    user = models.ForeignKey(User) #Store the user separately so that we can remove the condor pool and still keep the task
+    
+    def get_condor_pool_name(self):
+        if self.condor_pool:
+            return self.condor_pool.name
+        else:
+            return self.get_custom_field('condor_pool_name')
+    
     name = models.CharField(max_length=100, verbose_name='The name of the computing job')
     
     submit_time = models.DateTimeField(auto_now_add=True)
@@ -431,6 +443,8 @@ class Task(models.Model):
     
     custom_fields = models.CharField(max_length=10000, blank=True, default='')
 
+    def get_task_type_name(self):
+        return tools.get_task_display_name(self.task_type)
     def set_custom_field(self, field_name, value):
         try:
             custom_fields = json.loads(self.custom_fields)
@@ -574,6 +588,37 @@ class Task(models.Model):
             for job in jobs:
                 job.delete()
     
+    
+    def __delete__(self, *args, **kwargs):
+        #Mark the task as deleted, update the run time from any associated subtasks, remove the subtasks and associated condor jobs
+        subtasks = self.subtask_set.all()
+        for subtask in subtasks:
+            subtask.set_job_count()
+            subtask.set_run_time()
+            
+            #Run condor_rm with the cluster ID
+            try:
+                log.debug('Removing cluster %s from the condor q' % subtask.cluter_id)
+            except Exception, e:
+                log.exception(e)
+            
+            jobs = subtask.condorjob_set.all()
+            for job in jobs:
+                job.delete()
+        self.set_job_count()
+        self.set_run_time()
+        for subtask in subtasks:
+            subtask.delete()    
+        self.status = 'deleted'
+        
+        #Remove the task directory
+        try:
+            shutil.rmtree(self.directory)
+        except:
+            pass
+        
+        self.save()
+
     
 class Subtask(models.Model):
     

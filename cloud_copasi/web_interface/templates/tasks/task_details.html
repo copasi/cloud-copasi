@@ -153,7 +153,14 @@ http://www.gnu.org/licenses/gpl.html
                 {% if task.finish_time %}
                 <td> {{ task.finish_time }}</td>
                 {% endif %}
-                <td >{{task.condor_pool.name}}</td>
+                <td>
+                    {% if task.condor_pool %}
+                    <a href="{% url 'pool_details' pool_id=task.condor_pool.id %}">{{task.get_condor_pool_name}}</a>
+                    {% else %}
+                    {{task.get_condor_pool_name}}
+                    {% endif %}
+                    
+                </td>
                 <td>{{ task.subtask_set.count }}</td>
                 <td> {{ task.get_status_display }}</td>
 
