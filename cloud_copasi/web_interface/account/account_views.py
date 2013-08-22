@@ -410,7 +410,7 @@ class KeysDeleteView(MyAccountView):
                         condor_tools.remove_task(subtask)
                     task.delete()
                 
-                other_tasks = Task.objects.filter(condor_pool=pool).exclude(pk_in=running_tasks)       
+                other_tasks = Task.objects.filter(condor_pool=pool).exclude(pk__in=running_tasks)       
                 #Then 'prune' the remaining tasks to remove the pool as a foreignkey
                 for task in other_tasks:
                     task.condor_pool = None

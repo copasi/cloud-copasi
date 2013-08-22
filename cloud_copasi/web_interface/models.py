@@ -589,7 +589,7 @@ class Task(models.Model):
                 job.delete()
     
     
-    def __delete__(self, *args, **kwargs):
+    def delete(self, *args, **kwargs):
         #Mark the task as deleted, update the run time from any associated subtasks, remove the subtasks and associated condor jobs
         subtasks = self.subtask_set.all()
         for subtask in subtasks:
@@ -615,7 +615,7 @@ class Task(models.Model):
         try:
             shutil.rmtree(self.directory)
         except:
-            pass
+            log.exception(e)
         
         self.save()
 

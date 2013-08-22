@@ -587,7 +587,7 @@ class PoolRemoveView(RestrictedView):
         kwargs['copied_pools'] = copied_pools
         
         #Are there any other pools that are a copy of this one?
-        pool_tasks = Task.objects.filter(condor_pool=pool)
+        pool_tasks = Task.objects.filter(condor_pool=pool) | Task.objects.filter(condor_pool_in=copied_pools)
         running_tasks = pool_tasks.filter(status='running')|pool_tasks.filter(status='new')
         other_tasks = pool_tasks.exclude(pk__in=running_tasks)
         if not confirmed:
@@ -700,6 +700,21 @@ class SharePoolView(RestrictedFormView):
             unshare_from = User.objects.get(id=kwargs['user_id'])
             
             unshare_pool = CondorPool.objects.get(copy_of=pool, user=unshare_from)
+            tasks = Task.objects.filter(condor_pool=unshare_pool)
+            running_tasks = tasks.filter(status='running')|tasks.filter(status='new')
+            for task in running_tasks:
+                subtasks = task.subtask_set.all()
+                for subtask in subtasks:
+                    condor_tools.remove_task(subtask)
+                task.delete()
+            other_tasks = tasks.exclude(pk__in=running_tasks)
+            #Then 'prune' the remaining tasks to remove the pool as a foreignkey
+            for task in other_tasks:
+                task.condor_pool = None
+                task.set_custom_field('condor_pool_name', pool.name)
+                task.save()
+                
+            
             unshare_pool.delete()
             return HttpResponseRedirect(reverse_lazy('pool_share', kwargs={'pool_id': kwargs['pool_id']}))
 

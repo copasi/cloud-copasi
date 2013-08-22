@@ -55,7 +55,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{task.submit_time }}</td>
                 <td>
                     {% if task.condor_pool %}
-                    <a href="{% url 'pool_details' pool_id=task.condor_pool.id %}">{{task.get_condor_pool.name}}</a>
+                    <a href="{% url 'pool_details' pool_id=task.condor_pool.id %}">{{task.get_condor_pool_name}}</a>
                     {% else %}
                     {{task.get_condor_pool_name}} (removed)
                     {% endif %}

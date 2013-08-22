@@ -238,7 +238,7 @@ def remove_task(subtask):
     if subtask.status == 'running' or subtask.status == 'error':
         log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
         try:
-            output, error, exit_status = run_bosco_command([CONDOR_RM, subtask.cluster_id], error=True)
+            output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
             assert exit_status == 0 
             return output, error, exit_status
 
