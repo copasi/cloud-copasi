@@ -587,7 +587,7 @@ class PoolRemoveView(RestrictedView):
         kwargs['copied_pools'] = copied_pools
         
         #Are there any other pools that are a copy of this one?
-        pool_tasks = Task.objects.filter(condor_pool=pool) | Task.objects.filter(condor_pool_in=copied_pools)
+        pool_tasks = Task.objects.filter(condor_pool=pool) | Task.objects.filter(condor_pool__in=copied_pools)
         running_tasks = pool_tasks.filter(status='running')|pool_tasks.filter(status='new')
         other_tasks = pool_tasks.exclude(pk__in=running_tasks)
         if not confirmed:
