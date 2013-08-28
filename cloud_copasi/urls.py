@@ -13,6 +13,7 @@ from cloud_copasi.web_interface.aws import resource_views
 from cloud_copasi.web_interface.pools import pool_views, task_views 
 from cloud_copasi.web_interface.client_api import api_views
 from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done
+from django.views.generic import RedirectView
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
@@ -20,6 +21,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Examples:
     url(r'^$', views.LandingView.as_view(), name='landing_view'),
+    url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
+
     url(r'^home/$', views.HomeView.as_view(), name='home'),
     url(r'^my_account/$', account_views.MyAccountView.as_view(), name='my_account'),
     
