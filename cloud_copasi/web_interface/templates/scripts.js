@@ -3,7 +3,7 @@ function formSubmit(formName, display_loading)
     display_loading = typeof display_loading !== 'undefined' ? display_loading : false;
     
     if (display_loading === true) {
-        $('#loading-overlay').fadeIn('slow');
+        $('#loading-overlay').fadeIn('slow').css("display","inline-block");
         $('#loading-box').fadeIn('slow');
     }
     //For the new task screen, we need to enable the #id_task_type field before submitting

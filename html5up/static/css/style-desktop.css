@@ -268,7 +268,8 @@
     /* css3 border radius */
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-    
+     border-radius: 5px;
+
     background:#eee;
     /* styling of the dialog box, i have a fixed dimension for this demo */ 
 
