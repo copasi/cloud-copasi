@@ -364,7 +364,7 @@ class SpotRequest(models.Model):
 class AMI(models.Model):
     """Stores information about an Amazon EC2 AMI
     """
-    owner = models.IntegerField()
+    owner = models.CharField(max_length=100)
     
     name = models.CharField(max_length=100)
     
@@ -381,7 +381,7 @@ class AMI(models.Model):
         return self.name
     
 class EC2KeyPair(models.Model):
-    name = models.CharField(max_length=20, verbose_name='EC2 Key Pair name')
+    name = models.CharField(max_length=100, verbose_name='EC2 Key Pair name')
     
     path = models.CharField(verbose_name = 'Location of the public key pair', max_length=255)
     

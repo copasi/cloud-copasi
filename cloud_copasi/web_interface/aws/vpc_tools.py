@@ -16,11 +16,11 @@ import sys, os
 import time
 IP_RANGE='10.0.0.0'
 VPC_CIDR_BLOCK = IP_RANGE + '/16'
-SUBNET_CIDR_BLOCK = IP_RANGE + '/24'
+SUBNET_CIDR_BLOCK = IP_RANGE + '/16'
 SSH_PORT = 22
 CONDOR_FROM_PORT = 9600
 CONDOR_TO_PORT = 9700
-ALLOW_ALL_TRAFFIC = True #Allow only specific condor ports, or allow all traffic (for debuging only)
+ALLOW_ALL_TRAFFIC = False #Allow only specific condor ports, or allow all traffic (for debuging only)
 
 def create_vpc(key, vpc_connection, ec2_connection):
     
