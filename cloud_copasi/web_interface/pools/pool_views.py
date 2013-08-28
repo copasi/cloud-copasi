@@ -126,7 +126,7 @@ class AddEC2PoolForm(forms.ModelForm):
         fields = ('name', 'vpc', 'size', 'initial_instance_type', 'auto_terminate')
         widgets = {
             'initial_instance_type' : forms.Select(attrs={'style':'width:30em'}),
-            
+            'auto_terminate' : forms.CheckboxInput(attrs={'disabled':'disabled'})
             }
 
 
