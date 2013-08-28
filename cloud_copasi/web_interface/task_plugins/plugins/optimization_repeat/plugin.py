@@ -22,6 +22,8 @@ from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
+import datetime
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -226,7 +228,14 @@ class TaskPlugin(BaseTask):
         
         
     def process_results_subtask(self):
-        subtask=self.get_subtask(2)
+        if self.use_load_balancing:
+            main_subtask = self.get_subtask(2)
+            subtask = self.get_subtask(3)
+        else:
+            main_subtask = self.get_subtask(1)
+            subtask = self.get_subtask(2)
+        
+        subtask.start_time = now()
         assert isinstance(subtask, Subtask)
         
         
@@ -236,12 +245,6 @@ class TaskPlugin(BaseTask):
         directory = self.task.directory        
         
         
-        if self.use_load_balancing:
-            main_subtask = self.get_subtask(2)
-            subtask = self.get_subtask(3)
-        else:
-            main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2)
         
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
         
@@ -249,6 +252,8 @@ class TaskPlugin(BaseTask):
         
         self.copasi_model.process_or_results(results_files)
                 
+        subtask.finish_time = now()
+        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         subtask.status = 'finished'
         subtask.save()
         

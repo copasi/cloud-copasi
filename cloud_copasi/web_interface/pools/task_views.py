@@ -29,13 +29,15 @@ import tempfile, os
 from cloud_copasi import settings, copasi
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
-from cloud_copasi.web_interface.task_plugins import base, tools
+from cloud_copasi.web_interface.task_plugins import base, tools, plugins
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
+from datetime import timedelta
 from django.utils.datetime_safe import datetime
 import shutil
 from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
 import zipfile
+import json
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +70,7 @@ class NewTaskView(RestrictedFormView):
         #Ensure we have at least 1 running condor pool
         pools = CondorPool.objects.filter(user=request.user)
         if pools.count() == 0:
-            request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a job')]
+            request.session['errors']=[('No running compute pools', 'You must have configured at least 1 compute pool before you can submit a task')]
             return HttpResponseRedirect(reverse_lazy('pool_list'))
         
         kwargs['show_loading_screen'] = True
@@ -115,6 +117,7 @@ class NewTaskView(RestrictedFormView):
         task = Task()
         task.name = form.cleaned_data['name']
         task.condor_pool = form.cleaned_data['compute_pool']
+        task.user = request.user
         task.task_type = form.cleaned_data['task_type']
         
         task.original_model = 'original_model.cps'
@@ -126,9 +129,9 @@ class NewTaskView(RestrictedFormView):
         
         extra_fields = []
         base_form = base.BaseTaskForm
-        for field_name in self.form_class.base_fields:
+        for field_name in form.fields:
             if field_name not in base_form.base_fields:
-                extra_fields.append((field_name, self.form_class.base_fields[field_name]))
+                extra_fields.append((field_name, form.fields[field_name]))
         
         #We have not yet created the directory to hold the files
         directory_created = False
@@ -281,7 +284,7 @@ class NewTaskView(RestrictedFormView):
             return self.form_invalid(self, *args, **kwargs)
         
         
-        return HttpResponseRedirect(reverse_lazy('my_account'))
+        return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':task.id}))
     
 class TaskListView(RestrictedView):
     
@@ -292,19 +295,23 @@ class TaskListView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         #Get a list of running tasks for this user
-        user_tasks = Task.objects.filter(condor_pool__user=request.user)
+        user_tasks = Task.objects.filter(user=request.user)
         
         if kwargs['status'] == 'running':
             tasks = user_tasks.filter(status='new') | user_tasks.filter(status='running')
+            
+            tasks = tasks.order_by('-submit_time')
+            
             self.page_title = 'Running tasks'
             kwargs['byline'] = 'Tasks that are queued or running'
         elif kwargs['status'] == 'finished':
-            tasks = user_tasks.filter(status='finished')
+            tasks = user_tasks.filter(status='finished').order_by('-finish_time')
             self.page_title = 'Finished tasks'
             kwargs['byline'] = 'Tasks that have finished running'
-
+            kwargs['show_finish_time'] = True
+            
         elif kwargs['status'] == 'error':
-            tasks = user_tasks.filter(status='error')
+            tasks = user_tasks.filter(status='error').order_by('-submit_time')
             self.page_title = 'Task errors'
             kwargs['byline'] = 'Tasks that encountered an error while running'
 
@@ -323,13 +330,34 @@ class TaskDetailsView(RestrictedView):
         
         task_id = kwargs.pop('task_id')
         task = Task.objects.get(id=task_id)
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
+        
+        task_custom_fields = json.loads(task.custom_fields)
         
         kwargs['task'] = task
+        kwargs['task_display_type'] = task_plugins.tools.get_task_display_name(task.task_type)
+        kwargs['config_options'] = task_custom_fields
+        
+        if task.status == 'finished':
+            
+            try:
+                wall_clock_time = task.finish_time - task.submit_time
+                wall_clock_time = timedelta(seconds=round(wall_clock_time.total_seconds()))
+            except Exception, e:
+                wall_clock_time = ''
+            total_cpu = task.get_run_time()
+            try:
+                speed_up_factor = (total_cpu * 86400) / wall_clock_time.total_seconds()
+                speed_up_factor = '%0.2f' % speed_up_factor
+            except Exception, e:
+                speed_up_factor = ''
+            kwargs['speed_up_factor'] = speed_up_factor
+            kwargs['wall_clock_time'] = wall_clock_time
+        
         if task.status == 'error':
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)
-        
+            kwargs['error_message'] = task.get_custom_field('error')
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
     
 class SubtaskDetailsView(RestrictedView):
@@ -342,7 +370,7 @@ class SubtaskDetailsView(RestrictedView):
         
         subtask_id = kwargs.pop('subtask_id')
         subtask = Subtask.objects.get(id=subtask_id)
-        assert subtask.task.condor_pool.user == request.user
+        assert subtask.task.user == request.user
         
         kwargs['subtask'] = subtask
         
@@ -363,7 +391,7 @@ class TaskDeleteView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         confirmed = kwargs['confirmed']
         
@@ -376,9 +404,13 @@ class TaskDeleteView(RestrictedView):
             return super(TaskDeleteView, self).dispatch(request, *args, **kwargs)
         
         else:
-            task_tools.delete_task(task)
-            task.status='delete'
-            task.save()
+            for subtask in task.subtask_set.all():
+                try:
+                    condor_tools.remove_task(subtask)
+                except:
+                    pass
+            task.delete()
+                    
             
             return HttpResponseRedirect(reverse_lazy('running_task_list'))
         
@@ -391,7 +423,7 @@ class TaskResultView(RestrictedView):
     def dispatch(self, request, *args, **kwargs):
         
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
         
@@ -411,7 +443,7 @@ class TaskResultDownloadView(RestrictedView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         task = Task.objects.get(id=kwargs['task_id'])
-        assert task.condor_pool.user == request.user
+        assert task.user == request.user
         
         task_instance = task_plugins.tools.get_task_class(task.task_type)(task)
         
@@ -424,7 +456,7 @@ class TaskDirectoryDownloadView(RestrictedView):
         """Generate a tar.bz2 file of the results directory, and return it
         """
         try:
-            task = Task.objects.get(id=kwargs['task_id'], condor_pool__user=request.user)
+            task = Task.objects.get(id=kwargs['task_id'], user=request.user)
         except Exception, e:
             request.session['errors'] = [('Error Finding Job', 'The requested job could not be found')]
             log.exception(e)

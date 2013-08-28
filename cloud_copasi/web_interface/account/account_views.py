@@ -403,9 +403,20 @@ class KeysDeleteView(MyAccountView):
             
             #Go through and terminate each of the running pools
             for pool in pools:
-                tasks = pool.get_running_tasks()
-                for task in tasks:
-                    condor_tools.cancel_task(task)
+                #First, remove any running tasks
+                running_tasks = pool.get_running_tasks()
+                for task in running_tasks:
+                    for subtask in task.subtask_set.all():
+                        condor_tools.remove_task(subtask)
+                    task.delete()
+                
+                other_tasks = Task.objects.filter(condor_pool=pool).exclude(pk__in=running_tasks)       
+                #Then 'prune' the remaining tasks to remove the pool as a foreignkey
+                for task in other_tasks:
+                    task.condor_pool = None
+                    task.set_custom_field('condor_pool_name', pool.name)
+                    task.save()
+    
                 
                 ec2_tools.terminate_pool(pool)
                 

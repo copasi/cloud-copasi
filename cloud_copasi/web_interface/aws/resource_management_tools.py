@@ -156,7 +156,7 @@ def get_local_resources(user, key=None):
         
         #S3 buckets. Should be two for every non-deleted task
         #Get non-deleted tasks
-        tasks = Task.objects.exclude(status='deleted')
+        tasks = Task.objects.exclude(status='deleted').exclude(condor_pool=None)
         
         for task in tasks:
             if task.condor_pool.get_pool_type() == 'ec2':

@@ -22,6 +22,7 @@ from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -69,7 +70,7 @@ class TaskPlugin(BaseTask):
         #The main module
         self.create_new_subtask('main')
         #And a subtask to process any results
-        self.create_new_subtask('process', local=True)
+        self.create_new_subtask('process')
         
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
@@ -222,9 +223,13 @@ class TaskPlugin(BaseTask):
         
         
     def process_results_subtask(self):
-        subtask=self.get_subtask(2)
+        if self.use_load_balancing:
+            main_subtask = self.get_subtask(2)
+            subtask = self.get_subtask(3)
+        else:
+            main_subtask = self.get_subtask(1)
+            subtask = self.get_subtask(2)
         assert isinstance(subtask, Subtask)
-        
         
         #Go through and collate the results
         #This is a computationally expensive task, so we will run on condor
@@ -232,12 +237,6 @@ class TaskPlugin(BaseTask):
         directory = self.task.directory        
         
         
-        if self.use_load_balancing:
-            main_subtask = self.get_subtask(2)
-            subtask = self.get_subtask(3)
-        else:
-            main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2)
         
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
 

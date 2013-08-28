@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from copasi_model import ORCopasiModel # Use the task-specific copasi model in this directory
+from copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -22,6 +22,10 @@ from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
+from django.utils import html
+from django.utils.safestring import mark_safe
+from django.forms.util import ErrorList
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -34,14 +38,6 @@ from matplotlib.pyplot import annotate
 internal_type = ('optimization_repeat_different_algorithms', 'Optimization repeat with different algorithms')
 
 
-class HiddenTextInput(forms.TextInput):
-    
-    def __init__(self, name, *args, **kwargs):
-        
-        kwargs['attrs'] = {'class':'hidden_form genetic_algorithm'}
-        
-        return super(HiddenTextInput, self).__init__(*args, **kwargs)
-
 algorithms = []
 algorithms.append({
     'prefix': 'current_solution_statistics',
@@ -53,7 +49,7 @@ algorithms.append({
     'prefix': 'genetic_algorithm',
     'name': 'Genetic Algorithm',
     #params = (prefix, name, default, type, min, max)
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -62,11 +58,11 @@ algorithms.append({
 algorithms.append({
     'prefix': 'genetic_algorithm_sr',
     'name': 'Genetic Algorithm SR',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
-               ('pf', 'Pf', 0.475, int, 0, 1),
+               ('pf', 'Pf', 0.475, float, 0, 1),
                ]
 })
 algorithms.append({
@@ -88,7 +84,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'evolutionary_programming',
     'name': 'Evolutionary Programming',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
@@ -150,11 +146,11 @@ algorithms.append({
 algorithms.append({
     'prefix': 'evolution_strategy',
     'name': 'Evolution Strategy',
-    'params': [('number_of_generations', 'Number of generations', 200, int, 1, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
-               ('pf', 'Pf', 0.475, int, 0, 1),
+               ('pf', 'Pf', 0.475, float, 0, 1),
                ]
 
 })
@@ -168,12 +164,32 @@ algorithms.append({
 })    
      
 
+class SelectButtonWidget(forms.Widget):
+    def render(self, name, value, attrs=None):
+        return mark_safe('<input type="button" name="select_all" value="Select all" onclick="select_all_selectors();"></input><input type="button" name="select_none" value="Select none" onclick="deselect_all_selectors();"></input>')
+
+
+class SelectButtonField(forms.Field):
+    def __init__(self, *args, **kwargs):
+        if not kwargs:
+            kwargs = {}
+        kwargs["widget"] = SelectButtonWidget
+
+        super(SelectButtonField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        return value
+
+
 class TaskForm(BaseTaskForm):
+    
+    select_all = SelectButtonField(label='Algorithms')
+    
     
     def __init__(self, *args, **kwargs):
         try:
             super(TaskForm, self).__init__(*args, **kwargs)
-            
+                        
             for algorithm in algorithms:
                 self.fields[algorithm['prefix']] = forms.BooleanField(required=False,
                                                                       label=algorithm['name'],
@@ -194,149 +210,52 @@ class TaskForm(BaseTaskForm):
                                        )
                     
                     self.fields[algorithm['prefix'] + '_' + prefix] = field
-                    
 
-                    
-        
         except Exception, e:
             log.debug(e)
-#     
-# 
-#     current_solution_statistics_enabled = forms.BooleanField(label='Current solution statistics', required=False, widget=forms.CheckboxInput(attrs={'class': 'firstElement selector'}))
-#     
-#     genetic_algorithm_enabled = forms.BooleanField(label='Genetic Algorithm', required=False, widget=forms.CheckboxInput(attrs={'onclick': "toggle('genetic_algorithm')",
-#                                                                                                                                 'class':'selector'}))
-#     genetic_algorithm_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-#     genetic_algorithm_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-#     genetic_algorithm_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0, widget=forms.TextInput(attrs={'class':'hidden_form genetic_algorithm'}))
-#     genetic_algorithm_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-# 
-# 
-# 
-#     genetic_algorithm_sr_enabled = forms.BooleanField(label='Genetic algorithm SR', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('genetic_algorithm_sr', this);",
-#                                                                                                                                       'class':'selector'}))
-#     genetic_algorithm_sr_no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-#     genetic_algorithm_sr_population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-#     genetic_algorithm_sr_random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     genetic_algorithm_sr_seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#     genetic_algorithm_sr_pf = forms.FloatField(label='Pf', initial=0.475, min_value=0, max_value=1)    
 
-#----------------------------
-#Forms for the optimization repeat w/different algorithms task
     
 
-# class GeneticAlgorithmForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('genetic_algorithm', this);",}))
-#     no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-#     population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-   
-# class GeneticAlgorithmSRForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('genetic_algorithm_sr', this);",}))
-#     no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-#     population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#     pf = forms.FloatField(label='Pf', initial=0.475, min_value=0, max_value=1)    
-#    
-# class HookeAndJeevesForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('hooke_and_jeeves', this);",}))
-#     iteration_limit = forms.IntegerField(label='Iteration Limit', initial=50, min_value=1)
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-5, min_value=0)
-#     rho = forms.FloatField(label='Rho', initial=0.2, min_value=0, max_value=1)
-#    
-# class LevenbergMarquardtForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('levenberg_marquardt', this);",}))
-#     iteration_limit = forms.IntegerField(label='Iteration Limit', initial=200, min_value=1)
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-5, min_value=0)
-#    
-# class EvolutionaryProgrammingForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('evolutionary_programming', this);",}))
-#     no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-#     population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#    
-# class RandomSearchForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('random_search', this);",}))
-#     no_of_iterations = forms.IntegerField(label='Number of Iterations', initial=100000, min_value=1)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#    
-# class NelderMeadForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('nelder_mead', this);",}))
-#     iteration_limit = forms.IntegerField(label='Iteration Limit', initial=200, min_value=1)
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-5, min_value=0)
-#     scale = forms.FloatField(label='Scale', initial=10, min_value=0)
-#    
-# class ParticleSwarmForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('particle_swarm', this);",}))
-#     iteration_limit = forms.IntegerField(label='Iteration Limit', initial=2000, min_value=1)
-#     swarm_size = forms.IntegerField(label='Swarm Size', initial=50, min_value=1)
-#     std_deviation = forms.FloatField(label='Std. Deviation', initial=1e-6, min_value=0)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#    
-# class PraxisForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('praxis', this);",}))
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-5, min_value=0)
-#    
-# class TruncatedNewtonForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False)
-#    
-#    
-# class SimulatedAnnealingForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('simulated_annealing', this);",}))
-#     start_temperature = forms.FloatField(label='Start Temperature', initial=1, min_value=0)
-#     cooling_factor = forms.FloatField(label='Cooling Factor', initial=0.85, min_value=0)
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-6, min_value=0)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#    
-#    
-# class EvolutionStrategyForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('evolution_strategy', this);",}))
-#     no_of_generations = forms.IntegerField(label='Number of Generations', initial=200, min_value=1)
-#     population_size = forms.IntegerField(label='Population Size', initial=20, min_value=1)
-#     random_number_generator = forms.IntegerField(label='Random Number Generator', initial=1, min_value=0)
-#     seed=forms.IntegerField(label='Seed', initial=0, min_value=0)
-#     pf = forms.FloatField(label='Pf', initial=0.475, min_value=0, max_value=1)    
-#    
-# class SteepestDescentForm(forms.Form):
-#     enabled = forms.BooleanField(label='Enabled', required=False, widget=forms.CheckboxInput(attrs={'onclick':"toggle('steepest_descent', this);",}))
-#     iteration_limit = forms.IntegerField(label='Iteration Limit', initial=100, min_value=1)
-#     tolerance = forms.FloatField(label='Tolerance', initial=1e-6, min_value=0)
+    
+    def clean(self):
+        
+        cleaned_data = super(TaskForm, self).clean()
+        
+        #Raise a validation error if fields are blank when checkbox is selected
+        at_least_one_selected = False
 
-
+        for algorithm in algorithms:
+            if cleaned_data.get(algorithm['prefix']) == True:
+                at_least_one_selected = True
+                for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
+                    clean_value = cleaned_data.get(algorithm['prefix'] + '_' + prefix, None)
+                    if clean_value == None:
+                        msg = 'This field is required when %s is selected' % algorithm['name']
+                        self._errors[algorithm['prefix'] + '_' + prefix] = self.error_class([msg])
+                        del cleaned_data[algorithm['prefix'] + '_' + prefix]
+        
+        if not at_least_one_selected:
+            self._errors['__all__'] = ErrorList(['At least one algorithm must be selected'])
+            
+        return cleaned_data
+    
+    
 class TaskPlugin(BaseTask):
     
     subtasks = 2
 
     def __init__(self, task):
-        self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
-        
-        if self.use_load_balancing:
-            self.subtasks = 3
-        else:
-            self.subtasks = 2
-            task.set_custom_field('repeats_per_job', 1)
+        self.subtasks = 2
             
         super(TaskPlugin, self).__init__(task)
         
-        self.copasi_model = ORCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        self.repeats = self.task.get_custom_field('repeats')
-        repeats = self.repeats
+        self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        return self.copasi_model.is_valid('OR')
+        return self.copasi_model.is_valid('OD')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        if self.use_load_balancing:
-            #Create the load balancing module
-            self.create_new_subtask('lb')
-        
         #The main module
         self.create_new_subtask('main')
         #And a subtask to process any results
@@ -346,140 +265,39 @@ class TaskPlugin(BaseTask):
         """Prepare the indexed subtask"""
         
         if index == 1:
-            if self.use_load_balancing:
-                return self.process_lb_subtask()
-            else:
-                return self.process_main_subtask()
+            return self.process_main_subtask()
         
         elif index == 2:
-            if self.use_load_balancing:
-                return self.process_main_subtask()
-            else:
-                return self.process_results_subtask()
-        elif index == 3:
-            assert self.use_load_balancing
             return self.process_results_subtask()
         else:
             raise Exception('No subtasks remaining')
 
 
-    def process_lb_subtask(self):
-        #Prepare the necessary files to run the load balancing task on condor
-        
-        filenames = self.copasi_model.prepare_or_load_balancing()
-        #Construct the model files for this task
-        timeout = str(settings.IDEAL_JOB_TIME * 60)
-        if self.task.get_custom_field('rank'):
-            rank = str(self.task.get_custom_field('rank'))
-        else:
-            rank = ''
-            
-        #model_filename = self.task.original_model
-        
-        copasi_binary_dir, copasi_binary = os.path.split(settings.COPASI_LOCAL_BINARY)
-        
-        #write the load balancing script
-        load_balacing_script_template = Template(load_balancing.load_balancing_string)
-        load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
-                                                                 copasi_binary='./' + copasi_binary,
-                                                                 copasi_file_1 = ('load_balancing_1.cps'),
-                                                                 copasi_file_10 = ('load_balancing_10.cps'),
-                                                                 copasi_file_100 = ('load_balancing_100.cps'),
-                                                                 copasi_file_1000 = ('load_balancing_1000.cps'),
-
-                                                                 )
-        load_balancing_script_filename = 'load_balance.sh'
-        load_balancing_file = open(os.path.join(self.task.directory, load_balancing_script_filename), 'w')
-        load_balancing_file.write(load_balancing_script_string)
-        load_balancing_file.close()
-        
-        copasi_files_string = ''
-        for repeat in [1, 10, 100, 1000]:
-            copasi_files_string += 'load_balancing_%d.cps, ' % repeat
-        copasi_files_string = copasi_files_string.rstrip(', ') #Remove final comma
-        
-        load_balancing_condor_template = Template(condor_spec.condor_string_header + condor_spec.load_balancing_spec_string)
-        load_balancing_condor_string = load_balancing_condor_template.substitute(pool_type=self.task.condor_pool.pool_type,
-                                                                   pool_address = self.task.condor_pool.address,
-                                                                   script = load_balancing_script_filename,
-                                                                   copasi_binary=settings.COPASI_LOCAL_BINARY,
-                                                                   arguments = str(timeout),
-                                                                   rank=rank,
-                                                                   copasi_files=copasi_files_string,
-                                                                   )
-        #write to the condor file
-        condor_file = open(os.path.join(self.task.directory, 'load_balancing.job'), 'w')
-        condor_file.write(load_balancing_condor_string)
-        condor_file.close()
-        
-        subtask=self.get_subtask(1)
-        
-        subtask.spec_file = 'load_balancing.job'
-        subtask.status = 'waiting'
-        
-        subtask.set_custom_field('std_output_file', 'load_balancing.out')
-        subtask.set_custom_field('std_err_file', 'load_balancing.err')
-        subtask.set_custom_field('log_file', 'load_balancing.log')
-        subtask.set_custom_field('job_output', '')
-        subtask.set_custom_field('copasi_model', 'load_balancing.cps')
-
-        
-        subtask.save()
-        
-        return subtask
         
     def process_main_subtask(self):
         
+        #Build a list of the submitted algorithms
+        subtask = self.get_subtask(1)
+        
+        submitted_algorithms = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                params = {}
+                for prefix, name, value, type, minimum, maximum in algorithm['params']:
+                    params[prefix] = str(self.task.get_custom_field(algorithm['prefix'] + '_' + prefix))
+                
+                submitted_algorithms.append({'prefix': algorithm['prefix'],
+                                             'params': params
+                                             })
 
-        #Get the correct subtask
-        if self.use_load_balancing:
-            subtask = self.get_subtask(2)
-            
-            lb_job = CondorJob.objects.get(subtask=self.get_subtask(1))
-            #Read the load_balancing.out file
-            
-            output = open(os.path.join(subtask.task.directory, lb_job.std_output_file), 'r')
-            
-            
-            for line in output.readlines():
-                line = line.rstrip('\n')
-                if line != '':
-                    repeats_str, time_str = line.split(' ')
-                
-                try:
-                    lb_repeats = int(repeats_str)
-                    time = float(time_str)
-                except Exception, e:
-                    log.exception(e)
-                    lb_repeats = 1
-                    time = settings.IDEAL_JOB_TIME
-                
-                time_per_run = time / lb_repeats
-                
-                #Work out the number of repeats per job. If this is more than the original number of repeats specified, then just use the original number
-                repeats_per_job = min(int(round(settings.IDEAL_JOB_TIME * 60 / time_per_run)), self.repeats)
-                
-                if repeats_per_job < 1:
-                    repeats_per_job = 1
-                
-            
-            
-        else:
-            subtask = self.get_subtask(1)
-            repeats_per_job = 1
-        
-        
-        
-        
         #If no load balancing step required:
-        model_files = self.copasi_model.prepare_or_jobs(self.repeats, repeats_per_job, subtask.index)
+        model_files, output_files = self.copasi_model.prepare_od_jobs(submitted_algorithms)
         
         condor_pool = self.task.condor_pool
         
         condor_job_file = self.copasi_model.prepare_or_condor_job(condor_pool.pool_type,
                                                                   condor_pool.address,
                                                                   len(model_files),
-                                                                  subtask.index,
                                                                   rank='')
         
         log.debug('Prepared copasi files %s'%model_files)
@@ -500,27 +318,30 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
+        subtask.start_time = now()
         
+        main_subtask = self.get_subtask(1)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
                 
         directory = self.task.directory        
         
-        
-        if self.use_load_balancing:
-            main_subtask = self.get_subtask(2)
-            subtask = self.get_subtask(3)
-        else:
-            main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2)
-        
+
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
         
         results_files = [job.job_output for job in main_jobs]
         
-        self.copasi_model.process_or_results(results_files)
+        #Get a list of algorithm names
+        algorithm_list = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                algorithm_list.append(algorithm['name'])
+        
+        self.copasi_model.process_od_results(algorithm_list, results_files)
                 
         subtask.status = 'finished'
+        subtask.finish_time = now()
+        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         subtask.save()
         
         subtask.task.results_view=False
@@ -552,21 +373,26 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         if page_name == 'main':
             model = self.copasi_model
-            results = model.get_or_best_value()
-            
-            best_value = results[0][1]
-            
-            best_params = results[1:]
-            
-            output = {'best_value' : best_value,
-                      'best_params' : best_params,
-                      }
-            
-            return output
+            results = model.get_od_results()
+            best_value=results[1][1]
+            return {'results':results, 'best_value':best_value}
         
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
+        main_subtask = self.get_subtask(1)
+        #Go through and collate the results
+        #This is reasonably computationally simple, so we run locally
+
+        main_jobs = CondorJob.objects.filter(subtask=main_subtask)
         
+        results_files = [job.job_output for job in main_jobs]
+        
+        #Get a list of algorithm names
+        algorithm_list = []
+        for algorithm in algorithms:
+            if self.task.get_custom_field(algorithm['prefix']):
+                algorithm_list.append(algorithm['name'])
+
         if page_name == 'main':
             #Return the file results.txt
             filename = os.path.join(self.task.directory, 'results.txt')
@@ -580,17 +406,48 @@ class TaskPlugin(BaseTask):
    
             return response
             
-        elif page_name == 'raw_results':
-            filename = os.path.join(self.task.directory, 'raw_results.txt')
+        elif page_name == 'model':
+            index = request.GET.get('index')
+            #Name will be an algorithm index
+            assert int(index) < len(algorithms)
+            
+            index = int(index) - 1 #Account for 1-indexing
+            
+            key = self.copasi_model.process_od_results(algorithm_list, results_files, write=False, return_list=True)
+            
+            model_index = key[index]
+            
+            filename = os.path.join(self.task.directory, 'run_auto_copasi_1.%d.cps'%model_index)
+            if not os.path.isfile(filename):
+                request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
+                return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
+            result_file = open(filename, 'r')
+            response = HttpResponse(result_file, content_type='application/xml')
+            response['Content-Disposition'] = 'attachment; filename=%s_model.cps' % algorithms[model_index]['prefix']
+            response['Content-Length'] = os.path.getsize(filename)
+   
+            return response
+
+        elif page_name == 'output':
+            index = request.GET.get('index')
+            #Name will be an algorithm index
+            assert int(index) < len(algorithms)
+            
+            index = int(index) - 1 #Account for 1-indexing
+            
+            key = self.copasi_model.process_od_results(algorithm_list, results_files, write=False, return_list=True)
+            
+            model_index = key[index]
+
+            filename = os.path.join(self.task.directory, 'output_1.%s.txt'%model_index)
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
             result_file = open(filename, 'r')
             response = HttpResponse(result_file, content_type='text/tab-separated-values')
-            response['Content-Disposition'] = 'attachment; filename=%s_raw_results.txt' % (self.task.name.replace(' ', '_'))
+            response['Content-Disposition'] = 'attachment; filename=%s_results.txt' % algorithms[model_index]['prefix']
             response['Content-Length'] = os.path.getsize(filename)
    
             return response
 
-    
 

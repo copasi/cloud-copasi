@@ -18,6 +18,7 @@ import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
+from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -105,7 +106,7 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
         
-        
+        subtask.start_time = now()
         #Go through and collate the results
         #This is a computationally simple task, so we will run locally, not remotely
         
@@ -124,6 +125,8 @@ class TaskPlugin(BaseTask):
         
         log.debug('Setting subtask as finished')
         subtask.status = 'finished'
+        subtask.finish_time = now()
+        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         subtask.save()
         
         return subtask

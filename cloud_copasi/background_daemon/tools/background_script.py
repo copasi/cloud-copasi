@@ -32,5 +32,6 @@ def run():
     
     task_tools.update_tasks()
     
+    log.debug('Finished background script')
 if __name__ == '__main__':
     run()

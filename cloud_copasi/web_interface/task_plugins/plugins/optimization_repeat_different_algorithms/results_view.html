@@ -6,21 +6,46 @@ are made available under the terms of the GNU Public License v3.0
 which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
+<p><h4>Best value found for Optimization task: <b>{{results.best_value}}</b></h4></p>
+<div class="tablelist">
+    <table>
+        {% for line in results.results %}
+        <tr>
+        {% if forloop.first%}
+        {% for item in line %}
+        <th>
+        {{item}}
+        </th>
+        {% if forloop.counter0 == 1 %}
+        <th>
+            Download model
+        </th>
+        <th>
+            Download output
+        </th>
+        {% endif %}
 
-    <p><h4>Best value found for optimization task: <b>{{results.best_value}}</b></h4></p>
-    <p>
-        <a href="{% url 'task_results_download' task_id=task.id %}">Click here</a> to download these results as a tab-separated file
-        <br/>
-        <a href="{% url 'task_results_download' task_id=task.id %}?name=raw_results">Click here</a> to download the full output from all repeats
-    </p>
-    <div class="tablelist">
-        <table>
-            <tr><th>Parameter</th><th>Value</th></tr>
-            {% for parameter in results.best_params %}
-            <tr>
-                <td><b>{{parameter.0}}</b></td>
-                <td>{{parameter.1}}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
+        {% endfor %}
+        {% else %}
+        {% for item in line %}
+        <td>
+            {% if item == results.best_value %}
+            <h4>{{item}}</h4>
+            {%else%}
+            {{item}}
+            {% endif %}
+        </td>
+        {% if forloop.counter0 == 1 %}
+        <td>
+            <a href="{% url 'task_results_download' task_id=task.id %}?name=model&index={{forloop.parentloop.counter0}}">Download model</a>
+        </td>
+        <td>
+            <a href="{% url 'task_results_download' task_id=task.id %}?name=output&index={{forloop.parentloop.counter0}}">Download output</a>
+        </td>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+</div>

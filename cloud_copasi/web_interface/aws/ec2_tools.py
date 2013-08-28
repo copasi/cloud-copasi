@@ -19,7 +19,7 @@ from cloud_copasi import settings
 from boto import sqs
 import logging
 import datetime
-from django.utils.timezone import now as utcnow
+from django.utils.timezone import now as utcnow, now
 from django.utils.timezone import utc
 from django.core.urlresolvers import reverse_lazy
 import subprocess
@@ -84,7 +84,7 @@ def refresh_pool(ec2_pool):
                 
         except Exception, e:
             log.exception(e)
-    ec2_pool.last_update_time = utcnow()
+    ec2_pool.last_update_time = now()
     ec2_pool.save()
     
     #Did we just update the status of a copied pool?
@@ -163,7 +163,7 @@ def launch_pool(ec2_pool):
 
     ec2_pool.master = master_ec2_instance
     
-    ec2_pool.last_update_time = utcnow()
+    ec2_pool.last_update_time = now()
     ec2_pool.save()
     
     #wait until the master has a private ip address

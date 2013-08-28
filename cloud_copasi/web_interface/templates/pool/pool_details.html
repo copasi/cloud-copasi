@@ -20,7 +20,7 @@ http://www.gnu.org/licenses/gpl.html
         <h2>Compute pool details</h2>
         <span class="byline">Compute pool details for <span style="font-weight:bolder">{{pool.name}}</span></span>
     </header>
-    
+     <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
     <h4>Compute pool information</h4>
     {% if pool_type == 'ec2' or shared_pool_type == 'ec2' %}
     <div class="tablelist">
@@ -119,7 +119,26 @@ http://www.gnu.org/licenses/gpl.html
 
 
     {% endif %}
-    <p />
+    
+    {% if tasks %}
+    <h4>The following tasks are associated with this pool:</h4>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <td><a href="{% url 'task_details' task_id=task.id %}">{{task.name}}</a></td>
+                <td>{{task.get_task_type_name}}</td>
+                <td>{{task.get_status_display}}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
         
 </article>
