@@ -8,8 +8,8 @@
 /*********************/
 
 	var _5grid_settings = {
-		breakpoint_1000px:				1200,
-		breakpoint_mobile:				480,
+		breakpoint_1000px:				0,//1200, Disable 1000px style
+		breakpoint_mobile:				0,//480, Disable mobile style
 		prefix:							'style',
 		use:							'desktop', //Disable mobile interface for now
 		viewport_is1000px:				1040,
