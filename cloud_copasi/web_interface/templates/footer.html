@@ -14,12 +14,13 @@ http://www.gnu.org/licenses/gpl.html
                     <section>
                         <h2>Quick Links</h2>
                         <ul class="style2">
-                            <li><a href="#">About</a></li>
-                            <li><a href="#">My account</a></li>
-                            <li><a href="#">Instruction manual</a></li>
-                            <li><a href="#">Source code</a></li>
+                            <li><a href="{% url 'terms' %}">Terms and conditions</a></li>
+                            <li><a href="{% url 'contact' %}">Contact information</a></li>
+                            <li><a href="{% url 'help' %}">Instruction manual</a></li>
+                            <li><a href="{% url 'my_account' %}">My account</a></li>
+                            <li><a href="https://github.com/edkent/cloud-copasi">Source code</a></li>
                             <li><a href="#">Service status</a></li>
-                            <li><a href="#">Publications</a></li>
+                            <!-- <li><a href="#">Publications</a></li> -->
                         </ul>
                     </section>
             
@@ -29,8 +30,8 @@ http://www.gnu.org/licenses/gpl.html
                     <section>
                         <h2>Useful sites</h2>
                         <ul class="style2">
-                            <li><a href="#">COPASI</a></li>
-                            <li><a href="#">Amazon Web Services</a></li>
+                            <li><a href="http://www.copasi.org">COPASI</a></li>
+                            <li><a href="http://aws.amazon.com">Amazon Web Services</a></li>
                         </ul>
                     </section>
                         

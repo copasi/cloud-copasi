@@ -62,15 +62,27 @@ urlpatterns = patterns('',
 
 
     #Help pages
-    url(r'^about/$', views.AboutView.as_view(), name='about'),
-    url(r'^about/terms/$', views.DefaultView.as_view(),
-        {'template_name': 'about/terms.html',
+    url(r'^help/$', views.DefaultView.as_view(),
+        {'template_name': 'help/help.html',
+         'page_title': 'Help'}, name='help'),
+    
+    url(r'^help/compute_pools/$', views.DefaultView.as_view(),
+        {'template_name': 'help/pools.html',
+         'page_title': 'Help - Compute Pools'}, name='help_pools'),
+    
+    url(r'^help/tasks/$', views.DefaultView.as_view(),
+        {'template_name': 'help/tasks.html',
+         'page_title': 'Help - Task submission'}, name='help_tasks'),
+    
+    url(r'^help/terms/$', views.DefaultView.as_view(),
+        {'template_name': 'help/terms.html',
          'page_title': 'Terms and conditions'}, name='terms'),
 
 
-    url(r'^about/contact/$', views.DefaultView.as_view(),
-        {'template_name': 'about/contact.html',
+    url(r'^help/contact/$', views.DefaultView.as_view(),
+        {'template_name': 'help/contact.html',
          'page_title': 'Contact information'}, name='contact'),
+
 
     #VPC
 #     url(r'^my_account/vpc_status/$', account_views.VPCStatusView.as_view(), name='vpc_status'),

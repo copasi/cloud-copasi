@@ -45,8 +45,8 @@ class DefaultView(TemplateView):
         #Override the template name if it is requested from the url
         if kwargs.get('template_name', None):
             self.template_name = kwargs['template_name']
-        
-        kwargs['page_title'] = self.page_title
+        if self.page_title:
+            kwargs['page_title'] = self.page_title
         #Check for errors in request.session
         kwargs['debug'] = settings.DEBUG
         errors = request.session.pop('errors', None)
@@ -163,11 +163,6 @@ class HomeView(DefaultView):
     template_name='home.html'
     page_title = 'Home'
     
-
-class AboutView(DefaultView):
-    template_name = 'about/about_page.html'
-    page_title = 'About'
-
 
 
 class LogoutView(RedirectView):

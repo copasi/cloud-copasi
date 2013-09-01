@@ -1,0 +1,35 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "help/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Introduction</h2>
+    </header>
+    <p>Cloud-COPASI is a web-based tool for running <span class="bold">computationally intensive</span> simulation and analysis tasks         in parallel on a high-throughput computing pool. Cloud-COPASI can <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>, or provides a simple interface for <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
+    </p>
+    <p>
+        Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including <a href="{% url 'help_tasks' %}#sensitivity_optimization">global sensitivity analyses</a>, <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>, <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>, <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically slit into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
+    </p>
+    <p>
+        Models must be prepared using <a href="http://www.copasi.org">COPASI</a> (COmplex PAthway SImulator), a widely used free, open-source, cross-platform simulation tool.</p>
+    <p>
+        Cloud-COPASI is developed by Edward Kent in the <a href="http://www.comp-sys-bio.org">Computational Systems Biology and Biochemical Networks Modeling Group</a> at the <a href="http://www.manchester.ac.uk">University of Manchester, UK</a>, and is built on the <a href="http://www.biomedcentral.com/1752-0509/6/91">Condor-COPASI</a> software. Cloud-COPASI is written in Python using the <a href="https://www.djangoproject.com/">Django</a> web application framework. <a href="http://bosco.opensciencegrid.org/">Bosco</a> is used to connect to remote compute pools, and <a href="http://research.cs.wisc.edu/htcondor/">HTCondor</a> is used to manage job allocation on EC2 pools.
+    </p>
+    
+</article>
+{% endblock %}

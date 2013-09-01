@@ -18,7 +18,7 @@ http://www.gnu.org/licenses/gpl.html
     <h2><strong>Cloud COPASI:</strong> 
     Biochemical simulation and analysis using cloud computing</h2>
     <p>Find out more and sign up up for a free account today</p>
-    <a href="#" class="button button-big button-icon button-icon-check">Learn more</a>
+    <a href="{% url 'help' %}" class="button button-big button-icon button-icon-check">Learn more</a>
 </div>
 {% endblock %}
 
@@ -31,20 +31,12 @@ http://www.gnu.org/licenses/gpl.html
             <!-- Feature 1 -->
                 <section class="5grid-layout box-feature1">
                     <div class="row">
-                        <div class="12u">
-                            <header class="first">
-                                <h2>Second heading</h2>
-                                <span class="byline">And a brief description <strong>to go here</strong> ...</span>
-                            </header>
-                        </div>
-                    </div>
-                    <div class="row">
                         <div class="4u">
                             <section>
                                 <span class="image image-full"><img src="{{ STATIC_URL }}images/AWS_Logo_PoweredBy_384px.png" alt=""/></span>
                                 <header class="second second-gear">
                                     <h3>Powered by AWS</h3>
-                                    <span class="byline">Amazon Web Services</span>
+                                    <span class="byline">Launch a cloud-based compute pool</span>
                                 </header>
                             </section>
                         </div>
@@ -62,14 +54,23 @@ http://www.gnu.org/licenses/gpl.html
                                 <span class="image image-full"><img src="{{ STATIC_URL }}images/COPASI_384px.png" alt="" /></span>
                                 <header class="second second-chart">
                                     <h3>COPASI simulation backend</h3>
-                                    <span class="byline">Final description</span>
+                                    <span class="byline">Includes SBML import and export</span>
                                 </header>
                             </section>
                         </div>
                     </div>
                     <div class="row">
                         <div class="12u">
-                            <p>A pretty long description can go here. Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                             <p>Cloud-COPASI is a web-based tool for running <span class="bold">computationally intensive</span> simulation and analysis tasks         in parallel on a high-throughput computing pool. Cloud-COPASI can <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>, or provides a simple interface for <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
+    </p>
+    <p>
+        Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including <a href="{% url 'help_tasks' %}#sensitivity_optimization">global sensitivity analyses</a>, <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>, <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>, <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically slit into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
+    </p>
+    <p>
+        Models must be prepared using <a href="http://www.copasi.org">COPASI</a> (COmplex PAthway SImulator), a widely used free, open-source, cross-platform simulation tool.</p>
+    <p>
+        Cloud-COPASI is developed by Edward Kent in the <a href="http://www.comp-sys-bio.org">Computational Systems Biology and Biochemical Networks Modeling Group</a> at the <a href="http://www.manchester.ac.uk">University of Manchester, UK</a>, and is built on the <a href="http://www.biomedcentral.com/1752-0509/6/91">Condor-COPASI</a> software. Cloud-COPASI is written in Python using the <a href="https://www.djangoproject.com/">Django</a> web application framework. <a href="http://bosco.opensciencegrid.org/">Bosco</a> is used to connect to remote compute pools, and <a href="http://research.cs.wisc.edu/htcondor/">HTCondor</a> is used to manage job allocation on EC2 pools.
+    </p>
                         </div>
                     </div>
                 </section>

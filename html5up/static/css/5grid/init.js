@@ -11,7 +11,7 @@
 		breakpoint_1000px:				1200,
 		breakpoint_mobile:				480,
 		prefix:							'style',
-		use:							'mobile,desktop',
+		use:							'desktop', //Disable mobile interface for now
 		viewport_is1000px:				1040,
 		viewport_is1200px:				1280,
 		////////////////////////////////////////////////////////

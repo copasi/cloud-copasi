@@ -1,3 +1,6 @@
+{% extends "left_sidebar.html" %}
+
+
 {% comment %}
 Cloud-COPASI
 Copyright (c) 2013 Edward Kent.
@@ -6,12 +9,18 @@ are made available under the terms of the GNU Public License v3.0
 which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
-<section>
-    <header class="major">
-        <h2>Subheading</h2>
-    </header>
-    <ul class="style2">
-        <li><a href="#">Introduction</a></li>
-    </ul>
 
-</section>
+{% block sidebar %}
+{% include "help/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Contact us</h2>
+    </header>
+    <p>To get in touch, send an email to <a href="mailto:contact@cloud-copasi.com">contact@cloud-copasi.com</a></p>
+    
+</article>
+{% endblock %}
