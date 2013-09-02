@@ -160,17 +160,19 @@ class EC2PoolAddView(RestrictedFormView):
         pool.save()
         
         #Launch the pool
-        #try:
-        ec2_tools.launch_pool(pool)
-        pool.save()
+        try:
+            instances, errors = ec2_tools.launch_pool(pool)
+            pool.save()
         
-        #Connect to Bosco
-        condor_tools.add_ec2_pool(pool)
+            #Connect to Bosco
+            condor_tools.add_ec2_pool(pool)
+        except Exception, e:
+            self.request.session['errors'] = aws_tools.process_errors([e])
+            return HttpResponseRedirect(reverse_lazy('pool_add'))
         
-        #except Exception, e:
-        #    self.request.session['errors'] = aws_tools.process_errors([e])
-        #    return HttpResponseRedirect(reverse_lazy('pool_add'))
-        
+        if errors != []:
+            self.request.session['errors'] = aws_tools.process_errors(errors)
+            return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id': pool.id}))
         self.success_url = reverse_lazy('pool_test', kwargs={'pool_id':pool.id})
         
         return super(EC2PoolAddView, self).form_valid(*args, **kwargs)

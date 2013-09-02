@@ -23,6 +23,7 @@ from django.utils.timezone import now as utcnow, now
 from django.utils.timezone import utc
 from django.core.urlresolvers import reverse_lazy
 import subprocess
+from boto.exception import BotoServerError, EC2ResponseError
 
 log = logging.getLogger(__name__)
 
@@ -125,6 +126,8 @@ def launch_pool(ec2_pool):
     log.debug('Launcing EC2 pool')
     assert isinstance(ec2_pool, EC2Pool)
     
+    errors = []
+    
     #Initiate the connection    
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     
@@ -178,28 +181,34 @@ def launch_pool(ec2_pool):
     sleep(2)
     if ec2_pool.size > 0:
         log.debug('Launching worker nodes')
-        worker_reservation = ec2_connection.run_instances(ami.id,
-                                                   key_name=ec2_pool.key_pair.name,
-                                                   instance_type=ec2_pool.initial_instance_type,
-                                                   subnet_id=ec2_pool.vpc.subnet_id,
-                                                   security_group_ids=[ec2_pool.vpc.worker_group_id],
-                                                   user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
-                                                   min_count=ec2_pool.size,
-                                                   max_count=ec2_pool.size,
-                                                   )
-        sleep(3)
-        instances = worker_reservation.instances
-        for instance in instances:
-            ec2_instance = EC2Instance()
-            ec2_instance.ec2_pool = ec2_pool
-            ec2_instance.instance_id = instance.id
-            ec2_instance.instance_type = ec2_pool.initial_instance_type
-            ec2_instance.instance_role = 'worker'
+        try:
+            worker_reservation = ec2_connection.run_instances(ami.id,
+                                                       key_name=ec2_pool.key_pair.name,
+                                                       instance_type=ec2_pool.initial_instance_type,
+                                                       subnet_id=ec2_pool.vpc.subnet_id,
+                                                       security_group_ids=[ec2_pool.vpc.worker_group_id],
+                                                       user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                       min_count=ec2_pool.size,
+                                                       max_count=ec2_pool.size,
+                                                       )
+            sleep(3)
+            instances = worker_reservation.instances
+            for instance in instances:
+                ec2_instance = EC2Instance()
+                ec2_instance.ec2_pool = ec2_pool
+                ec2_instance.instance_id = instance.id
+                ec2_instance.instance_type = ec2_pool.initial_instance_type
+                ec2_instance.instance_role = 'worker'
+                
+                ec2_instance.save()
             
-            ec2_instance.save()
+                ec2_instances.append(ec2_instance)
+        except EC2ResponseError, e:
+            errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
+            however a master instance was launched successfully. Check your AWS usage limit to ensure you \
+            are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
+            errors.append(e)
             
-            ec2_instances.append(ec2_instance)
-        
     #Create an sqs queue
     log.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(ec2_pool.vpc.access_key)
@@ -222,8 +231,15 @@ def launch_pool(ec2_pool):
     #And create a  subscription to the api_terminate_instance_alarm endpoint
     termination_notify_url = 'http://' + settings.HOST + str(reverse_lazy('api_terminate_instance_alarm'))
     
-    sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
-    
+    try:
+        sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
+    except BotoServerError, e:
+        errors.append(('Error enabling auto termination', 'Auto termination was not successfully enabled'))
+        try:
+            ec2_pool.auto_terminate = False
+            sns_connection.delete_topic(topic_arn)
+        except:
+            pass
     #Apply an alarm to each of the ec2 instances to notify that they should be shutdown should they be unused
     ##Note, this is now performed when the master node sends a notification back to the server through the API
     
@@ -260,7 +276,7 @@ def launch_pool(ec2_pool):
         sleep(5)
     
     
-    return ec2_instances
+    return ec2_instances, errors
 
 def scale_up(ec2_pool, extra_nodes):
     log.debug('Scaling condor pool %s with %d extra nodes'%(ec2_pool.id, extra_nodes))
