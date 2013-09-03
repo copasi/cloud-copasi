@@ -167,8 +167,9 @@ class EC2PoolAddView(RestrictedFormView):
             #Connect to Bosco
             condor_tools.add_ec2_pool(pool)
         except Exception, e:
+            log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
-            return HttpResponseRedirect(reverse_lazy('pool_add'))
+            return HttpResponseRedirect(reverse_lazy('ec2_pool_add'))
         
         if errors != []:
             self.request.session['errors'] = aws_tools.process_errors(errors)
