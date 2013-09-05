@@ -16,6 +16,7 @@
 import sys, time
 from tools.daemon import Daemon
 import tools.background_script
+from tools.response import RemoteLoggingResponse
 from cloud_copasi import settings
 import logging
 
@@ -61,7 +62,7 @@ class MyDaemon(Daemon):
             if difference < min_repeat_time:
                 time.sleep(min_repeat_time - difference)
 
- 
+
 
 if __name__ == "__main__":
     daemon = MyDaemon('/tmp/Cloud-COPASI.pid')
