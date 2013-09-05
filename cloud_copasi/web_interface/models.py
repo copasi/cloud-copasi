@@ -413,7 +413,7 @@ class Task(models.Model):
     """High-level representation of a computing job
     """
 
-    condor_pool = models.ForeignKey(CondorPool, null=True)#Allowed to be null now
+    condor_pool = models.ForeignKey(CondorPool, null=True, blank=True)#Allowed to be null now
     user = models.ForeignKey(User) #Store the user separately so that we can remove the condor pool and still keep the task
     
     def get_condor_pool_name(self):
