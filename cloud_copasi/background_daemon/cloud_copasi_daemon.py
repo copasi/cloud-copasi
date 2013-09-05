@@ -62,7 +62,7 @@ class MyDaemon(Daemon):
             if difference < min_repeat_time:
                 time.sleep(min_repeat_time - difference)
 
-
+ 
 
 if __name__ == "__main__":
     daemon = MyDaemon('/tmp/Cloud-COPASI.pid')
