@@ -16,7 +16,6 @@
 import sys, time
 from tools.daemon import Daemon
 import tools.background_script
-from tools.response import RemoteLoggingResponse
 from cloud_copasi import settings
 import logging
 
