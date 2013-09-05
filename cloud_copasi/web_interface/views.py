@@ -37,7 +37,7 @@ class DefaultView(TemplateView):
     
     
     def get(self, request, *args, **kwargs):
-        log.debug('GET request [\"%s\"]' % request.path)
+        #log.debug('GET request [\"%s\"]' % request.path)
         return super(DefaultView, self).get(request, *args, **kwargs)
     
     def dispatch(self, request, *args, **kwargs):

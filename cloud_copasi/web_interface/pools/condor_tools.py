@@ -312,10 +312,11 @@ def process_condor_q(user=None, subtask=None):
     
     
     if len(condor_jobs) == 0:
-        log.debug('No jobs marked as running. Not checking condor_q')
+        #log.debug('No jobs marked as running. Not checking condor_q')
+        pass
         
     else:
-        log.debug('Reading condor_q')
+        #log.debug('Reading condor_q')
         condor_q = read_condor_q()
         
         
@@ -365,7 +366,8 @@ def process_condor_q(user=None, subtask=None):
                         log.debug('Log indicates abnormal termination. Marking job as error')
                         job.status = 'E'
                 else:
-                    log.debug('Log indicates job not terminated. Leaving status as running')
+                    #log.debug('Log indicates job not terminated. Leaving status as running')
+                    pass
                 job.save()
 
 def cancel_task(task):

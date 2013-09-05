@@ -31,7 +31,7 @@ def update_tasks(user=None, task=None):
     
     
     #Step 1: Get a list of running tasks
-    log.debug('Checking running tasks')
+    #log.debug('Checking running tasks')
     tasks = Task.objects.filter(status='running')
     if user:
         tasks = tasks.filter(user = user)
@@ -43,7 +43,7 @@ def update_tasks(user=None, task=None):
         subtasks = Subtask.objects.filter(task=task).filter(status='running')
         log.debug(subtasks)
         for subtask in subtasks:
-            log.debug('Checking subtask status: %s'%subtask.status)
+            #log.debug('Checking subtask status: %s'%subtask.status)
             jobs = CondorJob.objects.filter(subtask=subtask)
             
             
@@ -74,7 +74,8 @@ def update_tasks(user=None, task=None):
                     
             else:
                 #Something not right. TODO: determine if bad exit status, files not transferred yet, etc., and respond appropriatley
-                log.debug('%d jobs still in queue.' % (jobs.count() - finished.count()))
+                #log.debug('%d jobs still in queue.' % (jobs.count() - finished.count()))
+                pass
             
     
         #Now go through the subtasks and submit any that are waiting, provided that their preceding one has finished
