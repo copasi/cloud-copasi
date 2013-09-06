@@ -15,11 +15,14 @@ http://www.gnu.org/licenses/gpl.html
 
 {% endblock %}
 
+{% block extrascripts %}
+    <script type="text/javascript" src="{{STATIC_URL}}pool_launch.js"></script>
+{% endblock %}
 
 {% block content %}
 <article>
     <header class="major">
-        <h2>Launch pool</h2>
+        <h2>Launch pools</h2>
         <span class="byline">Launch a new compute pool</span>
     </header>
     
