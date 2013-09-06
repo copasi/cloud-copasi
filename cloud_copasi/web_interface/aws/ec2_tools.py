@@ -419,12 +419,13 @@ def assign_ip_address(ec2_instance):
             attempt_count +=1
     
     #Now try associating an elastic IP
-    max_attempts=2
+    max_attempts=5
     attempt_count=0
     while attempt_count < max_attempts:
         try:
         
             assert ec2_connection.associate_address(instance_id=ec2_instance.instance_id, allocation_id=elastic_ip.allocation_id)
+            sleep(sleep_time)
             log.debug('IP associated with instance')
             elastic_ip.instance=ec2_instance
             
