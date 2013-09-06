@@ -19,7 +19,8 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools,\
+    ec2_config
 from cloud_copasi.web_interface.pools import condor_tools
 from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
@@ -100,7 +101,29 @@ class PoolRenameView(RestrictedFormView):
 
 
     
-class AddEC2PoolForm(forms.ModelForm):
+class AddEC2PoolForm(forms.Form):
+    
+    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
+    
+    vpc = forms.ChoiceField(label = 'Keypair')
+    
+    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES, widget=forms.widgets.Select(attrs={'style':'width:30em'}),  help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
+    
+    size = forms.IntegerField(min_value=0, label='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
+        
+    pricing = forms.ChoiceField(choices= (('fixed', 'Fixed price'),
+                                             ('spot', 'Spot price bidding')),
+                                   widget=forms.RadioSelect(),
+                                   initial='fixed',
+                                   help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance.')
+    
+    spot_bid_price = forms.DecimalField(required=False, help_text = 'Your spot bid price in US Dollars.',
+                                        max_digits=5, decimal_places=3, initial=0.000,
+                                        )
+    
+    auto_terminate = forms.BooleanField(help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running. Only applies after at least one task has been submitted to the pool.', required=False)
+
+    
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
         super(AddEC2PoolForm, self).__init__(*args, **kwargs)
@@ -111,23 +134,18 @@ class AddEC2PoolForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(AddEC2PoolForm, self).clean()
         name = cleaned_data.get('name')
-        vpc = cleaned_data.get('vpc')
-        if vpc == None:
+        try:
+            vpc = VPC.objects.get(id=cleaned_data.get('vpc'))
+            cleaned_data['vpc'] = vpc
+        except:
             raise forms.ValidationError('You must select a valid access key with an associated VPC.')
-
+        
         if CondorPool.objects.filter(name=name,user=vpc.access_key.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
         
         return cleaned_data
 
 
-    class Meta:
-        model = EC2Pool
-        fields = ('name', 'vpc', 'size', 'initial_instance_type', 'auto_terminate')
-        widgets = {
-            'initial_instance_type' : forms.Select(attrs={'style':'width:30em'}),
-            'auto_terminate' : forms.CheckboxInput(attrs={'disabled':'disabled'})
-            }
 
 
 class EC2PoolAddView(RestrictedFormView):
@@ -147,8 +165,13 @@ class EC2PoolAddView(RestrictedFormView):
         form=kwargs['form']
         
         try:
-            pool = form.save(commit=False)
-            pool.user = pool.vpc.access_key.user
+            pool = EC2Pool(name = form.cleaned_data['name'],
+                           vpc = form.cleaned_data['vpc'],
+                           initial_instance_type = form.cleaned_data['initial_instance_type'],
+                           size=form.cleaned_data['size'],
+                           auto_terminate=form.cleaned_data['auto_terminate'],
+                           user = form.cleaned_data['vpc'].access_key.user
+                           )
             pool.save()
             
             key_pair=ec2_tools.create_key_pair(pool)

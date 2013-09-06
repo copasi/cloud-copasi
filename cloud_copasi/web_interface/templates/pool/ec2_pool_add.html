@@ -15,17 +15,16 @@ http://www.gnu.org/licenses/gpl.html
 
 {% endblock %}
 
-{% block extrascripts %}
-    <script type="text/javascript" src="{{STATIC_URL}}pool_launch.js"></script>
+{% block extra_scripts %}
+    <script type="text/javascript" src="{{STATIC_URL}}js/pool_launch.js"></script>
 {% endblock %}
 
 {% block content %}
 <article>
     <header class="major">
-        <h2>Launch pools</h2>
+        <h2>Launch pool</h2>
         <span class="byline">Launch a new compute pool</span>
     </header>
-    
     {% if access_keys.count == 0 %}
     <h4>You must add an AWS access key to continue</h4>
     {% endif %}
