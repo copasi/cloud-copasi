@@ -133,11 +133,11 @@ def condor_submit(condor_file):
         cluster_id = int(r.match(process_output).group('cluster'))
 
     except Exception, e:
-        logging.error('Failed to submit job')
-        logging.exception(e)
-        logging.error(output)
-        logging.error(error)
-        logging.error(exit_status)
+        log.exception('Failed to submit job')
+        log.exception(e)
+        log.exception(output)
+        log.exception(error)
+        log.exception(exit_status)
         raise e
     return (cluster_id, number_of_jobs)
 
