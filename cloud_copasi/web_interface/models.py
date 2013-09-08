@@ -598,7 +598,7 @@ class Task(models.Model):
             
             #Run condor_rm with the cluster ID
             try:
-                log.debug('Removing cluster %s from the condor q' % subtask.cluter_id)
+                log.debug('Removing cluster %s from the condor q' % subtask.cluster_id)
             except Exception, e:
                 log.exception(e)
             
