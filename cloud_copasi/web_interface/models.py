@@ -38,6 +38,7 @@ class Profile(models.Model):
     """
     user = models.OneToOneField(User)
     institution = models.CharField(max_length=50)
+    #test_field = models.CharField(max_length=10,blank=True,null=True)
     
 
 
