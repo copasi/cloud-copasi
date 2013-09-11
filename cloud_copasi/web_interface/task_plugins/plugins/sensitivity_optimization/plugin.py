@@ -66,11 +66,6 @@ class TaskPlugin(BaseTask):
         else:
             raise Exception('No subtasks remaining')
         
-#     def request_file_transfer(self, index, reason):
-#         """Request the transfer of files to be transfered from the master back to s3 for a particular subtask
-#         """
-#         if index == 2:
-#             self.request_all_files(reason)
         
     def process_first_subtask(self):
         #Get the first subtask

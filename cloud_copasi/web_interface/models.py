@@ -10,8 +10,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
 from django.core.validators import RegexValidator, MinValueValidator
-from boto.s3.connection import S3Connection
-from cloud_copasi.web_interface.aws import aws_tools, ec2_config, s3_tools
+from cloud_copasi.web_interface.aws import aws_tools, ec2_config
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
@@ -81,7 +80,6 @@ class VPC(models.Model):
     #Condor worker security group
     worker_group_id = models.CharField(max_length=20, verbose_name='Condor Worker security group ID')
     
-    s3_bucket_name = models.CharField(max_length=20, verbose_name = 'S3 bucket for storing ')
     
     class Meta:
         app_label = 'web_interface'
@@ -521,16 +519,7 @@ class Task(models.Model):
         return None
 
         
-    def get_outgoing_bucket(self):
-        
-        s3_connection = s3_tools.create_s3_connection(self.condor_pool.vpc.access_key)
-        bucket=s3_connection.get_bucket(self.get_outgoing_bucket_name())
-        return bucket
     
-    def get_incoming_bucket(self):
-        s3_connection = s3_tools.create_s3_connection(self.condor_pool.vpc.access_key)
-        bucket=s3_connection.get_bucket(self.get_incoming_bucket_name())
-        return bucket
 
     def get_job_count(self):
         """Return the number of jobs associated.

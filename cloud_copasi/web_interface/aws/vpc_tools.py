@@ -8,9 +8,7 @@
 #-------------------------------------------------------------------------------
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from boto.s3.connection import S3Connection
 from cloud_copasi.web_interface import models
-from cloud_copasi.web_interface.aws import s3_tools
 import boto.exception
 import sys, os
 import time
@@ -99,7 +97,6 @@ def delete_vpc(vpc, vpc_connection, ec2_connection):
     assert isinstance(ec2_connection, EC2Connection)
     assert isinstance(vpc_connection, VPCConnection)
     
-    s3_connection=s3_tools.create_s3_connection(vpc.access_key)
     
     errors = []
     
@@ -143,11 +140,6 @@ def delete_vpc(vpc, vpc_connection, ec2_connection):
     except Exception, e:
         errors.append(e)
     
-#     try:
-#         s3_connection.delete_bucket(vpc.s3_bucket_name)
-#     except Exception, e:
-#         errors.append(e)
-
     vpc.delete()
     
     return errors

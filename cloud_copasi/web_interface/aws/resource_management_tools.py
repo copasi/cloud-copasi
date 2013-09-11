@@ -10,8 +10,7 @@ from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
-from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools,\
-    s3_tools
+from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools
 from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP,\
     AWSAccessKey, Task
 import sys, os
@@ -27,7 +26,7 @@ log = logging.getLogger(__name__)
 class ResourceOverview():
     
     
-    def __init__(self, ec2_instances=None, elastic_ips=None, s3_buckets=None):
+    def __init__(self, ec2_instances=None, elastic_ips=None,):
         
         #List of instance ids
         self.ec2_instances = []
@@ -39,17 +38,12 @@ class ResourceOverview():
         if elastic_ips:
             self.elastic_ips += elastic_ips
         
-        #List of s3 bucket names
-        self.s3_buckets = []
-        if s3_buckets:
-            self.s3_buckets += s3_buckets
         
     def __add__(self, x):
         assert isinstance(x,ResourceOverview)
         
         return ResourceOverview(ec2_instances = list(set(self.ec2_instances) + set(x.ec2_instances)),
                                 elastic_ips = list(set(self.elastic_ips) + set(x.elastic_ips)),
-                                s3_buckets = list(set(self.s3_buckets) + set(x.s3_buckets)),
                                 )
             
             
@@ -57,7 +51,6 @@ class ResourceOverview():
         assert isinstance(x,ResourceOverview)
         return ResourceOverview(ec2_instances = list(set(self.ec2_instances) - set(x.ec2_instances)),
                                 elastic_ips = list(set(self.elastic_ips) - set(x.elastic_ips)),
-                                s3_buckets = list(set(self.s3_buckets) - set(x.s3_buckets)),
                                 )
         
         
@@ -67,12 +60,9 @@ class ResourceOverview():
     def add_elastic_ip(self, key, allocation_id, association_id=None, public_ip=None):
         self.elastic_ips.append((key, allocation_id, association_id, public_ip))
 
-            
-    def add_s3_bucket(self, key, bucket_name):
-        self.s3_buckets.append((key, bucket_name ))
-        
+
     def is_empty(self):
-        return len(self.ec2_instances)==0 and len(self.elastic_ips)==0 and len(self.s3_buckets)==0
+        return len(self.ec2_instances)==0 and len(self.elastic_ips)==0
             
 def get_remote_resources(user, key=None):
     """Return an overview of all the aws resources in use
@@ -87,7 +77,6 @@ def get_remote_resources(user, key=None):
     for key in keys:
         try:
             vpc_connection, ec2_connection =aws_tools.create_connections(key)
-            s3_connection = s3_tools.create_s3_connection(key)
             
             #Get ec2 count
             instance_reservations=ec2_connection.get_all_instances()
@@ -110,13 +99,6 @@ def get_remote_resources(user, key=None):
         except Exception, e:
             log.exception(e)
         
-        try:
-            s3_buckets = s3_connection.get_all_buckets()
-            for bucket in s3_buckets:
-                overview.add_s3_bucket(key, bucket.name)
-            
-        except Exception, e:
-            log.exception(e)
         
     
     
@@ -154,15 +136,6 @@ def get_local_resources(user, key=None):
         for elastic_ip in elastic_ips:
             overview.add_elastic_ip(key, elastic_ip.allocation_id, elastic_ip.association_id, None)
         
-        #S3 buckets. Should be two for every non-deleted task
-        #Get non-deleted tasks
-        tasks = Task.objects.exclude(status='deleted').exclude(condor_pool=None)
-        
-        for task in tasks:
-            if task.condor_pool.get_pool_type() == 'ec2':
-                overview.add_s3_bucket(key, task.get_outgoing_bucket_name())
-                overview.add_s3_bucket(key, task.get_incoming_bucket_name())
-        
     return overview
 
 def get_recognized_resources(user, key=None):
@@ -191,7 +164,6 @@ def terminate_resources(user, resources):
     
     ec2_instances={}
     elastic_ips={}
-    s3_buckets={}
     
     #Build up dicts to contain resources indexed by key 
     
@@ -208,13 +180,6 @@ def terminate_resources(user, resources):
             elastic_ips[key].append((allocation_id, association_id, public_ip))
         else:
             elastic_ips[key] = [(allocation_id, association_id, public_ip)]
-            
-    for key, bucket_name in resources.s3_buckets:
-        assert key.user == user
-        if key in s3_buckets:
-            s3_buckets[key].append(bucket_name)
-        else:
-            s3_buckets[key] = [bucket_name]
         
         
     #Release IPs    
@@ -240,17 +205,6 @@ def terminate_resources(user, resources):
             log.exception(e)
     
 
-    #Delete buckets
-    for key in s3_buckets:
-        for bucket_name in s3_buckets[key]:
-            try:
-                log.debug('Deleting bucket %s' %bucket_name)
-                s3_connection = s3_tools.create_s3_connection(key)
-                bucket = s3_connection.get_bucket(bucket_name)
-                #task_tools.delete_bucket(bucket)
-                #TODO: reimplement here
-            except Exception, e:
-                log.exception(e)
                 
 def health_check(user, key=None):
     """Perform a health check on all AWS resources

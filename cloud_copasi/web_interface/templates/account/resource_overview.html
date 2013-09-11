@@ -37,19 +37,16 @@ http://www.gnu.org/licenses/gpl.html
                 <th></th>
                 <th>EC2 instances (compute nodes)</th>
                 <th>Elastic IPs</th>
-                <th>S3 Buckets</th>
             </tr>
             <tr>
                 <th>Recognized</th>
                 <td>{{ recognized.ec2_instances | length }}</td>
                 <td>{{ recognized.elastic_ips | length }}</td>
-                <td>{{ recognized.s3_buckets | length }}</td>
             </tr>
             <tr>
                 <th>Unrecognized</th>
                 <td>{{ unrecognized.ec2_instances | length }}</td>
                 <td>{{ unrecognized.elastic_ips | length }}</td>
-                <td>{{ unrecognized.s3_buckets | length }}</td>
 
             </tr>
 

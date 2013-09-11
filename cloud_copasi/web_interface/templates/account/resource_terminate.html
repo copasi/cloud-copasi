@@ -62,24 +62,6 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     {% endif %}
     
-    {% if resources.s3_buckets %}
-    <h4>S3 Buckets</h4>
-    <div class="tablelist">
-        
-        <table>
-            <tr>
-                <th>Key name</th>
-                <th>Bucket name</th>
-            </tr>
-            {% for key, bucket_name in resources.s3_buckets %}
-            <tr>
-                <td>{{key.name}}</td>
-                <td>{{bucket_name}}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    {% endif %}
     
 </article>
 {% endblock %}

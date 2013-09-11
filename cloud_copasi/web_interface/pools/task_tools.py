@@ -6,11 +6,8 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from boto import s3, sqs
 import json, os, sys
-from cloud_copasi.web_interface.aws import s3_tools
 from cloud_copasi.web_interface.models import Task, CondorJob, Subtask
-from boto.s3.key import Key
 from cloud_copasi.web_interface.aws import aws_tools
 from boto.sqs.message import Message
 from cloud_copasi.web_interface.task_plugins import tools
