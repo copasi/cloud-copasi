@@ -512,14 +512,7 @@ class Task(models.Model):
         
         self.save()
         
-    def get_outgoing_bucket_name(self):
-        return None
 
-    def get_incoming_bucket_name(self):
-        return None
-
-        
-    
 
     def get_job_count(self):
         """Return the number of jobs associated.

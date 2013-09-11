@@ -63,7 +63,6 @@ class RegisterJobResponse(JSONResponder):
         
     def add_condor_job(self, condor_job_id, queue_id):
         self.condor_jobs.append((condor_job_id, queue_id))
-        #todo:how do we link these to specific jobs? probably depends on the job s3 file
         
     def send_response(self):
         #Get the response address
@@ -86,7 +85,6 @@ class UpdateResponse(JSONResponder):
     
     def add_condor_job(self, queue_id, status):
         self.condor_jobs.append([queue_id, status])
-        #todo:how do we link these to specific jobs? probably depends on the job s3 file
         
     def set_condor_jobs_from_q(self, condor_q):
         self.condor_jobs = condor_q
