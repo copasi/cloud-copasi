@@ -228,8 +228,8 @@ class EC2Pool(CondorPool):
     
     last_update_time = models.DateTimeField(auto_now_add=True)
     
-    spot_price = models.BooleanField(default=False, help_text='Was the pool launched with spot price bidding')
-    spot_price_bid = models.DecimalField(null=True,blank=True, max_digits=5, decimal_places=3, help_text='Bid price if launched with spot price bidding')
+    spot_request = models.BooleanField(default=False, help_text='Was the pool launched with spot price bidding')
+    spot_price = models.DecimalField(null=True,blank=True, max_digits=5, decimal_places=3, help_text='Bid price if launched with spot price bidding')
     #launch_configuration = models.CharField(max_length=20, help_text='The AWS launch configuration used for autoscaling')
     
     #autoscaling_group = models.CharField(max_length=20, help_text='The name of the AWS autoscaling group for this pool')

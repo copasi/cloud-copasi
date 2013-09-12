@@ -8,14 +8,24 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'EC2Pool.spot_request'
+        db.add_column(u'web_interface_ec2pool', 'spot_request',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
 
-        # Changing field 'EC2Pool.spot_price_bid'
-        db.alter_column(u'web_interface_ec2pool', 'spot_price_bid', self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=5, decimal_places=3))
+        # Adding field 'EC2Pool.spot_price'
+        db.add_column(u'web_interface_ec2pool', 'spot_price',
+                      self.gf('django.db.models.fields.DecimalField')(null=True, max_digits=5, decimal_places=3, blank=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
+        # Deleting field 'EC2Pool.spot_request'
+        db.delete_column(u'web_interface_ec2pool', 'spot_request')
 
-        # Changing field 'EC2Pool.spot_price_bid'
-        db.alter_column(u'web_interface_ec2pool', 'spot_price_bid', self.gf('django.db.models.fields.DecimalField')(max_digits=5, decimal_places=3))
+        # Deleting field 'EC2Pool.spot_price'
+        db.delete_column(u'web_interface_ec2pool', 'spot_price')
+
 
     models = {
         u'auth.group': {
@@ -129,10 +139,10 @@ class Migration(SchemaMigration):
             'key_pair': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['web_interface.EC2KeyPair']", 'null': 'True'}),
             'last_update_time': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'master': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['web_interface.EC2Instance']", 'null': 'True'}),
-            'secret_key': ('django.db.models.fields.CharField', [], {'default': "'bxRvVC6NSzha5hd4W8ydjN23VctaTk'", 'max_length': '30'}),
+            'secret_key': ('django.db.models.fields.CharField', [], {'default': "'cXYiCIKHumBSuGDZzbcjSbT5ExTPNt'", 'max_length': '30'}),
             'size': ('django.db.models.fields.PositiveIntegerField', [], {}),
-            'spot_price': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'spot_price_bid': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '5', 'decimal_places': '3', 'blank': 'True'}),
+            'spot_price': ('django.db.models.fields.DecimalField', [], {'null': 'True', 'max_digits': '5', 'decimal_places': '3', 'blank': 'True'}),
+            'spot_request': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'vpc': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['web_interface.VPC']"})
         },
         'web_interface.elasticip': {

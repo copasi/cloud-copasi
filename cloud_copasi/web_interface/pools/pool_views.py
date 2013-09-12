@@ -171,13 +171,17 @@ class EC2PoolAddView(RestrictedFormView):
     def form_valid(self, *args, **kwargs):
         form=kwargs['form']
         
+        spot = (form.cleaned_data['pricing'] == 'spot')
+        
         try:
             pool = EC2Pool(name = form.cleaned_data['name'],
                            vpc = form.cleaned_data['vpc'],
                            initial_instance_type = form.cleaned_data['initial_instance_type'],
                            size=form.cleaned_data['size'],
                            auto_terminate=form.cleaned_data['auto_terminate'],
-                           user = form.cleaned_data['vpc'].access_key.user
+                           user = form.cleaned_data['vpc'].access_key.user,
+                           spot_request=spot,
+                           spot_price = form.cleaned_data['spot_bid_price']
                            )
             pool.save()
             
