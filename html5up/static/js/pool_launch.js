@@ -11,10 +11,10 @@ function hideSpotPriceField(){
 }
 function showSpotPriceField(){
     //Always slide
-    input_row.show();
-    help_text_row.show();
-    bottom_line.show();
-    top_line.show();
+    input_row.fadeIn();
+    help_text_row.fadeIn();
+    bottom_line.fadeIn();
+    top_line.fadeIn();
 }
 
 
@@ -25,8 +25,9 @@ window.onload = function(){
     top_line = input_row.prev();
 
     
-    
-    hideSpotPriceField();
+    if ($('#id_pricing_0').attr('checked') == 'checked'){
+        hideSpotPriceField();
+    }
     $('#id_pricing_0').click(function(){ //fixed price selected
         hideSpotPriceField(true);
     });

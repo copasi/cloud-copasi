@@ -123,6 +123,13 @@ class AddEC2PoolForm(forms.Form):
     
     auto_terminate = forms.BooleanField(help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running. Only applies after at least one task has been submitted to the pool.', required=False)
 
+    def clean_spot_bid_price(self):
+        value = self.cleaned_data['spot_bid_price']
+        spot_price_checked = (self.cleaned_data['pricing'] == 'spot')
+        if value <= 0 and spot_price_checked:
+            raise forms.ValidationError('Bid price must be greater than 0')
+        else:
+            return value
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user')
