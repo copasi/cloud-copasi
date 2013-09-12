@@ -27,17 +27,17 @@ EC2_TYPE_CHOICES =(
           ('m1.large','m1.large (4 ECUs, 2 Cores, 7.5GB)'),
           ('m1.xlarge','m1.xlarge (8 ECUs, 4 Cores, 15GB)'),
 
-          ('m3.xlarge', 'm3.xlarge (13 ECUs, 4 Cores, 15GB)'),
-          ('m3.2xlarge', 'm3.2xlarge (26 ECUs, 8 Cores, 30GB)'),
+          #('m3.xlarge', 'm3.xlarge (13 ECUs, 4 Cores, 15GB)'),
+          #('m3.2xlarge', 'm3.2xlarge (26 ECUs, 8 Cores, 30GB)'),
           
           ('m2.xlarge','m2.xlarge (6.5 ECUs, 2 Cores, 17.1GB)'),
           ('m2.2xlarge','m2.2xlarge (13 ECUs, 4 Cores, 34.2GB)'),
           ('m2.4xlarge','m2.4xlarge (26 ECUs, 8 Cores, 68.4GB)'),
 
-          ('c1.medium','c1.medium (5ECUs, 2 Cores, 1.7GB)'),
-          ('c1.xlarge','c1.xlarge (20ECUs, 8 Cores, 7GB)'),
+          #('c1.medium','c1.medium (5ECUs, 2 Cores, 1.7GB)'),
+          #('c1.xlarge','c1.xlarge (20ECUs, 8 Cores, 7GB)'),
           
-          ('hs1.8xlarge','hs1.8xlarge (35ECUs, 16 Cores, 117GB)'),
+          #('hs1.8xlarge','hs1.8xlarge (35ECUs, 16 Cores, 117GB)'),
           )
 
 #===============================================================================
