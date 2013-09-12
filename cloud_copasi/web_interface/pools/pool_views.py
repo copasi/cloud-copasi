@@ -195,7 +195,7 @@ class EC2PoolAddView(RestrictedFormView):
         
         #Launch the pool
         try:
-            instances, errors = ec2_tools.launch_pool(pool)
+            errors = ec2_tools.launch_pool(pool)
             pool.save()
         
             #Connect to Bosco
@@ -203,7 +203,7 @@ class EC2PoolAddView(RestrictedFormView):
         except Exception, e:
             log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
-            return HttpResponseRedirect(reverse_lazy('ec2_pool_add'))
+            return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':pool.id}))
         
         if errors != []:
             self.request.session['errors'] = aws_tools.process_errors(errors)

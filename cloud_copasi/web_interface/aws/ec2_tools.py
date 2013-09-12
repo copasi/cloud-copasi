@@ -11,7 +11,8 @@ from boto.ec2 import EC2Connection, cloudwatch
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config
-from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP, Task
+from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP, Task,\
+    SpotRequest
 import sys, os
 from exceptions import Exception
 from time import sleep
@@ -181,28 +182,56 @@ def launch_pool(ec2_pool):
     sleep(2)
     if ec2_pool.size > 0:
         log.debug('Launching worker nodes')
+        
+        #Are we launcing fixed price or spot instances?
         try:
-            worker_reservation = ec2_connection.run_instances(ami.id,
-                                                       key_name=ec2_pool.key_pair.name,
-                                                       instance_type=ec2_pool.initial_instance_type,
-                                                       subnet_id=ec2_pool.vpc.subnet_id,
-                                                       security_group_ids=[ec2_pool.vpc.worker_group_id],
-                                                       user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
-                                                       min_count=ec2_pool.size,
-                                                       max_count=ec2_pool.size,
-                                                       )
-            sleep(3)
-            instances = worker_reservation.instances
-            for instance in instances:
-                ec2_instance = EC2Instance()
-                ec2_instance.ec2_pool = ec2_pool
-                ec2_instance.instance_id = instance.id
-                ec2_instance.instance_type = ec2_pool.initial_instance_type
-                ec2_instance.instance_role = 'worker'
+            if not ec2_pool.spot_request:
+                #Fix price launch. This is easy.
+                worker_reservation = ec2_connection.run_instances(ami.id,
+                                                           key_name=ec2_pool.key_pair.name,
+                                                           instance_type=ec2_pool.initial_instance_type,
+                                                           subnet_id=ec2_pool.vpc.subnet_id,
+                                                           security_group_ids=[ec2_pool.vpc.worker_group_id],
+                                                           user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                           min_count=ec2_pool.size,
+                                                           max_count=ec2_pool.size,
+                                                           )
+                sleep(3)
+                instances = worker_reservation.instances
+                for instance in instances:
+                    ec2_instance = EC2Instance()
+                    ec2_instance.ec2_pool = ec2_pool
+                    ec2_instance.instance_id = instance.id
+                    ec2_instance.instance_type = ec2_pool.initial_instance_type
+                    ec2_instance.instance_role = 'worker'
+                    
+                    ec2_instance.save()
                 
-                ec2_instance.save()
+                    ec2_instances.append(ec2_instance)
             
-                ec2_instances.append(ec2_instance)
+            
+            else:
+                #We're launching a spot request pool instead.
+                worker_requests = ec2_connection.request_spot_instances(str(ec2_pool.spot_price),
+                                                                        ami.id,
+                                                                        type='persistent',
+                                                                        count=ec2_pool.size,
+                                                                        key_name=ec2_pool.key_pair.name,
+                                                                        instance_type=ec2_pool.initial_instance_type,
+                                                                        subnet_id=ec2_pool.vpc.subnet_id,
+                                                                        security_group_ids=[ec2_pool.vpc.worker_group_id],
+                                                                        user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                                        )
+                for request in worker_requests:
+                    spot_request = SpotRequest(ec2_pool=ec2_pool,
+                                               request_id=request.id,
+                                               price=request.price,
+                                               status_code=request.status.code,
+                                               status_message=request.status.message,
+                                               state=request.state,
+                                               )
+                    spot_request.save()
+                
         except EC2ResponseError, e:
             errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
             however a master instance was launched successfully. Check your AWS usage limit to ensure you \
@@ -276,7 +305,7 @@ def launch_pool(ec2_pool):
         sleep(5)
     
     
-    return ec2_instances, errors
+    return errors
 
 def scale_up(ec2_pool, extra_nodes):
     log.debug('Scaling condor pool %s with %d extra nodes'%(ec2_pool.id, extra_nodes))
