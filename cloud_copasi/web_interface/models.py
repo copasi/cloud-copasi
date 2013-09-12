@@ -349,8 +349,8 @@ class SpotRequest(models.Model):
     ec2_instance = models.ForeignKey(EC2Instance, null=True)
     
     request_id = models.CharField(max_length=20)
-    
-    max_price = models.FloatField()
+
+    price = models.DecimalField(max_digits=5, decimal_places=3)
     
     status_code = models.CharField(max_length=50)
     status_message = models.CharField(max_length = 500)
