@@ -151,6 +151,8 @@ urlpatterns = patterns('',
     url(r'^api/check_resource/$', api_views.CheckResourceView.as_view(), name='api_check_resource'),
     url(r'^api/extra_task_fields/$', api_views.ExtraTaskFieldsView.as_view(), name='api_extra_task_fields'),
     url(r'^api/terminate_instance_alarm/$', api_views.TerminateInstanceAlarm.as_view(), name='api_terminate_instance_alarm'),
+    url(r'^api/spot_price/$', api_views.CurrentSpotInstancePrice.as_view(), name='api_spot_price'),
+
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

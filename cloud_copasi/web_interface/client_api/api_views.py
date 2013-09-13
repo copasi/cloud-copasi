@@ -20,7 +20,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from cloud_copasi.web_interface.aws import vpc_tools, aws_tools,\
-    resource_management_tools, ec2_tools
+    resource_management_tools, ec2_tools, ec2_config
 from cloud_copasi.web_interface import models, task_plugins
 from django.views.decorators.cache import never_cache
 from boto.exception import EC2ResponseError, BotoServerError
@@ -32,6 +32,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from cloud_copasi.web_interface.task_plugins import base, tools
 import urllib2
+import datetime
 
 log = logging.getLogger(__name__)
 class APIView(View):
@@ -447,3 +448,44 @@ class TerminateInstanceAlarm(APIView):
                 return HttpResponse(status=500)
 
         return HttpResponse(status=200)
+    
+class CurrentSpotInstancePrice(APIView):
+    """Get the current spot price for a particular instance type
+    """
+    def get(self, request, *args, **kwargs):
+        assert isinstance(request, HttpRequest)
+        instance_type = request.GET.get('instance_type')
+        key_id = request.GET.get('key_id')
+        full_history = request.GET.get('history', False)
+        
+        key = AWSAccessKey.objects.get(id=key_id)
+        
+        vpc_connection, ec2_connection = aws_tools.create_connections(key)
+        
+        if full_history != 'true':
+            time_str = '%Y-%m-%dT%H:%M:%SZ'
+            utc_now = datetime.datetime.utcnow()
+            now_time_str = utc_now.strftime(time_str) #Format time for aws
+            
+            #get the time for 10 mins ago
+            prev_time = utc_now - datetime.timedelta(seconds=600)
+            prev_time_str = prev_time.strftime(time_str)
+            
+            #Get the history from boto
+            
+            history = ec2_connection.get_spot_price_history(start_time=prev_time_str, end_time=now_time_str, instance_type=instance_type)
+            
+            #And the most recent history price point
+            price = history[0].price
+        
+            output = {'price' : price}
+            
+        else:
+            #Get the full price history. Don't specify start and end times
+            history = ec2_connection.get_spot_price_history(instance_type=instance_type)
+            
+            output = {'price':[]}
+            for item in history:
+                output['price'].append((item.timestamp, item.price))
+        json_response = json.dumps(output)
+        return HttpResponse(json_response, content_type="application/json", status=200)

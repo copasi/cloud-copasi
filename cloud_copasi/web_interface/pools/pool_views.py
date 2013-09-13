@@ -212,12 +212,18 @@ class EC2PoolAddView(RestrictedFormView):
         
         return super(EC2PoolAddView, self).form_valid(*args, **kwargs)
 
-    def dispatch(self, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Launching pool'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Launching a pool can take several minutes'
-
-        return super(EC2PoolAddView, self).dispatch(*args, **kwargs)
+        
+        #Get an aws key for this user. For the time being, just use the first one in the list
+        user = request.user
+        keys = AWSAccessKey.objects.filter(user=user)
+        if keys.count() > 0:
+            kwargs['key_id'] = keys[0].id
+        
+        return super(EC2PoolAddView, self).dispatch(request, *args, **kwargs)
 
     
 class PoolDetailsView(RestrictedView):

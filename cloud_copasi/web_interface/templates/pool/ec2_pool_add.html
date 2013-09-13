@@ -16,7 +16,9 @@ http://www.gnu.org/licenses/gpl.html
 {% endblock %}
 
 {% block extra_scripts %}
-    <script type="text/javascript" src="{{STATIC_URL}}js/pool_launch.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/pool_launch.js' %}</script>
+    
 {% endblock %}
 
 {% block content %}
