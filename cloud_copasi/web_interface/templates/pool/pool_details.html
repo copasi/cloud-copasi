@@ -32,6 +32,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Number of nodes*</th>
                 <th>CPU hours used</th>
                 <th>Pool health</th>
+                <th>Spot requests (fulfilled)</th>
             </tr>
             <tr>
                 <td>{{pool.name}}</td>
@@ -40,6 +41,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{instances.count}}</td>
                 <td>Not implemented</td>
                 <td>{% if pool_type == 'shared' %}{{ original_pool.get_health }}{% else %}{{ pool.get_health }}{% endif %}</td>
+                <td>{{ spot_requests.count }} ({{ fulfilled_spot_requests.count }})</td>
             </tr>
         </table>
         <p>*Includes Master node</p>
@@ -95,6 +97,40 @@ http://www.gnu.org/licenses/gpl.html
         </table>
     </div>
     
+    {% if spot_requests.count > 0 %}
+    <h4>Spot requests:</h4>
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Request ID</th>
+                <th>Type</th>
+                <th>Bid</th>
+                <th>State</th>
+                <th>Status</th>
+                <th>Instance ID</th>
+            </tr>
+            {% for request in spot_requests %}
+            <tr id="{{request.request_id}}">
+                <td>{{ request.request_id }}</td>
+                <td>{{ request.instance_type }}</td>
+                <td>${{ request.price }}</td>
+                <td>{{ request.state }}</td>
+                <td><span title="{{request.status_message}}" style="border-bottom: 1px dotted #ba0000;">{{ request.status_code }}</span></td>
+                <td>
+                    {% if request.ec2_instance %}
+                        <a href="#{{request.ec2_instance.instance_id}}">{{request.ec2_instance.instance_id}}</a>
+                    {% else %}
+                        None
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    
+    {% endif %}
+    
     <h4>Compute node status:</h4>
     <div class="tablelist">
         <table>
@@ -104,14 +140,22 @@ http://www.gnu.org/licenses/gpl.html
                 <th>State</th>
                 <th>Uptime</th>
                 <th>Status</th>
+                <th>Spot request</th>
             </tr>
             {% for instance in compute_instances %}
-            <tr>
+            <tr id="{{instance.instance_id}}">
                 <td>{{ instance.instance_id }}</td>
                 <td>{{ instance.instance_type }}</td>
                 <td>{{ instance.get_state }}</td>
                 <td>Not implemented</td>
                 <td>{{ instance.get_health }}</td>
+                <td>
+                    {% if instance.spotrequest %}
+                        <a href="#{{instance.spotrequest.request_id}}">{{instance.spotrequest.request_id}}</a>
+                    {% else %}
+                        No
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </table>

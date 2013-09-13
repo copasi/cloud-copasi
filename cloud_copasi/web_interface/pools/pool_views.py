@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance,\
-    EC2Pool, BoscoPool, Task
+    EC2Pool, BoscoPool, Task, SpotRequest
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -323,6 +323,8 @@ class PoolDetailsView(RestrictedView):
                 return HttpResponseRedirect(reverse_lazy('pool_list'))
             
             instances=EC2Instance.objects.filter(ec2_pool=pool)
+            spot_requests = SpotRequest.objects.filter(ec2_pool=pool)
+            fulfilled_spot_requests = spot_requests.filter(status_code='fulfilled')
             
             try:
                 master_id = pool.master.id
@@ -333,7 +335,8 @@ class PoolDetailsView(RestrictedView):
             
             kwargs['instances'] = instances
             kwargs['compute_instances'] = compute_instances
-
+            kwargs['spot_requests'] = spot_requests
+            kwargs['fulfilled_spot_requests'] = fulfilled_spot_requests
         else:
             #Pool type is bosco
             pass
