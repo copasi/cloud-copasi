@@ -347,7 +347,7 @@ class EC2Instance(models.Model):
 class SpotRequest(models.Model):
     ec2_pool = models.ForeignKey(EC2Pool)
     
-    ec2_instance = models.ForeignKey(EC2Instance, null=True)
+    ec2_instance = models.OneToOneField(EC2Instance, null=True,blank=True)
     
     request_id = models.CharField(max_length=20)
 
@@ -364,7 +364,7 @@ class SpotRequest(models.Model):
         app_label = 'web_interface'
     
     def __unicode__(self):
-        return "%s (User: %s)" % (self.name, self.vpc.access_key.user.username) 
+        return "%s (User: %s)" % (self.request_id, self.ec2_pool.vpc.access_key.user.username) 
 
 
 class AMI(models.Model):
