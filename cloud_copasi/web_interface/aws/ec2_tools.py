@@ -42,7 +42,8 @@ def get_active_ami(ec2_connection):
 def refresh_pool(ec2_pool):
     """Refresh the state of each instance in a ec2 pool
     """
-    
+    log.debug('Refreshing pool %s status' % ec2_pool.name)
+
     if ec2_pool.copy_of:
         copied_pool = ec2_pool
         ec2_pool = EC2Pool.objects.get(id=ec2_pool.copy_of.id)
@@ -62,12 +63,33 @@ def refresh_pool(ec2_pool):
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
     
     instances = instances.exclude(state='terminated')
-    #TODO: get list of instance ids
     
     instance_ids = [instance.instance_id for instance in instances]
     
-    instance_status_list = ec2_connection.get_all_instance_status(instance_ids)
-    log.debug('Refreshing pool %s status' % ec2_pool.name)
+    try:
+        instance_status_list = ec2_connection.get_all_instance_status(instance_ids)
+    except:
+        #Perhaps an instance wasn't found? If so we'll have to go through the list the slow way
+        instance_status_list = []
+        not_found_instances = []
+        for instance_id in instance_ids:
+            try:
+                instance_status = ec2_connection.get_all_instance_status([instance_id])
+                instance_status_list.append(instance_status)
+            except:
+                log.debug('Instance %s not found, presuming terminated' % instance_id)
+                not_found_instances.append(instance_id)
+        
+        for instance_id in not_found_instances:
+            ec2_instance = EC2Instance.objects.get(instance_id=instance_id)
+            ec2_instance.state='terminated'
+            ec2_instance.instance_status = 'terminated'
+            ec2_instance.system_status = 'terminated'
+            ec2_instance.state_transition_reason = 'Unknown'
+            
+            ec2_instance.save()
+    
+    
     for status in instance_status_list:
         #assert isinstance(status, )
         log.debug('Refreshing instance %s' % status.id)
@@ -83,9 +105,10 @@ def refresh_pool(ec2_pool):
             ec2_instance.instance_status = status.instance_status.status
             ec2_instance.system_status = status.system_status.status
             ec2_instance.save()
-                
         except Exception, e:
             log.exception(e)
+    
+    
     ec2_pool.last_update_time = now()
     ec2_pool.save()
     
@@ -94,9 +117,6 @@ def refresh_pool(ec2_pool):
         copied_pool.last_update_time = ec2_pool.last_update_time
         copied_pool.save()
     
-    #for instance_status in instance_status_list: 
-    #id = instance_status.id; state=state_name,
-    #if state has changed - get instance.state_reason
     
 
 def create_key_pair(pool):
