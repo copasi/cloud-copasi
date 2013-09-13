@@ -107,7 +107,8 @@ def refresh_pool(ec2_pool):
                 spot_request.ec2_instance = None
             
             spot_request.save()
-    
+        except:
+            pass
     
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
     
