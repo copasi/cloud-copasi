@@ -64,7 +64,7 @@ def refresh_pool(ec2_pool):
     
     spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool) | SpotRequest.objects.filter(ec2_pool__copy_of=ec2_pool)
     
-    spot_request_ids = [request.id for request in spot_requests]
+    spot_request_ids = [request.request_id for request in spot_requests]
     
     try:
         spot_request_list = ec2_connection.get_all_spot_instance_requests(request_ids=spot_request_ids)
@@ -95,7 +95,7 @@ def refresh_pool(ec2_pool):
                     ec2_instance = EC2Instance(ec2_pool=ec2_pool,
                                                instance_type=spot_request.instance_type,
                                                instance_role='worker',
-                                               ec2_instance_id=request.instance_id,
+                                               instance_id=request.instance_id,
                                                state='unknown',
                                                instance_status='unknown',
                                                system_status='unknown',
@@ -107,8 +107,8 @@ def refresh_pool(ec2_pool):
                 spot_request.ec2_instance = None
             
             spot_request.save()
-        except:
-            pass
+        except Exception, e:
+            log.exception(e)
     
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
     
@@ -401,12 +401,34 @@ def terminate_instances(instances):
 def terminate_pool(ec2_pool):
     assert isinstance(ec2_pool, EC2Pool)
     log.debug('Terminating condor pool %s (user %s)' %(ec2_pool.name, ec2_pool.vpc.access_key.user.username))
-
+    
     #Keep a track of the following errors
     errors=[]
-    #First, create an ec2_connection object
+    #Create an ec2_connection object
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     assert isinstance(ec2_connection, EC2Connection)
+    
+    #First, refresh the status of the pool
+    try:
+        refresh_pool(ec2_pool)
+    except Exception, e:
+        log.exception(e)
+        errors.append(e)
+    
+    spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool)
+    spot_request_ids = [request.request_id for request in spot_requests]
+    
+    try:
+        log.debug('Cancelling %d spot requests'%len(spot_request_ids))
+        ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
+        for spot_request in spot_requests:
+            spot_request.delete()
+    except Exception, e:
+        log.exception(e)
+        errors.append(e)
+
+    
+    
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
     
     
