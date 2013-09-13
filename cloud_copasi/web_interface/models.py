@@ -295,6 +295,7 @@ class EC2Instance(models.Model):
                                       ('terminated', 'Terminated'),
                                       ('stopping', 'Stopping'),
                                       ('stopped', 'Stopped'),
+                                      ('unknown', 'Unknown'),
                                       ),
                              default='pending'
                              )
@@ -357,6 +358,7 @@ class SpotRequest(models.Model):
     
     state = models.CharField(max_length=20)
     
+    instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES)
     
     class Meta:
         app_label = 'web_interface'

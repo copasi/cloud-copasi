@@ -298,6 +298,7 @@ def launch_pool(ec2_pool):
                                                status_code=request.status.code,
                                                status_message=request.status.message,
                                                state=request.state,
+                                               instance_type=ec2_pool.initial_instance_type,
                                                )
                     spot_request.save()
                 
