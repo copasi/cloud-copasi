@@ -60,6 +60,55 @@ def refresh_pool(ec2_pool):
     
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     
+    #Get a list of any spot requests associated with the pool
+    
+    spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool) | SpotRequest.objects.filter(ec2_pool__copy_of=ec2_pool)
+    
+    spot_request_ids = [request.id for request in spot_requests]
+    
+    try:
+        spot_request_list = ec2_connection.get_all_spot_instance_requests(request_ids=spot_request_ids)
+    except EC2ResponseError:
+        #Perhaps a particular spot request wasn't found? Go through the list the slow way
+        spot_request_list = []
+        not_found_requests = []
+        for spot_request_id in spot_request_ids:
+            try:
+                spot_instance_request = ec2_connection.get_all_spot_instance_requests(request_ids=[spot_request_id])
+                spot_request_list.append(spot_instance_request)
+            except:
+                log.debug('Spot request %s not found, not updating status' %spot_request_id)
+                not_found_requests.append(spot_request_id)
+            #Don't do anything with spot requests that weren't found for now
+    
+    for request in spot_request_list:
+        try:
+            spot_request = SpotRequest.objects.get(request_id=request.id)
+            spot_request.status_code = request.status.code
+            spot_request.status_message = request.status.message
+            spot_request.state = request.state
+            
+            if request.instance_id != None:
+                try:
+                    ec2_instance = EC2Instance.objects.get(instance_id=request.instance_id)
+                except:
+                    ec2_instance = EC2Instance(ec2_pool=ec2_pool,
+                                               instance_type=spot_request.instance_type,
+                                               instance_role='worker',
+                                               ec2_instance_id=request.instance_id,
+                                               state='unknown',
+                                               instance_status='unknown',
+                                               system_status='unknown',
+                                               )
+                    ec2_instance.save()
+                spot_request.ec2_instance = ec2_instance
+                    
+            else:
+                spot_request.ec2_instance = None
+            
+            spot_request.save()
+    
+    
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
     
     instances = instances.exclude(state='terminated')
@@ -68,13 +117,13 @@ def refresh_pool(ec2_pool):
     
     try:
         instance_status_list = ec2_connection.get_all_instance_status(instance_ids)
-    except:
+    except EC2ResponseError:
         #Perhaps an instance wasn't found? If so we'll have to go through the list the slow way
         instance_status_list = []
         not_found_instances = []
         for instance_id in instance_ids:
             try:
-                instance_status = ec2_connection.get_all_instance_status([instance_id])
+                instance_status = ec2_connection.get_all_instance_status([instance_id])[0]
                 instance_status_list.append(instance_status)
             except:
                 log.debug('Instance %s not found, presuming terminated' % instance_id)
