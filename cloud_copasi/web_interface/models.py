@@ -635,7 +635,7 @@ class Subtask(models.Model):
                       ('finished', 'Finished'),
                       ('error', 'Error'),
                       ('delete', 'Marked for deletion'), #TODO: needed?
-                      ('unkown', 'Unknown'),
+                      ('unknown', 'Unknown'),
                       )
     status = models.CharField(max_length=32, choices = status_choices, default='waiting')
     
