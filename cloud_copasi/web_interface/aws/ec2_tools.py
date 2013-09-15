@@ -228,7 +228,7 @@ def launch_pool(ec2_pool):
     master_ec2_instance = EC2Instance()
     master_ec2_instance.ec2_pool = ec2_pool
     master_ec2_instance.instance_id = master_instance.id
-    master_ec2_instance.instance_type = ec2_pool.initial_instance_type
+    master_ec2_instance.instance_type = settings.MASTER_NODE_TYPE
     master_ec2_instance.instance_role = 'master'
     
     
