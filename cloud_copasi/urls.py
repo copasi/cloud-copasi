@@ -96,7 +96,7 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/add_existing/$', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
 
     url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_up/$', pool_views.EC2PoolScaleUpView.as_view(), name='ec2_pool_scale_up'),
-    url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_down/$', pool_views.EC2PoolScaleUpView.as_view(), name='ec2_pool_scale_down'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_down/$', pool_views.EC2PoolScaleDownView.as_view(), name='ec2_pool_scale_down'),
 
     url(r'^my_account/pools/(?P<pool_id>\d+)/test/$', pool_views.PoolTestView.as_view(), name='pool_test'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/test/result', pool_views.PoolTestResultView.as_view(), name='pool_test_result'),

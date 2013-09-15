@@ -15,17 +15,21 @@ http://www.gnu.org/licenses/gpl.html
 
 {% endblock %}
 
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/ec2_pool_scale_down.js' %}</script>
+    
+{% endblock %}
 
 {% block content %}
 <article>
     <header class="major">
-        <h2>Scale pool {%if scale_up%}up{%else%}down{%endif%}</h2>
-        <span class="byline">{%if scale_up %}Add more nodes to{%else%}Remove nodes from{%endif%} to the EC2 pool {{pool.name}}</span>
+        <h2>Scale pool {{pool.name}} down</h2>
+        <span class="byline">Remove nodes from the compute pool {{pool.name}}</span>
     </header>
 
     
-    
-    {% include 'form.html' with submit_text="Scale pool"%}
+    {% include 'form.html' with submit_text="Scale down"%}
 
     
 </article>
