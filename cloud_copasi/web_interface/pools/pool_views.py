@@ -367,6 +367,20 @@ class EC2PoolScaleUpForm(forms.Form):
     nodes_to_add = forms.IntegerField(required=False)
     total_pool_size = forms.IntegerField(required=False)
     
+    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES,
+                                              label='Instance type',
+                                              widget=forms.widgets.Select(attrs={'style':'width:30em'}),
+                                              help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
+    
+    pricing = forms.ChoiceField(choices= (('fixed', 'Fixed price'),
+                                             ('spot', 'Spot price bidding')),
+                                   widget=forms.RadioSelect(),
+                                   initial='fixed',
+                                   help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance.')
+    
+    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars. Note that this does not include VAT or any other applicable taxes.',
+                                        max_digits=5, decimal_places=3, initial=0.000,
+                                        )
 
     def clean(self):
         cleaned_data = super(EC2PoolScaleUpForm, self).clean()
@@ -390,10 +404,15 @@ class EC2PoolScaleUpForm(forms.Form):
 
         return cleaned_data
 
+    def clean_spot_bid_price(self):
+        price = self.cleaned_data['spot_bid_price']
+        if self.cleaned_data['pricing'] == 'spot':
+            if price <= 0:
+                raise forms.ValidationError('Custom bid price must be greater than 0')
 
 
 class EC2PoolScaleUpView(RestrictedFormView):
-    template_name = 'pool/ec2_pool_scale.html'
+    template_name = 'pool/ec2_pool_scale_up.html'
     page_title = 'Scale up EC2 pool'
     success_url = reverse_lazy('pool_list')
     form_class = EC2PoolScaleUpForm
@@ -433,6 +452,116 @@ class EC2PoolScaleUpView(RestrictedFormView):
         ec2_tools.refresh_pool(ec2_pool)
         
         return super(EC2PoolScaleUpView, self).dispatch(request, *args, **kwargs)
+
+class EC2PoolScaleDownForm(forms.Form):
+    
+    nodes_to_terminate = forms.IntegerField(required=False, help_text='How many nodes should be terminated')
+    total_pool_size = forms.IntegerField(required=False, help_text='Or alternatively, what should the new size of the pool be')
+    
+    fixed_price = forms.ChoiceField(required=True,
+                                    label='Pricing',
+                                    help_text='Terminate fixed price or spot price instances',
+                                    widget=forms.RadioSelect(),
+                                    choices=(('fixed', 'Fixed price'),
+                                             ('spot', 'Spot price')),
+                                    initial='fixed')
+    
+    spot_price_order = forms.ChoiceField(label='Spot price ordering',
+                                         required=False,
+                                         help_text='If terminating spot instances, terminate lowest or most expensive bids first. Alternatively select custom price, and enter a specific price below.',
+                                         choices=(('lowest', 'Lowest'),
+                                                  ('highest', 'Highest'),
+                                                  ('custom', 'Custom price')),
+                                         initial='lowest',
+                                         widget=forms.RadioSelect())
+    
+    spot_price_custom = forms.FloatField(label='Custom spot price',
+                                         help_text='If terminating spot instances, terminate instances with a specific price if you have selected custom price above.',
+                                         initial=0.0,
+                                         required=False)
+    
+    instance_type = forms.ChoiceField(required=False,
+                                      label='Instance type',
+                                      help_text='Terminate specific instance types only. Leave blank to select all instance types',
+                                      choices = (('-', '------'),) + ec2_config.EC2_TYPE_CHOICES,
+                                      initial='-',
+                                      )
+    
+    
+                                      
+    def clean(self):
+        cleaned_data = super(EC2PoolScaleDownForm, self).clean()
+        nodes_to_add = cleaned_data.get('nodes_to_add')
+        total_pool_size = cleaned_data.get('total_pool_size')
+        if (not nodes_to_add) and (not total_pool_size):
+            raise forms.ValidationError('You must enter a value for either nodes to terminate or total pool size.')
+        if nodes_to_add and total_pool_size:
+            raise forms.ValidationError('You must enter only one value.')
+        if nodes_to_add:
+            try:
+                assert nodes_to_add > 0
+            except:
+                raise forms.ValidationError('You must enter a value greater than 0.')
+
+        if total_pool_size:
+            try:
+                assert total_pool_size > 0
+            except:
+                raise forms.ValidationError('You must enter a value greater than 0.')
+
+            
+        return cleaned_data
+
+    def clean_spot_price_custom(self):
+        price = self.cleaned_data['spot_price_custom']
+        if self.cleaned_data['spot_price_order'] == 'custom':
+            if price <= 0:
+                raise forms.ValidationError('Custom bid price must be greater than 0')
+
+class EC2PoolScaleDownView(RestrictedFormView):
+    template_name = 'pool/ec2_pool_scale_down.html'
+    page_title = 'Scale up EC2 pool'
+    success_url = reverse_lazy('pool_list')
+    form_class = EC2PoolScaleDownForm
+
+    
+    
+    def form_valid(self, *args, **kwargs):
+        try:
+            form=kwargs['form']
+            user=self.request.user
+            ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+            assert ec2_pool.vpc.access_key.user == self.request.user
+            ec2_tools.refresh_pool(ec2_pool)
+            if form.cleaned_data['nodes_to_add']:
+                extra_nodes = form.cleaned_data['nodes_to_add']
+            else:
+                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(ec2_pool=ec2_pool).count()
+            
+            ec2_tools.scale_up(ec2_pool, extra_nodes)
+            ec2_pool.save()
+        except Exception, e:
+            self.request.session['errors'] = aws_tools.process_errors([e])
+            log.exception(e)
+            return HttpResponseRedirect(reverse_lazy('pool_list'))
+
+        
+        
+        return super(EC2PoolScaleUpView, self).form_valid(*args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['show_loading_screen'] = True
+        kwargs['loading_title'] = 'Scaling pool'
+        kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. This process can take several minutes'
+        kwargs['scale_up']=True
+        ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+        assert ec2_pool.vpc.access_key.user == request.user
+        ec2_tools.refresh_pool(ec2_pool)
+        
+        return super(EC2PoolScaleDownView, self).dispatch(request, *args, **kwargs)
+
+
+
 
 class AddBoscoPoolForm(forms.Form):
         
