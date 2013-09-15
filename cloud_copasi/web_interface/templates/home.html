@@ -12,6 +12,12 @@ http://www.gnu.org/licenses/gpl.html
 
 {% block bodyclass %}homepage{% endblock %}
 
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/spotprice_history_home.js' %}</script>
+    
+{% endblock %}
+
 {% block header_content %}
 <!-- Banner -->
 <div id="banner">
@@ -78,47 +84,38 @@ http://www.gnu.org/licenses/gpl.html
         </div>
     </div>
     
-    {% comment %}
                 <div class="main-wrapper-style2">
                     <div class="inner">
                 
-                            <section class="5grid-layout box-feature2">
+                            <section class="5grid-layout">
                                 <div class="row">
-                                    <div class="6u">
-                                        <section class="pad-right">
+                                    <div class="8u">
                                             <header class="major">
-                                                <h2>And this is a subheading</h2>
-                                                <span class="byline">It’s important but clearly not *that* important</span>
+                                                <h2>Spot price bidding</h2>
+                                                <span class="byline">Spot price bidding can be used to vastly reduce costs</span>
                                             </header>
-                                            <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus. 
-                                            Praesent semper mod quis eget mi. Etiam eu ante risus. Aliquam erat volutpat. 
-                                            Aliquam luctus et mattis lectus sit amet pulvinar. Nam turpis nisi 
-                                            consequat etiam.</p>
+                                            <p>Spot price bidding can be used to significantly reduce instance costs, depending on EC2 demand. If the market price rises above your bid price, any running instances will be suspended until the market price falls again. This can result in a delay to any running tasks. Note that the spot price does not include VAT or other applicable taxes.</p>
+                                            
+                                            
+                                            <p id="spotprice_history_loadingtext">Loading spot price history...</p>
+                                            <div id='spotprice_history' style="height:300px;width:600px;display:none"></div>
                                             <footer>
-                                                <a href="#" class="button button-medium button-icon button-icon-rarrow">Let's do this</a>
+                                                <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a>
                                             </footer>
-                                        </section>
                                     </div>
-                                    <div class="6u">
-                                        <section class="pad-left">
-                                            <header class="major">
-                                                <h2>This is also a subheading</h2>
-                                                <span class="byline">And is as less important as the other one</span>
-                                            </header>
-                                            <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus. 
-                                            Praesent semper mod quis eget mi. Etiam eu ante risus. Aliquam erat volutpat. 
-                                            Aliquam luctus et mattis lectus sit amet pulvinar. Nam turpis nisi 
-                                            consequat etiam.</p>
-                                            <footer>
-                                                <a href="#" class="button button-medium button-alt button-icon button-icon-info">Wait, what?</a>
-                                            </footer>
-                                        </section>
+                                    <div class="4u">
+                                        <header class="major">
+                                            <h2>Fixed price instances</h2>
+                                            <span class="byline">Fixed price instances</span>
+                                        </header>
+                                        <p>Fixed price instances run at a set price per hour. While they can be more expensive than using spot price bidding, your instances are guaranteed to run, and will not be terminated unexpectedly. Full instance pricing details are available in the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>.</p>
                                     </div>
                                 </div>
                             </section>
 
                         </div>
                 </div>
+                {% comment %}
                 <div class="main-wrapper-style3">
                     <div class="inner">
                         <div class="5grid-layout">

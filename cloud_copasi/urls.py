@@ -109,6 +109,9 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/(?P<pool_id>\d+)/unshare/(?P<user_id>\d+)/$', pool_views.SharePoolView.as_view(), {'remove':True}, name='pool_unshare'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/rename/$', pool_views.PoolRenameView.as_view(), name='pool_rename'),
 
+    url(r'^my_account/pools/spotprice_history/$', pool_views.SpotPriceHistoryView.as_view(), name='spotprice_history'),
+
+
     url(r'^my_account/change_password/$', account_views.PasswordChangeView.as_view() , name='my_account_password_change'),
     
     url(r'^my_account/resource_overview/$', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),

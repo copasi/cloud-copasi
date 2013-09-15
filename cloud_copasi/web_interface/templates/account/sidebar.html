@@ -38,6 +38,8 @@ http://www.gnu.org/licenses/gpl.html
         <li><a href="{% url 'bosco_pool_add' %}"> Connect to existing pool</a></li>
         {% if access_keys.count > 0 %}
         <li><a href="{% url 'ec2_pool_add' %}"> Launch new pool</a></li>
+        <li><a href="{% url 'spotprice_history' %}"> Spot price history</a></li>
+
         {% endif %}
     </ul>
 </section>

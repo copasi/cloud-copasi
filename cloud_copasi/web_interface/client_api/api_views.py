@@ -458,7 +458,11 @@ class CurrentSpotInstancePrice(APIView):
         key_id = request.GET.get('key_id')
         full_history = request.GET.get('history', False)
         
-        key = AWSAccessKey.objects.get(id=key_id)
+        if key_id != 'NULL':
+            key = AWSAccessKey.objects.get(id=key_id)
+        else:
+            keys = AWSAccessKey.objects.filter(use_for_spotprice_history=True)
+            key = keys[0] #Use the first key marked as use_for_spotprice_history to get the history
         
         vpc_connection, ec2_connection = aws_tools.create_connections(key)
         

@@ -79,6 +79,7 @@ function updateSpotPriceHistory(){
                 title: 'Price history',
                 displayExactValues: true,
                 displayZoomButtons: false,
+                scaleType : 'maximized',
                 
                 
             };
@@ -118,7 +119,7 @@ function windowLoad(){
         updateSpotPriceHistory();
     });
     
-    $('#id_initial_instance_type').change(updateSpotPrice)
+    $('#id_initial_instance_type').change(updateSpotPrice);
     showSpotPrice();
     updateSpotPrice();
 }

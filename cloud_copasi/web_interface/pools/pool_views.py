@@ -829,3 +829,18 @@ class SharePoolView(RestrictedFormView):
         
         
         return super(SharePoolView, self).form_valid(*args, **kwargs)
+
+class SpotPriceHistoryForm(forms.Form):
+    instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES,
+                                      widget=forms.widgets.Select(attrs={'style':'width:30em'}),
+                                      initial='m1.medium')
+    
+class SpotPriceHistoryView(RestrictedView):
+    template_name = 'pool/spotprice_history.html'
+    page_title = 'Spot price history'
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['form'] = SpotPriceHistoryForm()
+        
+        
+        return super(SpotPriceHistoryView, self).dispatch(request, *args, **kwargs)
+        
