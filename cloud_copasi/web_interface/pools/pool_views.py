@@ -117,7 +117,7 @@ class AddEC2PoolForm(forms.Form):
                                    initial='fixed',
                                    help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance.')
     
-    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars.',
+    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars. Note that this does not include VAT or any other applicable taxes.',
                                         max_digits=5, decimal_places=3, initial=0.000,
                                         )
     
