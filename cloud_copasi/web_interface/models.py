@@ -54,6 +54,7 @@ class AWSAccessKey(models.Model):
     
     copy_of = models.ForeignKey('self', null=True, blank=True, verbose_name = 'Is this key a shared version of an original key?')
     
+    use_for_spotprice_history = models.BooleanField(default=False, verbose_name='Use this key for getting spot price history for other users')
     def __unicode__(self):
         return "%s, %s, %s" % (self.name, self.access_key_id, self.user)
     
