@@ -23,7 +23,7 @@ function showSpotPrice(){
     <tr class="formrow" id="spotprice-row"><th class="fieldlabel required">Current spot price:</th>\
         <td id="spotprice"><div id="spotprice_current">Loading current price...</div></td>\
     </tr>\
-    <tr id="spotprice_history_row" style="height:300px"><th class="fieldlabel required" style="vertical-align:middle;">Spot price history:</th><td><div id="spotprice_history" style="width:600px; height:300px"></div></td></tr>\
+    <tr id="spotprice_history_row" style="height:300px"><th class="fieldlabel required" style="vertical-align:middle;">Spot price history (GMT):</th><td><div id="spotprice_history" style="width:600px; height:300px"></div></td></tr>\
     <tr><td class="bottomline" colspan="2"> </td></tr>';
     bottom_line.after(history_line);
     

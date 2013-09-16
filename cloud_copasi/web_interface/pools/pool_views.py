@@ -107,7 +107,10 @@ class AddEC2PoolForm(forms.Form):
     
     vpc = forms.ChoiceField(label = 'Keypair')
     
-    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES, widget=forms.widgets.Select(attrs={'style':'width:30em'}),  help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>.')
+    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES,
+                                              initial='m1.medium',
+                                              widget=forms.widgets.Select(attrs={'style':'width:30em'}),
+                                              help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>.')
     
     size = forms.IntegerField(min_value=0, label='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
         
