@@ -390,6 +390,7 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
     try:
         if not spot:
             #Fix price launch. This is easy.
+            log.debug('Launching fixed price instances')
             worker_reservation = ec2_connection.run_instances(ami.id,
                                                        key_name=ec2_pool.key_pair.name,
                                                        instance_type=instance_type,
@@ -414,6 +415,7 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
         
         else:
             #We're launching a spot request pool instead.
+            log.debug('Launching spot requests')
             worker_requests = ec2_connection.request_spot_instances(str(spot_bid_price),
                                                                     ami.id,
                                                                     type='persistent',
