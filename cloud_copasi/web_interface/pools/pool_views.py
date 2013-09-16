@@ -332,6 +332,8 @@ class PoolDetailsView(RestrictedView):
                 return HttpResponseRedirect(reverse_lazy('pool_list'))
             
             instances=EC2Instance.objects.filter(ec2_pool=pool)
+            active_instances = instances.filter(state='running')
+            
             spot_requests = SpotRequest.objects.filter(ec2_pool=pool)
             fulfilled_spot_requests = spot_requests.filter(status_code='fulfilled')
             
@@ -343,6 +345,7 @@ class PoolDetailsView(RestrictedView):
             compute_instances = instances.exclude(id=master_id)
             
             kwargs['instances'] = instances
+            kwargs['active_instances']= active_instances
             kwargs['compute_instances'] = compute_instances
             kwargs['spot_requests'] = spot_requests
             kwargs['fulfilled_spot_requests'] = fulfilled_spot_requests
