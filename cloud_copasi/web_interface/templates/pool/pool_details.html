@@ -29,7 +29,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Name</th>
                 <th>Type</th>
                 {%if pool.copy_of %}<th>Shared by</th>{% endif %}
-                <th>Number of nodes*</th>
+                <th>Active nodes*</th>
                 <th>CPU hours used</th>
                 <th>Pool health</th>
                 <th>Spot requests (fulfilled)</th>
@@ -38,7 +38,7 @@ http://www.gnu.org/licenses/gpl.html
                 <td>{{pool.name}}</td>
                 <td>{{pool.get_pool_type_display_true}}</td>
                 {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
-                <td>{{instances.count}}</td>
+                <td>{{active_instances.count}}</td>
                 <td>Not implemented</td>
                 <td>{% if pool_type == 'shared' %}{{ original_pool.get_health }}{% else %}{{ pool.get_health }}{% endif %}</td>
                 <td>{{ spot_requests.count }} ({{ fulfilled_spot_requests.count }})</td>
@@ -98,7 +98,7 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     
     {% if spot_requests.count > 0 %}
-    <h4>Spot requests:</h4>
+    <h4>Spot requests (total {{spot_requests.count}}):</h4>
     <div class="tablelist">
         <table>
             <tr>
@@ -131,7 +131,7 @@ http://www.gnu.org/licenses/gpl.html
     
     {% endif %}
     
-    <h4>Compute node status:</h4>
+    <h4>Compute nodes (total {{compute_instances.count}}):</h4>
     <div class="tablelist">
         <table>
             <tr>
@@ -150,8 +150,9 @@ http://www.gnu.org/licenses/gpl.html
                 <td>Not implemented</td>
                 <td>{{ instance.get_health }}</td>
                 <td>
-                    {% if instance.spotrequest %}
-                        <a href="#{{instance.spotrequest.request_id}}">{{instance.spotrequest.request_id}}</a>
+                    {% if instance.has_spot_request %}
+                        <a href="#{{instance.spotrequest.request_id}}"></a>
+                        {{instance.spotrequest}}
                     {% else %}
                         No
                     {% endif %}

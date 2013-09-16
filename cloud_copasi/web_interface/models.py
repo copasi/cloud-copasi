@@ -345,6 +345,8 @@ class EC2Instance(models.Model):
         instance=self.get_instance()
         return instance.private_ip_address
 
+    def has_spot_request(self):
+        return SpotRequest.objects.filter(ec2_instance=self).count() > 0
 class SpotRequest(models.Model):
     ec2_pool = models.ForeignKey(EC2Pool)
     
