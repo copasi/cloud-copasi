@@ -289,7 +289,13 @@ class PoolDetailsView(RestrictedView):
                       'url': reverse_lazy('pool_rename', kwargs={'pool_id' : kwargs['pool_id']}),
                        }
         
-        
+        if pool_type != 'shared' and pool_type != 'bosco':
+            buttons[4] = {'button_text' : 'Scale up',
+                      'url': reverse_lazy('ec2_pool_scale_up', kwargs={'pool_id' : kwargs['pool_id']}),
+                       }
+            buttons[5] = {'button_text' : 'Scale down',
+                      'url': reverse_lazy('ec2_pool_scale_down', kwargs={'pool_id' : kwargs['pool_id']}),
+                       }
         if pool_type == 'shared':
             kwargs['shared'] = True
             

@@ -69,10 +69,14 @@ http://www.gnu.org/licenses/gpl.html
     </div>        
     {% endif %}
     <p>
-    {% for key, button in buttons.items %}
-        <a class="button button-hspace {% if button.class %}{{ button.class }}{% endif %}" href="{{ button.url }}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a>
-    {% endfor %}
-        
+        <div class="tablelist">
+            <table>
+                <th class="fieldlabel required">Pool actions</th>
+                {% for key, button in buttons.items %}
+                    <tr><td><a href="{{ button.url }}" class="button button-narrow button-hspace {% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
+                {% endfor %}
+            </table>
+        </div>
     </p>
     {% if pool_type == 'ec2' or shared_pool_type == 'ec2'%}
     <h4>Master node status:</h4>
