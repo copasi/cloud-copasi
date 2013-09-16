@@ -378,9 +378,72 @@ def launch_pool(ec2_pool):
     
     return errors
 
-def scale_up(ec2_pool, extra_nodes):
+def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
     log.debug('Scaling condor pool %s with %d extra nodes'%(ec2_pool.id, extra_nodes))
-    return
+    
+    errors = []
+    vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
+    
+    log.debug('Retrieving machine image')
+    ami = get_active_ami(ec2_connection)
+
+    try:
+        if not spot:
+            #Fix price launch. This is easy.
+            worker_reservation = ec2_connection.run_instances(ami.id,
+                                                       key_name=ec2_pool.key_pair.name,
+                                                       instance_type=instance_type,
+                                                       subnet_id=ec2_pool.vpc.subnet_id,
+                                                       security_group_ids=[ec2_pool.vpc.worker_group_id],
+                                                       user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                       min_count=extra_nodes,
+                                                       max_count=extra_nodes,
+                                                       )
+            sleep(3)
+            instances = worker_reservation.instances
+            for instance in instances:
+                ec2_instance = EC2Instance()
+                ec2_instance.ec2_pool = ec2_pool
+                ec2_instance.instance_id = instance.id
+                ec2_instance.instance_type = ec2_pool.initial_instance_type
+                ec2_instance.instance_role = 'worker'
+                
+                ec2_instance.save()
+            
+        
+        
+        else:
+            #We're launching a spot request pool instead.
+            worker_requests = ec2_connection.request_spot_instances(str(spot_bid_price),
+                                                                    ami.id,
+                                                                    type='persistent',
+                                                                    count=extra_nodes,
+                                                                    key_name=ec2_pool.key_pair.name,
+                                                                    instance_type=instance_type,
+                                                                    subnet_id=ec2_pool.vpc.subnet_id,
+                                                                    security_group_ids=[ec2_pool.vpc.worker_group_id],
+                                                                    user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                                    )
+            for request in worker_requests:
+                spot_request = SpotRequest(ec2_pool=ec2_pool,
+                                           request_id=request.id,
+                                           price=request.price,
+                                           status_code=request.status.code,
+                                           status_message=request.status.message,
+                                           state=request.state,
+                                           instance_type=ec2_pool.initial_instance_type,
+                                           )
+                spot_request.save()
+                
+    except EC2ResponseError, e:
+        errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
+        however a master instance was launched successfully. Check your AWS usage limit to ensure you \
+        are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
+        errors.append(e)
+
+    
+    
+    return errors
 
 def terminate_instances(instances):
     """Terminate the selected instances. Will also involve terminating any associated alarms and spot requests

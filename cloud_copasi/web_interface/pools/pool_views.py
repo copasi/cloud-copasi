@@ -364,10 +364,10 @@ class PoolDetailsView(RestrictedView):
     
 class EC2PoolScaleUpForm(forms.Form):
     
-    nodes_to_add = forms.IntegerField(required=False)
-    total_pool_size = forms.IntegerField(required=False)
+    instances_to_add = forms.IntegerField(required=True, min_value=1)
     
     initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES,
+                                              initial='m1.medium',
                                               label='Instance type',
                                               widget=forms.widgets.Select(attrs={'style':'width:30em'}),
                                               help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
@@ -382,34 +382,13 @@ class EC2PoolScaleUpForm(forms.Form):
                                         max_digits=5, decimal_places=3, initial=0.000,
                                         )
 
-    def clean(self):
-        cleaned_data = super(EC2PoolScaleUpForm, self).clean()
-        nodes_to_add = cleaned_data.get('nodes_to_add')
-        total_pool_size = cleaned_data.get('total_pool_size')
-        if (not nodes_to_add) and (not total_pool_size):
-            raise forms.ValidationError('You must enter a value.')
-        if nodes_to_add and total_pool_size:
-            raise forms.ValidationError('You must enter only one value.')
-        if nodes_to_add:
-            try:
-                assert nodes_to_add > 0
-            except:
-                raise forms.ValidationError('You must enter a value greater than 0.')
-
-        if total_pool_size:
-            try:
-                assert total_pool_size > 0
-            except:
-                raise forms.ValidationError('You must enter a value greater than 0.')
-
-        return cleaned_data
 
     def clean_spot_bid_price(self):
         price = self.cleaned_data['spot_bid_price']
         if self.cleaned_data['pricing'] == 'spot':
             if price <= 0:
                 raise forms.ValidationError('Custom bid price must be greater than 0')
-
+        return price
 
 class EC2PoolScaleUpView(RestrictedFormView):
     template_name = 'pool/ec2_pool_scale_up.html'
@@ -426,20 +405,26 @@ class EC2PoolScaleUpView(RestrictedFormView):
             ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
             assert ec2_pool.vpc.access_key.user == self.request.user
             ec2_tools.refresh_pool(ec2_pool)
-            if form.cleaned_data['nodes_to_add']:
-                extra_nodes = form.cleaned_data['nodes_to_add']
-            else:
-                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(ec2_pool=ec2_pool).count()
+            extra_nodes=form.cleaned_data['instances_to_add']
+            spot_price = form.cleaned_data['pricing'] == 'spot'
+            spot_bid_price = form.cleaned_data['spot_bid_price']
+            instance_type = form.cleaned_data['initial_instance_type']
             
-            ec2_tools.scale_up(ec2_pool, extra_nodes)
+            errors = ec2_tools.scale_up(ec2_pool=ec2_pool,
+                               extra_nodes=extra_nodes,
+                               instance_type=instance_type,
+                               spot=spot_price,
+                               spot_bid_price=spot_bid_price)
             ec2_pool.save()
+            self.request.session['errors'] = aws_tools.process_errors(errors)
+
         except Exception, e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
+            return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id}))
 
         
-        
+        self.success_url = reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id})
         return super(EC2PoolScaleUpView, self).form_valid(*args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
@@ -448,6 +433,7 @@ class EC2PoolScaleUpView(RestrictedFormView):
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. This process can take several minutes'
         kwargs['scale_up']=True
         ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+        kwargs['pool'] = ec2_pool 
         assert ec2_pool.vpc.access_key.user == request.user
         ec2_tools.refresh_pool(ec2_pool)
         
