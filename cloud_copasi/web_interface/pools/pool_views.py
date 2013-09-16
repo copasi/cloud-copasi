@@ -107,7 +107,7 @@ class AddEC2PoolForm(forms.Form):
     
     vpc = forms.ChoiceField(label = 'Keypair')
     
-    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES, widget=forms.widgets.Select(attrs={'style':'width:30em'}),  help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
+    initial_instance_type = forms.ChoiceField(choices=ec2_config.EC2_TYPE_CHOICES, widget=forms.widgets.Select(attrs={'style':'width:30em'}),  help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>.')
     
     size = forms.IntegerField(min_value=0, label='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
         
@@ -115,7 +115,7 @@ class AddEC2PoolForm(forms.Form):
                                              ('spot', 'Spot price bidding')),
                                    widget=forms.RadioSelect(),
                                    initial='fixed',
-                                   help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance.')
+                                   help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance. The current spot price is displayed below. For information on fixed instance pricing, refer to the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. Note that all instances are launched in the US-East (N. Virginia) AWS region.')
     
     spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars. Note that this does not include VAT or any other applicable taxes.',
                                         max_digits=5, decimal_places=3, initial=0.000,
