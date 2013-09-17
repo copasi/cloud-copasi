@@ -573,7 +573,7 @@ def terminate_pool(ec2_pool):
     
     
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
-    
+    instances = instances.exclude(state='terminated').exclude(state='shutting-down')
     
     #Dissassociate the IP address of the master instance and release i
     try:
