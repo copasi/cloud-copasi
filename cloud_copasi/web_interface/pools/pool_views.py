@@ -339,6 +339,8 @@ class PoolDetailsView(RestrictedView):
             
             instances=EC2Instance.objects.filter(ec2_pool=pool)
             active_instances = instances.filter(state='running')
+            not_terminated_instances = instances.exclude(state='terminated').exclude(instance_role='master')
+            terminated_instances = instances.filter(state='terminated')
             
             spot_requests = SpotRequest.objects.filter(ec2_pool=pool)
             fulfilled_spot_requests = spot_requests.filter(status_code='fulfilled')
@@ -352,6 +354,8 @@ class PoolDetailsView(RestrictedView):
             
             kwargs['instances'] = instances
             kwargs['active_instances']= active_instances
+            kwargs['not_terminated_instances'] = not_terminated_instances
+            kwargs['terminated_instances'] = terminated_instances
             kwargs['compute_instances'] = compute_instances
             kwargs['spot_requests'] = spot_requests
             kwargs['fulfilled_spot_requests'] = fulfilled_spot_requests

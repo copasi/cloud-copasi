@@ -135,7 +135,7 @@ http://www.gnu.org/licenses/gpl.html
     
     {% endif %}
     
-    <h4>Compute nodes (total {{compute_instances.count}}):</h4>
+    <h4>Compute nodes (total {{compute_instances.count}}, active {{active_instances.count|add:"-1"}}):</h4>
     <div class="tablelist">
         <table>
             <tr>
@@ -146,7 +146,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th>Status</th>
                 <th>Spot request</th>
             </tr>
-            {% for instance in compute_instances %}
+            {% for instance in not_terminated_instances %}
             <tr id="{{instance.instance_id}}">
                 <td>{{ instance.instance_id }}</td>
                 <td>{{ instance.instance_type }}</td>
@@ -163,6 +163,7 @@ http://www.gnu.org/licenses/gpl.html
             </tr>
             {% endfor %}
         </table>
+        <p>{{terminated_instances.count}} instances terminated.</p>
     </div>
 
 
