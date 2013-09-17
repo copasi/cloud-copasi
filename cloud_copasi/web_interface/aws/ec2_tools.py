@@ -67,7 +67,10 @@ def refresh_pool(ec2_pool):
     spot_request_ids = [request.request_id for request in spot_requests]
     
     try:
-        spot_request_list = ec2_connection.get_all_spot_instance_requests(request_ids=spot_request_ids)
+        if spot_request_ids != []:
+            spot_request_list = ec2_connection.get_all_spot_instance_requests(request_ids=spot_request_ids)
+        else:
+            spot_request_list = []
     except EC2ResponseError:
         #Perhaps a particular spot request wasn't found? Go through the list the slow way
         spot_request_list = []
