@@ -447,6 +447,55 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
     
     return errors
 
+def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_order, spot_price_custom):
+    
+    log.debug('Scaling pool %s down' % ec2_pool.name)
+    vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
+    errors=[]
+    #Filter down instances so that they match the query
+    
+    instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(instance_role='master')
+    
+    if instance_type != None:
+        instances = instances.filter(instance_type=instance_type)
+    
+    if pricing == 'fixed':
+        instances = instances.filter(spotrequest=None)
+    else:
+        instances = instances.exclude(spotrequest=None)
+    
+    if pricing == 'spot' and spot_price_order == 'custom':
+        spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool).filter(price=spot_price_custom)
+        instances = instances.filter(spotrequest__in=spot_requests)
+    elif pricing == 'spot' and spot_price_order == 'lowest':
+        instances = instances.order_by('spotrequest__price')
+    elif pricing == 'spot' and spot_price_order == 'highest':
+        instances = instances.order_by('-spotrequest__price')
+        
+    
+    #Now we have the list of instances to terminate, terminate them
+    if nodes_to_terminate > instances.count():
+        instances = instances
+    else:
+        instances = instances[0:nodes_to_terminate]
+    
+    instances_to_terminate = [instance.instance_id for instance in instances]
+    
+    #Are there any spot requests to terminate?
+    spot_requests_to_terminate = SpotRequest.objects.filter(ec2_instance__in=instances)
+    spot_request_ids = [request.request_id for request in spot_requests_to_terminate]
+    try:
+        if spot_request_ids != []:
+            log.debug('Cancelling %d spot requests'%len(spot_request_ids))
+            ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
+            for spot_request in spot_requests_to_terminate:
+                spot_request.delete()
+
+        terminate_instances(instances)
+    except Exception, e:
+        log.exception(e)
+        errors.append(e)
+
 def terminate_instances(instances):
     """Terminate the selected instances. Will also involve terminating any associated alarms and spot requests
     

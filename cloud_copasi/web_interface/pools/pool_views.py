@@ -460,7 +460,7 @@ class EC2PoolScaleDownForm(forms.Form):
                                       choices = (('-', '------'),) + ec2_config.EC2_TYPE_CHOICES,
                                       initial='-',
                                       )
-
+        
     pricing = forms.ChoiceField(required=True,
                                     label='Pricing',
                                     help_text='Terminate fixed price or spot price instances',
@@ -471,10 +471,10 @@ class EC2PoolScaleDownForm(forms.Form):
     
     spot_price_order = forms.ChoiceField(label='Spot price ordering',
                                          required=False,
-                                         help_text='If terminating spot instances, terminate lowest or most expensive bids first. Alternatively select custom price, and enter a specific price below.',
-                                         choices=(('lowest', 'Lowest'),
-                                                  ('highest', 'Highest'),
-                                                  ('custom', 'Custom price')),
+                                         help_text='If terminating spot instances, terminate cheapest or most expensive bids first. Alternatively select custom price, and enter a specific price below.',
+                                         choices=(('lowest', 'Cheapest'),
+                                                  ('highest', 'Most expensive'),
+                                                  ('custom', 'Custom price ($)')),
                                          initial='lowest',
                                          widget=forms.RadioSelect())
     
@@ -494,7 +494,8 @@ class EC2PoolScaleDownForm(forms.Form):
         if self.cleaned_data['spot_price_order'] == 'custom':
             if price <= 0:
                 raise forms.ValidationError('Custom bid price must be greater than 0')
-
+        return price
+    
 class EC2PoolScaleDownView(RestrictedFormView):
     template_name = 'pool/ec2_pool_scale_down.html'
     page_title = 'Scale up EC2 pool'
@@ -510,21 +511,28 @@ class EC2PoolScaleDownView(RestrictedFormView):
             ec2_pool = EC2Pool.objects.get(id=kwargs['pool_id'])
             assert ec2_pool.vpc.access_key.user == self.request.user
             ec2_tools.refresh_pool(ec2_pool)
-            if form.cleaned_data['nodes_to_add']:
-                extra_nodes = form.cleaned_data['nodes_to_add']
-            else:
-                extra_nodes = form.cleaned_data['total_pool_size'] - EC2Instance.objects.filter(ec2_pool=ec2_pool).count()
             
-            ec2_tools.scale_up(ec2_pool, extra_nodes)
+            nodes_to_terminate = form.cleaned_data['nodes_to_terminate']
+            instance_type = form.cleaned_data['instance_type']
+            if instance_type == '-': instance_type = None
+            pricing = form.cleaned_data['pricing']
+            spot_price_order = form.cleaned_data['spot_price_order']
+            spot_price_custom = form.cleaned_data['spot_price_custom']
+            
+            
+            errors = ec2_tools.scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_order, spot_price_custom)
             ec2_pool.save()
+            if errors:
+                self.request.session['errors'] = aws_tools.process_errors(errors)
+            self.success_url = reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id})
         except Exception, e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
-            return HttpResponseRedirect(reverse_lazy('pool_list'))
+            return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id}))
 
         
         
-        return super(EC2PoolScaleUpView, self).form_valid(*args, **kwargs)
+        return super(EC2PoolScaleDownView, self).form_valid(*args, **kwargs)
 
     def dispatch(self, request, *args, **kwargs):
         kwargs['show_loading_screen'] = True
