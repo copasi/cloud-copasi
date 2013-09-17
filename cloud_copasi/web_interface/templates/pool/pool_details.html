@@ -73,7 +73,7 @@ http://www.gnu.org/licenses/gpl.html
             <table>
                 <th class="fieldlabel required">Pool actions</th>
                 {% for key, button in buttons.items %}
-                    <tr><td><a href="{{ button.url }}" class="button button-narrow button-hspace {% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
+                    <tr><td><a href="{{ button.url }}" class="{% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
                 {% endfor %}
             </table>
         </div>
