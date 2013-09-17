@@ -458,21 +458,25 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
     #Filter down instances so that they match the query
     
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(instance_role='master')
-    
+    spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool)
+
     if instance_type != None:
         instances = instances.filter(instance_type=instance_type)
-    
+        spot_requests = spot_requests.filter(instance_type=instance_type)
     if pricing == 'fixed':
         instances = instances.filter(spotrequest=None)
+        spot_requests = spot_requests.none()
     else:
         instances = instances.exclude(spotrequest=None)
     
     if pricing == 'spot' and spot_price_order == 'custom':
-        spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool).filter(price=spot_price_custom)
+        spot_requests = spot_requests.filter(price=spot_price_custom)
         instances = instances.filter(spotrequest__in=spot_requests)
     elif pricing == 'spot' and spot_price_order == 'lowest':
+        spot_requests = spot_requests.order_by('price')
         instances = instances.order_by('spotrequest__price')
     elif pricing == 'spot' and spot_price_order == 'highest':
+        spot_requests = spot_requests.order_by('-price')
         instances = instances.order_by('-spotrequest__price')
         
     
@@ -481,20 +485,30 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
         instances = instances
     else:
         instances = instances[0:nodes_to_terminate]
+        
+    if nodes_to_terminate > spot_requests.count():
+        spot_requests = spot_requests
+    else:
+        spot_requests = spot_requests[0:nodes_to_terminate]
     
-    instances_to_terminate = [instance.instance_id for instance in instances]
+    if pricing == 'fixed':
+        instances_to_terminate = [instance.instance_id for instance in instances]
+    else:
+        instances_to_terminate = []
+        for spot_request in spot_requests:
+            if spot_request.ec2_instance != None:
+                instances_to_terminate.append(spot_request.ec2_instance.instance_id)
     
     #Are there any spot requests to terminate?
-    spot_requests_to_terminate = SpotRequest.objects.filter(ec2_instance__in=instances)
-    spot_request_ids = [request.request_id for request in spot_requests_to_terminate]
     try:
+        spot_request_ids = [request.request_id for request in spot_requests]
         if spot_request_ids != []:
             log.debug('Cancelling %d spot requests'%len(spot_request_ids))
             ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
-            for spot_request in spot_requests_to_terminate:
+            for spot_request in spot_requests:
                 spot_request.delete()
-
-        terminate_instances(instances)
+        if instances_to_terminate != []:
+            terminate_instances(instances)
     except Exception, e:
         log.exception(e)
         errors.append(e)
@@ -505,6 +519,18 @@ def terminate_instances(instances):
     instances: iterable EC2Instances, list or queryset
     """
     vpc_connection, ec2_connection = aws_tools.create_connections(instances[0].ec2_pool.vpc.access_key)
+    
+    #Terminate any spot requests first
+    spot_requests_to_terminate = SpotRequest.objects.filter(ec2_instance__in=instances)
+    spot_request_ids = [request.request_id for request in spot_requests_to_terminate]
+    try:
+        if spot_request_ids != []:
+            log.debug('Cancelling %d spot requests'%len(spot_request_ids))
+            ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
+            for spot_request in spot_requests_to_terminate:
+                spot_request.delete()
+    except Exception, e:
+        log.exception(e)
     
     instance_ids = [instance.instance_id for instance in instances]
     
