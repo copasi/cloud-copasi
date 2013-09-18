@@ -11,6 +11,7 @@ from cloud_copasi.web_interface.models import EC2Pool, Task
 from cloud_copasi.web_interface.aws import ec2_tools
 
 from logging import getLogger
+from cloud_copasi.web_interface.pools import condor_tools
 log = getLogger(__name__)
 
 def refresh_all_ec2_pools():
@@ -32,12 +33,37 @@ def terminate_idle_pools():
     ec2_pools = EC2Pool.objects.filter(auto_terminate=True)
     for ec2_pool in ec2_pools:
         try:
-            all_tasks = Task.objects.filter(condor_pool=ec2_pool)
-            running_tasks = all_tasks.objects.filter(status='running') | all_tasks.objects.filter(status='new')
+            copied_pools = EC2Pool.objects.filter(copy_of=ec2_pool)
+            all_tasks = Task.objects.filter(condor_pool=ec2_pool) | Task.objects.filter(condor_pool__in=copied_pools)
+            running_tasks = all_tasks.filter(status='running') | all_tasks.filter(status='new')
             if running_tasks.count() == 0 and all_tasks.count() > 0:
+
                 pool_name = ec2_pool.name
                 log.debug('Terminating pool %s since no other jobs running (auto terminate)' % pool_name)
-                ec2_tools.terminate_pool(ec2_pool)
+
+                #Prune the tasks so that they are disassociated from the pool
+                for task in all_tasks:
+                    task.condor_pool = None
+                    task.set_custom_field('condor_pool_name', pool_name)
+                    task.save()
+                    
+                if ec2_pool.get_pool_type() == 'ec2' and ec2_pool.copy_of == None:
+                    error_list = []
+                    #Remove the copied pools first
+                    for copied_pool in copied_pools:
+                        try:
+                            copied_pool.delete()
+                        except Exception, e:
+                            log.exception(e)
+                            error_list += ['Error deleting duplicate pool', str(e)]
+                    #Remove from bosco
+                    try:
+                        condor_tools.remove_ec2_pool(ec2_pool)
+                    except Exception, e:
+                        log.exception(e)
+                        error_list += ['Error removing pool from bosco', str(e)]
+                        
+                    ec2_tools.terminate_pool(ec2_pool)
         except Exception, e:
             log.exception('Error terminating pool')
             log.exception(e)

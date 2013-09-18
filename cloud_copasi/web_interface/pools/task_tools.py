@@ -50,7 +50,7 @@ def update_tasks(user=None, task=None):
                 for job in errors:
                     log.debug('Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
                 subtask.status = 'error'
-                subtask.task.status = 'error'
+                task.status = 'error'
                 subtask.finish_time = now()
                 subtask.save()
                 task.save()

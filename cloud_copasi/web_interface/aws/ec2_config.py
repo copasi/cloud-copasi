@@ -47,8 +47,8 @@ EC2_TYPE_CHOICES =(
 ###Downscale parameters using cloudwatch alarms:
 
 #Average CPU utilization percentage. <= this, instances will be terminated
-DOWNSCALE_CPU_THRESHOLD = 90
+DOWNSCALE_CPU_THRESHOLD = 10
 #The time period monitored. Unless detailed monitoring is enabled, in seconds
 DONWSCALE_CPU_PERIOD = 300
 #Number of consecutive periods the cpu threshold must pass before instances are terminated
-DOWNSCALE_CPU_EVALUATION_PERIODS = 1
+DOWNSCALE_CPU_EVALUATION_PERIODS = 4

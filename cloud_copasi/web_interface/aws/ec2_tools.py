@@ -606,8 +606,6 @@ def terminate_pool(ec2_pool):
     except Exception, e:
         log.exception(e)
         pass
-    ec2_pool.delete()
-    key_pair.delete()
 
     
     try:
@@ -618,6 +616,15 @@ def terminate_pool(ec2_pool):
             sqs_connection.delete_queue(queue)
     except Exception, e:
         log.exception(e)
+    try:
+        log.debug('Deleting SQS topic')
+        sns_connection = aws_tools.create_sns_connection(ec2_pool.vpc.access_key)
+        sns_connection.delete_topic(ec2_pool.alarm_notify_topic_arn)
+    except Exception, e:
+        log.exception(e)
+        
+    ec2_pool.delete()
+    key_pair.delete()
 
     log.debug('Pool terminated')
     return errors
@@ -814,7 +821,7 @@ def add_instance_alarm(instance):
         instance.save()
         
     else:
-        log.debug('Existing alarm already applied for instance %s' %instance.termination_alarm)
+        pass#Instance alarm already applied. Do nothing
     
 def add_instances_alarms(ec2_pool, include_master=False, instances=None):
     """Apply instance alarms to all instances in the pool. By default, will not apply to master node
@@ -828,3 +835,31 @@ def add_instances_alarms(ec2_pool, include_master=False, instances=None):
 
     for instance in instances:
         add_instance_alarm(instance)
+
+def remove_instance_alarm(instance):
+    """Remove the instance alarm from the ec2 instance
+    """
+    assert isinstance(instance, EC2Instance)
+    if instance.termination_alarm:
+        connection = aws_tools.create_cloudwatch_connection(instance.ec2_pool.vpc.access_key)
+        try:
+            connection.delete_alarms([instance.termination_alarm])
+            instance.termination_alarm = None
+            instance.save()
+        except Exception, e:
+            log.exception(e)
+            return e
+    return None
+            
+def remove_instances_alarms(ec2_pool):
+    assert isinstance(ec2_pool, EC2Pool)
+    instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(id=ec2_pool.master.id)
+    errors = []
+    for instance in instances:
+        error = remove_instance_alarm(instance)
+        if error:
+            errors.append(error)
+    if errors == []:
+        ec2_pool.smart_terminate = False
+        ec2_pool.save()
+    return errors
