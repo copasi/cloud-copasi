@@ -230,7 +230,54 @@ class EC2PoolAddView(RestrictedFormView):
         
         return super(EC2PoolAddView, self).dispatch(request, *args, **kwargs)
 
+class EC2PoolTerminationSettingsForm(forms.Form):
+    auto_terminate = forms.BooleanField(help_text = 'Terminate the pool after a task completed if no other tasks are queued. Only applies after at least one task has been submitted to the pool.', required=False)
+    smart_terminate = forms.BooleanField(help_text = 'Terminate individual compute nodes after they have been idle (CPU usage <=%d%%) for %d consecutive periods of %d minutes. This applies whether or not a task has been submitted to the pool.' % (ec2_config.DOWNSCALE_CPU_THRESHOLD, ec2_config.DOWNSCALE_CPU_EVALUATION_PERIODS, ec2_config.DONWSCALE_CPU_PERIOD/60,), required=False)
     
+    
+    
+class EC2PoolTerminationSettingsView(RestrictedFormView):
+    page_title='Rename pool'
+    template_name = 'pool/pool_termination.html'
+    form_class = EC2PoolTerminationSettingsForm
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == request.user
+        kwargs['pool'] = pool
+        
+        self.initial['auto_terminate'] = pool.auto_terminate
+        self.initial['smart_terminate'] = pool.smart_terminate
+        
+        return super(EC2PoolTerminationSettingsView, self).dispatch(request, *args, **kwargs)
+    
+        
+        
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        auto_terminate = form.cleaned_data['auto_terminate']
+        smart_terminate = form.cleaned_data['smart_terminate']
+        
+        pool = EC2Pool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == self.request.user 
+        
+        if pool.smart_terminate ==True and smart_terminate == False:
+            #In this case we have to remove instance alarms
+            errors = ec2_tools.remove_instances_alarms(pool)
+            
+            if errors != []:
+                self.request.session['errors'] = aws_tools.process_errors([e])
+        
+        pool.auto_terminate = auto_terminate
+        pool.smart_terminate = smart_terminate
+        
+        pool.save()
+        self.success_url = reverse_lazy('pool_details', kwargs={'pool_id': kwargs['pool_id']})
+        return super(EC2PoolTerminationSettingsView, self).form_valid(*args, **kwargs)
+
+
 class PoolDetailsView(RestrictedView):
     template_name='pool/pool_details.html'
     page_title = 'Pool details'
@@ -298,6 +345,11 @@ class PoolDetailsView(RestrictedView):
             buttons[5] = {'button_text' : 'Scale down',
                       'url': reverse_lazy('ec2_pool_scale_down', kwargs={'pool_id' : kwargs['pool_id']}),
                        }
+            
+            buttons[6] = {'button_text' : 'Change termination settings',
+                      'url': reverse_lazy('pool_termination_settings', kwargs={'pool_id' : kwargs['pool_id']}),
+                       }
+            
         if pool_type == 'shared':
             kwargs['shared'] = True
             
