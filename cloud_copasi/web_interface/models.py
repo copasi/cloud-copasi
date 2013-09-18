@@ -309,7 +309,7 @@ class EC2Instance(models.Model):
     instance_status = models.CharField(max_length=20, default='initializing')
     system_status = models.CharField(max_length=20, default='initializing')
     
-    termination_alarm = models.CharField(max_length=30, blank=True, null=True, verbose_name = 'The name of any attached low CPU usage termination alarm')
+    termination_alarm = models.CharField(max_length=50, blank=True, null=True, verbose_name = 'The name of any attached low CPU usage termination alarm')
     
     def get_health(self):
         if self.instance_status=='ok' and self.system_status=='ok': return 'healthy'
