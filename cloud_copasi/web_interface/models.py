@@ -240,6 +240,8 @@ class EC2Pool(CondorPool):
     #auto_scale_down = models.BooleanField(default=True, help_text = 'Terminate unused worker nodes when they become inactive. Only applies after the first task has been submitted.')
     
     auto_terminate = models.BooleanField(default=False, help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running. Only applies after at least one task has been submitted to the pool.')
+    smart_terminate = models.BooleanField(default=False, help_text = 'Terminate worker nodes if they have been idle for a period of time. Note that this applies whether a task is running or not.')
+    
     
     class Meta:
         app_label = 'web_interface'
