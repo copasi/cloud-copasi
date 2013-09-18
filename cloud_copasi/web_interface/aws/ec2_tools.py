@@ -161,6 +161,11 @@ def refresh_pool(ec2_pool):
         except Exception, e:
             log.exception(e)
     
+    #Add instance termination alarms. Because instance metrics don't appear instantly,
+    #We have to do this now, as opposed to when the pool was first launched
+    #If instance alarms have already been added, this step will be quickly skipped
+    if ec2_pool.smart_terminate:
+        add_instances_alarms(ec2_pool)
     
     ec2_pool.last_update_time = now()
     ec2_pool.save()
@@ -337,9 +342,9 @@ def launch_pool(ec2_pool):
     try:
         sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
     except BotoServerError, e:
-        errors.append(('Error enabling auto termination', 'Auto termination was not successfully enabled'))
+        errors.append(('Error enabling smart termination', 'Smart termination was not successfully enabled'))
         try:
-            ec2_pool.auto_terminate = False
+            ec2_pool.smart_terminate = False
             sns_connection.delete_topic(topic_arn)
         except:
             pass
@@ -819,7 +824,7 @@ def add_instances_alarms(ec2_pool, include_master=False, instances=None):
     if instances == None:
         instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
     if not include_master:
-        instances = instances.exclude(id=ec2_pool.master.id)
+        instances = instances.exclude(id=ec2_pool.master.id) #Don't terminate the Master node!
+
     for instance in instances:
-        #Don't terminate the Master node!
         add_instance_alarm(instance)
