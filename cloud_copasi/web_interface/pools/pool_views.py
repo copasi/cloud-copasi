@@ -268,7 +268,7 @@ class EC2PoolTerminationSettingsView(RestrictedFormView):
             errors = ec2_tools.remove_instances_alarms(pool)
             
             if errors != []:
-                self.request.session['errors'] = aws_tools.process_errors([e])
+                self.request.session['errors'] = aws_tools.process_errors([errors])
         
         pool.auto_terminate = auto_terminate
         pool.smart_terminate = smart_terminate
