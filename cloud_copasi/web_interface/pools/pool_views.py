@@ -124,7 +124,8 @@ class AddEC2PoolForm(forms.Form):
                                         max_digits=5, decimal_places=3, initial=0.000,
                                         )
     
-    auto_terminate = forms.BooleanField(help_text = 'Terminate all nodes of the pool after a task has been run if no other tasks are running. Only applies after at least one task has been submitted to the pool.', required=False)
+    auto_terminate = forms.BooleanField(help_text = 'Terminate the pool after a task completed if no other tasks are queued. Only applies after at least one task has been submitted to the pool.', required=False)
+    smart_terminate = forms.BooleanField(help_text = 'Terminate individual compute nodes after they have been idle (CPU usage <=%d%%) for %d consecutive periods of %d minutes. This applies whether or not a task has been submitted to the pool.' % (ec2_config.DOWNSCALE_CPU_THRESHOLD, ec2_config.DOWNSCALE_CPU_EVALUATION_PERIODS, ec2_config.DONWSCALE_CPU_PERIOD/60,), required=False)
 
     def clean_spot_bid_price(self):
         value = self.cleaned_data['spot_bid_price']
@@ -182,6 +183,7 @@ class EC2PoolAddView(RestrictedFormView):
                            initial_instance_type = form.cleaned_data['initial_instance_type'],
                            size=form.cleaned_data['size'],
                            auto_terminate=form.cleaned_data['auto_terminate'],
+                           smart_terminate=form.cleaned_data['smart_terminate'],
                            user = form.cleaned_data['vpc'].access_key.user,
                            spot_request=spot,
                            spot_price = form.cleaned_data['spot_bid_price']
