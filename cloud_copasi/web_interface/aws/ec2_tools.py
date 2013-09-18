@@ -811,21 +811,15 @@ def add_instance_alarm(instance):
     else:
         log.debug('Existing alarm already applied for instance %s' %instance.termination_alarm)
     
-def add_instances_alarms(ec2_pool, include_master=False):
+def add_instances_alarms(ec2_pool, include_master=False, instances=None):
     """Apply instance alarms to all instances in the pool. By default, will not apply to master node
     """
     
     assert isinstance(ec2_pool, EC2Pool)
-    
-    if ec2_pool.auto_terminate:
-        task_count = Task.objects.filter(ec2_pool=ec2_pool).count()
-        if task_count > 0:
-            
-            instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
-            
-            for instance in instances:
-                #Don't terminate the Master node!
-                if instance != ec2_pool.master or include_master:
-                    add_instance_alarm(instance)
-        else:
-            log.debug('Not adding alarm yet - no task submitted')
+    if instances == None:
+        instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
+    if not include_master:
+        instances = instances.exclude(id=ec2_pool.master.id)
+    for instance in instances:
+        #Don't terminate the Master node!
+        add_instance_alarm(instance)
