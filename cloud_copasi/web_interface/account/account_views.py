@@ -16,7 +16,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, Task, EC2Instance,\
-    ElasticIP, EC2Pool
+    ElasticIP, EC2Pool, Profile
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
@@ -530,6 +530,12 @@ class AccountRegisterView(FormView):
         #And log in the user
         login(self.request, user)
         
+        user.email = form.cleaned_data['email_address']
+        profile = Profile(user=user, institution=form.cleaned_data['institution'])
+        profile.save()
+        user.save()
+        
+        
         return super(AccountRegisterView, self).form_valid(form, *args, **kwargs)
         
     
@@ -543,5 +549,52 @@ class AccountResetPasswordView(FormView):
         context['page_title'] = self.page_title
         return context
 
+class AccountProfileForm(forms.Form):
+    email_address = forms.EmailField(required=True)
+    institution = forms.CharField(required = True, max_length=50)
+    send_pool_emails = forms.BooleanField(required=False,
+                                          label='Send EC2 pool emails',
+                                          help_text = 'Send emails relating to EC2 pool activity, e.g. when a pool has been automatically terminated.',
+                                          )
+    send_task_emails = forms.BooleanField(required=False,
+                                          label='Send task emails',
+                                          help_text = 'Send emails relating to task activity, e.g. when a task has completed or encountered an error.')
 
+
+class AccountProfileView(RestrictedFormView):
+    page_title = 'Account profile options'
+    template_name = 'account/profile.html'
+    success_url = reverse_lazy('my_account')
+    form_class = AccountProfileForm
     
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        
+        if not hasattr(user, 'profile'):
+            profile = Profile(user = user, institution = '')
+            profile.save()
+        else:
+            profile = user.profile
+            
+        self.initial['email_address'] = user.email
+        self.initial['institution'] = profile.institution
+        self.initial['send_pool_emails'] = profile.pool_emails
+        self.initial['send_task_emails'] = profile.task_emails
+        
+        return super(AccountProfileView, self).dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, *args, **kwargs):
+        
+        assert hasattr(self.request.user, 'profile')
+        form = kwargs['form']
+        user = self.request.user
+        user.email = form.cleaned_data['email_address']
+        user.profile.institution = form.cleaned_data['institution']
+        user.profile.pool_emails = form.cleaned_data['send_pool_emails']
+        user.profile.task_emails = form.cleaned_data['send_task_emails']
+        
+        user.profile.save()
+        user.save()
+        
+        return super(AccountProfileView, self).form_valid(*args, **kwargs)
