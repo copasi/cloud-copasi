@@ -537,6 +537,17 @@ def terminate_instances(instances):
     except Exception, e:
         log.exception(e)
     
+    log.debug('Deleting termination alarms')
+    for instance in instances:
+        try:
+            cloudwatch_connection = aws_tools.create_cloudwatch_connection(instance.ec2_pool.vpc.access_key)
+
+            if instance.termination_alarm:
+                cloudwatch_connection.delete_alarms([instance.termination_alarm])
+        except Exception, e:
+            log.exception(e)
+            
+            
     instance_ids = [instance.instance_id for instance in instances]
     
     log.debug('Terminating instances')
