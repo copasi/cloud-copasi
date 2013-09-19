@@ -37,6 +37,10 @@ class Profile(models.Model):
     """
     user = models.OneToOneField(User)
     institution = models.CharField(max_length=50)
+    
+    task_emails = models.BooleanField(default=True)
+    pool_emails = models.BooleanField(default=True)
+    
     #test_field = models.CharField(max_length=10,blank=True,null=True)
     
 
