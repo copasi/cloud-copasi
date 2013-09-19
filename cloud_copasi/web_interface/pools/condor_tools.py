@@ -248,6 +248,12 @@ def remove_task(subtask):
                 log.debug('%s, %s, %s' % (output, error, exit_status))
             except:
                 pass
+        
+        try:
+            for job in subtask.condorjob_set.all():
+                job.delete()
+        except Exception, e:
+            log.exception(e)
     else:
         return (None, None, None)
     
