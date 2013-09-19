@@ -568,9 +568,10 @@ def terminate_pool(ec2_pool):
     
     try:
         log.debug('Cancelling %d spot requests'%len(spot_request_ids))
-        ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
-        for spot_request in spot_requests:
-            spot_request.delete()
+        if spot_request_ids != []:
+            ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
+            for spot_request in spot_requests:
+                spot_request.delete()
     except Exception, e:
         log.exception(e)
         errors.append(e)

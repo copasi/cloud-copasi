@@ -12,6 +12,7 @@ from cloud_copasi.web_interface.aws import ec2_tools
 
 from logging import getLogger
 from cloud_copasi.web_interface.pools import condor_tools
+from cloud_copasi.web_interface.email import email_tools
 log = getLogger(__name__)
 
 def refresh_all_ec2_pools():
@@ -62,8 +63,12 @@ def terminate_idle_pools():
                     except Exception, e:
                         log.exception(e)
                         error_list += ['Error removing pool from bosco', str(e)]
-                        
+                    try:
+                        email_tools.send_pool_auto_termination_email(ec2_pool)
+                    except:
+                        log.exception(e)
                     ec2_tools.terminate_pool(ec2_pool)
+
         except Exception, e:
             log.exception('Error terminating pool')
             log.exception(e)

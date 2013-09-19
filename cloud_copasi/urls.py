@@ -25,7 +25,8 @@ urlpatterns = patterns('',
 
     url(r'^home/$', views.HomeView.as_view(), name='home'),
     url(r'^my_account/$', account_views.MyAccountView.as_view(), name='my_account'),
-    
+    url(r'^my_account/profile/$', account_views.AccountProfileView.as_view(), name='my_account_profile'),
+
     #Keys
     url(r'^my_account/keys/$', account_views.KeysView.as_view() , name='my_account_keys'),
     url(r'^my_account/keys/add/$', account_views.KeysAddView.as_view(), name='my_account_keys_add'),

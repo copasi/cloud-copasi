@@ -720,6 +720,10 @@ class Subtask(models.Model):
     
     def __unicode__(self):
         return '%s (%d)' % (self.task.name, self.index)
+    class Meta:
+        app_label = 'web_interface'
+        ordering = ['index']
+
     
 class CondorJob(models.Model):
     

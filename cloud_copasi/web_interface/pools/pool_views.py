@@ -33,6 +33,7 @@ from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.util import ErrorList
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.models import User
+from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 
@@ -834,7 +835,15 @@ class PoolRemoveView(RestrictedView):
             for task in running_tasks:
                 for subtask in task.subtask_set.all():
                     condor_tools.remove_task(subtask)
-                task.delete()
+                task.status = 'cancelled'
+                try:
+                    email_tools.send_task_cancellation_email(task)
+                except:
+                    pass
+
+                task.condor_pool = None
+                task.set_custom_field('condor_pool_name', pool.name)
+                task.save()
             #Then 'prune' the remaining tasks to remove the pool as a foreignkey
             for task in other_tasks:
                 task.condor_pool = None

@@ -16,6 +16,7 @@ from cloud_copasi.web_interface.pools import condor_tools
 import tarfile
 import datetime
 from django.utils.timezone import now
+from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
@@ -108,7 +109,7 @@ def update_tasks(user=None, task=None):
                 task.set_custom_field('error', str(e))
                 task.finish_time = now()
                 task.save()
-                
+                email_tools.send_task_completion_email(task)
                 
         #Get the list of subtasks again
         task_subtasks = Subtask.objects.filter(task=task)
@@ -122,6 +123,7 @@ def update_tasks(user=None, task=None):
             #task.trim_condor_jobs() Don't do this, it breaks plugin functionality
             
             task.save()
+            email_tools.send_task_completion_email(task)
             
         task.last_update_time=now()
         task.save()
