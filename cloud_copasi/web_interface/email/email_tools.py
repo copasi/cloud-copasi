@@ -73,7 +73,7 @@ You can view the results by visiting %s
     
     elif task.status == 'error':
         message_body = """The task %s encountered an error.
-        You can view the task details by visiting %s
+You can view the task details by visiting %s
 """ % (task.name, 'http://' + settings.HOST + str(reverse_lazy('task_details', kwargs={'task_id':task.id})))
         subject = 'Cloud-COPASI: Task encountered error (%s)'% task.name
     else:
