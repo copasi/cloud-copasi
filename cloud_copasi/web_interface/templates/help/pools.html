@@ -79,8 +79,13 @@ http://www.gnu.org/licenses/gpl.html
     </p>
     
     <header class="minor" id="spot_requests"><h4>Spot requests</h4></header>
-    <p>
-        <span class="bold">Note that spot price instances are coming soon to Cloud-COPASI and are not available yet!</span>.
-    </p>
+        <p><a href="http://aws.amazon.com/ec2/spot-instances/">Spot requests</a> allow you to bid on AWS resources, allowing for reductions in the cost of running a compute pool by an average of 86%. To launch a spot instance pool, select the 'spot price bidding' option in the pool launch page, and enter your maximum bid price. The current spot price for the selected instance type, along with the spot price history will be displayed.</p> 
+        
+        <p>The price of spot instances varies according to supply and demand, but you will never pay more than your maximum bid price per hour. If the market price rises above your bid price, your instances will be terminated, and will relaunch when the market price falls. If your Spot instance is interrupted by Amazon EC2, you will not be charged for any partial hour of usage. For example, if your Spot instance is interrupted after 59 minutes, you will not be charged. However, if you terminate your pool, you will pay for any partial hour of usage as you would for fixed price instances.</p>
+        
+        <p>The master node will always launch as a fixed price instance.</p>
+        
+        <p><span class="bold">Note that the spot market price can, in specific circumstances, rise well above the fixed instance price.</span> Only enter a bid price that you are willing to pay!</p> 
+    
 </article>
 {% endblock %}

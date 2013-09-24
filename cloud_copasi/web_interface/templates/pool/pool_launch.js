@@ -38,7 +38,7 @@ function updateSpotPrice(){
     spotprice_current.fadeIn();
     $.getJSON("{% url 'api_spot_price' %}", {'key_id': "{{key_id}}", 'instance_type':instance_type }, function(data){
         spotprice_current.hide();
-        spotprice_current.html('$' + data['price'] + '  (' + instance_type + ')');
+        spotprice_current.html('$' + data['price'] + '/hour  (' + instance_type + ')');
         spotprice_current.fadeIn();
     });
     

@@ -121,7 +121,7 @@ class AddEC2PoolForm(forms.Form):
                                    initial='fixed',
                                    help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance. The current spot price is displayed below. For information on fixed instance pricing, refer to the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. Note that all instances are launched in the US-East (N. Virginia) AWS region.')
     
-    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars. Note that this does not include VAT or any other applicable taxes.',
+    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($) per hour', help_text = 'Your maximum spot price bid in US Dollars per hour. Note that this does not include VAT or any other applicable taxes.',
                                         max_digits=5, decimal_places=3, initial=0.000,
                                         )
     
@@ -446,7 +446,7 @@ class EC2PoolScaleUpForm(forms.Form):
                                    initial='fixed',
                                    help_text='Spot price bidding can significantly reduce running costs, however your instances will be terminated while your bid price remains below the market price. Note that the Master node will always launch as a fixed price instance.')
     
-    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($)', help_text = 'Your maximum spot price bid in US Dollars. Note that this does not include VAT or any other applicable taxes.',
+    spot_bid_price = forms.DecimalField(required=False, label='Spot price bid ($) per hour', help_text = 'Your maximum spot price bid in US Dollars per hour. Note that this does not include VAT or any other applicable taxes.',
                                         max_digits=5, decimal_places=3, initial=0.000,
                                         )
 
