@@ -20,13 +20,13 @@ grid_resource = batch ${pool_type} ${pool_address}
 
 #For normal jobs. All arguments to the COPASI binary are hardcoded here
 #CopasiSE binary now X86_64 only...
-condor_string_args = """executable = ${binary_dir}CopasiSE
+condor_string_args = """executable = ${binary_dir}/CopasiSE
 transfer_executable = ${transfer_executable}
 arguments = --nologo --home . ${copasiFile} --save run_${copasiFile}
 """
 
 #For raw mode. Allows for custom arguments to be added
-condor_string_no_args = """executable = ${binary_dir}CopasiSE
+condor_string_no_args = """executable = ${binary_dir}/CopasiSE
 transfer_executable = ${transfer_executable}
 arguments = $args
 """

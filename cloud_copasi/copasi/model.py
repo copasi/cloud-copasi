@@ -38,7 +38,11 @@ def get_time_per_job(job):
 
 class CopasiModel(object):
     """Class representing a Copasi model"""
-    def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=settings.COPASI_BINARY_DIR, job=None):
+    def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=None, job=None):
+        
+        if binary_dir == None:
+            binary_dir, binary_path = os.path.split(settings.COPASI_LOCAL_BINARY)
+        
         #Load the copasi binary
         self.model = etree.parse(filename)
         self.binary = binary
@@ -693,10 +697,10 @@ class CopasiModel(object):
         n = len(self.get_optimization_parameters()) * 2
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         
@@ -959,10 +963,10 @@ class CopasiModel(object):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         
@@ -1257,10 +1261,10 @@ class CopasiModel(object):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         
@@ -1431,10 +1435,10 @@ class CopasiModel(object):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         
@@ -1710,10 +1714,10 @@ class CopasiModel(object):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         input_files_string = ', '
@@ -1963,10 +1967,10 @@ class CopasiModel(object):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         input_files_string = ', '
@@ -2067,10 +2071,10 @@ class CopasiModel(object):
         raw_mode_string_with_args = Template(condor_spec.raw_mode_string).safe_substitute(args=args_string)
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
 
         

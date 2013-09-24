@@ -491,10 +491,10 @@ class ODCopasiModel(CopasiModel):
         
         
         if pool_type == 'ec2':
-            binary_dir = '/usr/local/bin/'
+            binary_dir = '/usr/local/bin'
             transfer_executable = 'NO'
         else:
-            binary_dir = settings.COPASI_BINARY_DIR
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
         
         
