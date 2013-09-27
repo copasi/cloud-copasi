@@ -376,24 +376,6 @@ class SpotRequest(models.Model):
         return "%s (User: %s)" % (self.request_id, self.ec2_pool.vpc.access_key.user.username) 
 
 
-class AMI(models.Model):
-    """Stores information about an Amazon EC2 AMI
-    """
-    owner = models.CharField(max_length=100)
-    
-    name = models.CharField(max_length=100)
-    
-    version = models.CharField(max_length=100, blank=True)
-    
-    image_id=models.CharField(max_length=20)
-    
-    active = models.BooleanField()
-    
-    class Meta:
-        app_label = 'web_interface'
-        
-    def __unicode__(self):
-        return self.name
     
 class EC2KeyPair(models.Model):
     name = models.CharField(max_length=100, verbose_name='EC2 Key Pair name')

@@ -11,7 +11,7 @@ from boto.ec2 import EC2Connection, cloudwatch
 from boto.ec2.instance import Instance
 from cloud_copasi.web_interface import models
 from cloud_copasi.web_interface.aws import aws_tools, ec2_config
-from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, AMI, EC2Pool, ElasticIP, Task,\
+from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP, Task,\
     SpotRequest
 import sys, os
 from exceptions import Exception
@@ -28,16 +28,10 @@ from boto.exception import BotoServerError, EC2ResponseError
 
 log = logging.getLogger(__name__)
 
-def get_ami(ec2_connection, ami):
-    assert isinstance(ec2_connection, EC2Connection)
-    assert isinstance(ami, models.AMI)
-    
-    ami = ec2_connection.get_image(ami.image_id)
-    return ami
 
 def get_active_ami(ec2_connection):
-    ami=models.AMI.objects.get(active=True)
-    return get_ami(ec2_connection, ami)
+    assert isinstance(ec2_connection, EC2Connection)
+    return ec2_connection.get_image(ec2_config.AMI_IMAGE_ID)
 
 def refresh_pool(ec2_pool):
     """Refresh the state of each instance in a ec2 pool
