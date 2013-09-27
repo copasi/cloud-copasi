@@ -6,6 +6,8 @@
 # as function exit code (by return) and this is modulo 256
 # see cluster_list_iterator, list
 
+#CopasiSE binary location
+copasise=$HOME/copasi/bin/CopasiSE
 
 # Bosco key location
 bosco_key=$HOME/.ssh/bosco_key.rsa
@@ -537,7 +539,7 @@ grid_resource = batch $cluster_type $remote_host
 output = $test_stdout
 error = $test_stderr
 transfer_executable=true
-executable = /home/ed/.local/bin/CopasiSE
+executable = $copasise
 arguments = --home .
 log = $log_file
 notification = NEVER
