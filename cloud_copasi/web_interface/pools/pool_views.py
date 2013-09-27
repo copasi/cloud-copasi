@@ -101,7 +101,7 @@ class PoolRenameView(RestrictedFormView):
         return super(PoolRenameView, self).form_valid(*args, **kwargs)
 
 
-    
+
 class AddEC2PoolForm(forms.Form):
     
     name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
@@ -350,7 +350,11 @@ class PoolDetailsView(RestrictedView):
             buttons[6] = {'button_text' : 'Change termination settings',
                       'url': reverse_lazy('pool_termination_settings', kwargs={'pool_id' : kwargs['pool_id']}),
                        }
-            
+        if pool_type != 'shared' and pool_type == 'bosco':
+            buttons[4] = {'button_text' : 'Change status page link',
+                          'url': reverse_lazy('pool_link_change',
+                          kwargs={'pool_id' : kwargs['pool_id']})}
+        
         if pool_type == 'shared':
             kwargs['shared'] = True
             
@@ -606,6 +610,41 @@ class EC2PoolScaleDownView(RestrictedFormView):
         
         return super(EC2PoolScaleDownView, self).dispatch(request, *args, **kwargs)
 
+class BoscoPoolStatusPageForm(forms.Form):
+    status_page_link = forms.CharField(max_length=1000,
+                                       required=False,
+                                       label='Pool status page',
+                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information')
+
+class BoscoPoolStatusPageView(RestrictedFormView):
+    page_title='Edit status page link'
+    template_name = 'pool/pool_status_edit.html'
+    form_class = BoscoPoolStatusPageForm
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        pool = BoscoPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == request.user
+        
+        kwargs['pool'] = pool
+        assert pool.get_pool_type() != 'ec2'
+        self.initial['status_page_link'] = pool.status_page
+        
+        return super(BoscoPoolStatusPageView, self).dispatch(request, *args, **kwargs)
+    
+    def form_valid(self, *args, **kwargs):
+        
+        form = kwargs['form']
+        link = form.cleaned_data['status_page_link']
+        pool = BoscoPool.objects.get(id=kwargs['pool_id'])
+        assert pool.user == self.request.user 
+        assert pool.get_pool_type() != 'ec2'
+        
+        pool.status_page = link
+        pool.save()
+        self.success_url = reverse_lazy('pool_details', kwargs={'pool_id': kwargs['pool_id']})
+        return super(BoscoPoolStatusPageView, self).form_valid(*args, **kwargs)
+
 
 
 
@@ -644,6 +683,11 @@ class AddBoscoPoolForm(forms.Form):
                               help_text = 'A working SSH private key for the pool submit node. This key will used only once, and will not be stored. See the documentation for full details on how to generate this.',
                               widget=forms.Textarea)
 
+    status_page_link = forms.CharField(max_length=1000,
+                                       required=False,
+                                       label='Pool status page',
+                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information')
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
         return super(AddBoscoPoolForm, self).__init__(*args, **kwargs)
@@ -658,6 +702,9 @@ class AddBoscoPoolForm(forms.Form):
             raise forms.ValidationError('A pool with this name already exists')
         
         return cleaned_data
+
+
+
         
 class BoscoPoolAddView(RestrictedFormView):
     
@@ -741,6 +788,7 @@ class BoscoPoolAddView(RestrictedFormView):
                          platform = form.cleaned_data['platform'],
                          address = form.cleaned_data['username'] + '@' + form.cleaned_data['address'],
                          pool_type = form.cleaned_data['pool_type'],
+                         status_page = form.cleaned_data['status_page_link'],
                          )
         pool.save()
                          

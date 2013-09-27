@@ -110,6 +110,8 @@ urlpatterns = patterns('',
     url(r'^my_account/pools/(?P<pool_id>\d+)/unshare/(?P<user_id>\d+)/$', pool_views.SharePoolView.as_view(), {'remove':True}, name='pool_unshare'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/rename/$', pool_views.PoolRenameView.as_view(), name='pool_rename'),
     url(r'^my_account/pools/(?P<pool_id>\d+)/ec2/termination_settings/$', pool_views.EC2PoolTerminationSettingsView.as_view(), name='pool_termination_settings'),
+    url(r'^my_account/pools/(?P<pool_id>\d+)/change_link/$', pool_views.BoscoPoolStatusPageView.as_view(), name='pool_link_change'),
+
 
     url(r'^my_account/pools/spotprice_history/$', pool_views.SpotPriceHistoryView.as_view(), name='spotprice_history'),
 

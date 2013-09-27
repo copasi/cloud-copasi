@@ -62,11 +62,35 @@ http://www.gnu.org/licenses/gpl.html
     <h4>Compute pools</h4>
         <p>
         {% if compute_pools.count == 0 %}
-            No compute pools are currently running. You must launch a compute pool before you can run tasks.
+            No compute pools are currently connected or running. You must launch a compute pool before you can run tasks.
+            <br />
             {% else %}
-            You have <span class="bold">{{ compute_pools.count }}</span> compute pool{{ compute_pools.count|pluralize }} running.
+            You have <span class="bold">{{ compute_pools.count }}</span> compute pool{{ compute_pools.count|pluralize }} connected or running.
+            <div class="smalltablelist">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+                {% for pool in compute_pools %}
+                <tr>
+                    <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{pool.name}}</a></td>
+                    <td>{{pool.get_pool_type_display_true}}</td>
+                    <td>{% if pool.get_pool_type == 'ec2' %}{{pool.get_recast_pool.get_health }}
+                        {% else %}
+                        {% if pool.get_recast_pool.status_page != '' %}
+                            <a href="{{pool.get_recast_pool.status_page}}">Status</a>
+                            {% endif %}
+                        {% endif %}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+            
         {% endif %}
-        <br />
+        
+        
         <a href="{% url 'pool_list' %}">Click here</a> to manage your compute pools.
     </p>
     </section>

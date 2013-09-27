@@ -83,6 +83,7 @@ http://www.gnu.org/licenses/gpl.html
                 {% if user.is_superuser %}
                 <th>Internal ID</th>
                 {% endif %}
+                <th>Status</th>
                 <th>Address</th>
                 <th>Type</th>
                 <th>Details</th>
@@ -93,7 +94,7 @@ http://www.gnu.org/licenses/gpl.html
                 {% if user.is_superuser %}
                 <td><a href="{% url 'admin:web_interface_boscopool_change' bosco_pool.id %}">{{bosco_pool.id}}</a></td>
                 {% endif %}
-
+                <td>{% if bosco_pool.status_page != '' %}<a href="{{bosco_pool.status_page}}" target="new">Status</a>{% endif %}</td>
                 <td>{{bosco_pool.address }}</td>
                 <td >{{bosco_pool.get_pool_type_display}}</td>
                 <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>

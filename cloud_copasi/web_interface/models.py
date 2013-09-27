@@ -209,10 +209,19 @@ class CondorPool(models.Model):
     def get_running_tasks(self):
         return Task.objects.filter(condor_pool=self).filter(status='running')
     
+    def get_recast_pool(self):
+        if self.get_pool_type() == 'ec2':
+            return EC2Pool.objects.get(pk=self.pk)
+        else:
+            return BoscoPool.objects.get(pk=self.pk)
+        
+        
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
     """
 
+    status_page = models.CharField(max_length=1000, blank=True, null=True, default='')
+    
     class Meta:
         app_label = 'web_interface'
     
@@ -751,3 +760,4 @@ class CondorJob(models.Model):
     
     class Meta:
         app_label = 'web_interface'
+

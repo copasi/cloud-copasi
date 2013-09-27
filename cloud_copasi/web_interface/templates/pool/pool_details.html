@@ -53,7 +53,8 @@ http://www.gnu.org/licenses/gpl.html
         <table>
             <tr>
                 <th>Name</th>
-                <th>Type</td>
+                <th>Type</th>
+                <th>Status</th>
                 {%if pool.copy_of %}<th>Shared by</th>{% endif %}
                 <th>Address</th>
                 <th>CPU hours used</th>
@@ -61,6 +62,7 @@ http://www.gnu.org/licenses/gpl.html
             <tr>
                 <td>{{pool.name}}</td>
                 <td>{{pool.get_pool_type_display}}</td>
+                <td>{% if pool.status_page != '' %}<a href="{{pool.status_page}}" target="new">Status</a>{% endif %}</td>
                 {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
                 <td>{{pool.address}}</td>
                 <td>Not implemented</td>
