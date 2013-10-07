@@ -13,4 +13,10 @@ License:
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
 
 Usage:
-    TODO
+    Cloud-COPASI is a web-based tool for running biochemical simulations in a
+    high-throughput computing environment, and is the successor to Condor-COPASI
+    . A free implementation of the most recent stable release is available at
+    http://cloud.copasi.org.
+    
+    For those wishing to run their own implementation, consult the Deployment
+    guide at https://github.com/edkent/cloud-copasi/wiki/Deployment
