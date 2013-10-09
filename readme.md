@@ -7,6 +7,7 @@ Cloud-COPASI can run a number of simulation and analysis tasks, including global
 
 Models must be prepared using [COPASI](http://www.copasi.org) (COmplex PAthway SImulator), a widely used free, open-source, cross-platform simulation tool.
 
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/edkent/cloud-copasi/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 # Usage
 We host an implementation of Cloud-COPASI, which is available for use free of charge, at [cloud.copasi.org](http://cloud.copasi.org). For new users this is the recommended option.
 
