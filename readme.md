@@ -11,10 +11,10 @@ Models must be prepared using [COPASI](http://www.copasi.org) (COmplex PAthway S
 We host an implementation of Cloud-COPASI, which is available for use free of charge, at [cloud.copasi.org](http://cloud.copasi.org). For new users this is the recommended option.
 
 ### Deployment
-For users wishing to deploy their own implementation of Cloud-COPASI, please see the [Deployment Guide](https://github.com/edkent/cloud-copasi/wiki/Deployment). This option is recommended for advanced users only.
+For users wishing to deploy their own implementation of Cloud-COPASI, please see the [Deployment Guide](https://github.com/copasi/cloud-copasi/wiki/Deployment). This option is recommended for advanced users only.
 
 # About
-Cloud-COPASI is developed by Edward Kent in the [Computational Systems Biology and Biochemical Networks Modeling Group](http://www.comp-sys-bio.org) at the [University of Manchester](http://www.manchester.ac.uk), UK, and is built on the [Condor-COPASI](http://code.google.com/p/condor-copasi) software. Cloud-COPASI is written in Python using the Django web application framework. [Bosco](http://bosco.opensciencegrid.org/) is used to connect to remote compute pools, and [HTCondor](http://research.cs.wisc.edu/htcondor/) is used to manage job allocation on EC2 pools.
+Cloud-COPASI is developed by Edward Kent in the [Computational Systems Biology and Biochemical Networks Modeling Group](http://www.comp-sys-bio.org) at the [University of Manchester](http://www.manchester.ac.uk), UK, and is built on the [Condor-COPASI](https://github.com/copasi/condor-copasi) software. Cloud-COPASI is written in Python using the Django web application framework. [Bosco](http://bosco.opensciencegrid.org/) is used to connect to remote compute pools, and [HTCondor](http://research.cs.wisc.edu/htcondor/) is used to manage job allocation on EC2 pools.
 
 # License
     The files in the /html5up/ directory contain the ZeroFour HTML template
