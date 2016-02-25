@@ -678,7 +678,7 @@ End_of_Submit
     echo -n "Checking for job output..."
     output=`head -n 1 $test_stdout`
     expected_output=^COPASI\ [0-9]+\.[0-9]+\ .Build\ [0-9]+.$
-    if [[ "$output" =~ "$espected_output" ]] ; then
+    if [[ "$output" =~ "$expected_output" ]] ; then
 	echo "Passed!"
     else
 	echo "Failed"
