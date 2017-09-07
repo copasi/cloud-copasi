@@ -12,7 +12,7 @@
 
 import os
 #The directory where the cloud-copasi source code has been installed
-CLOUD_COPASI_DIR = '/home/cloud-copasi/cloud-copasi/'
+CLOUD_COPASI_DIR = '/home/cloudcopasi/cloud-copasi/'
 
 DATABASES = {
     'default': {
@@ -56,9 +56,9 @@ RECAPTCHA_PUBLIC_KEY  = ''
 RECAPTCHA_PRIVATE_KEY = ''
 
 #The location of the cloud-copasi user home directory. Include the trailing slash
-HOME_DIR='/home/cloud-copasi/'
+HOME_DIR='/home/cloudcopasi/'
 #The directory where bosco is installed. Include the trailing slash
-BOSCO_DIR = '/home/cloud-copasi/bosco/'
+BOSCO_DIR = '/home/cloudcopasi/bosco/'
 #Dictionary containing custom environment variables for bosco, e.g. PATH,
 #LD_LIBRARY_PATH etc. Generally not needed, so leave blank
 BOSCO_CUSTOM_ENV = {}
@@ -68,12 +68,12 @@ BOSCO_CUSTOM_ENV = {}
 MASTER_NODE_TYPE = 'm1.small'
 
 #Storage locations. Be sure to include the trailing slash
-STORAGE_DIR = '/home/cloud-copasi/user-files/'
-KEYPAIR_FILEPATH = '/home/cloud-copasi/instance_keypairs/'
-LOG_DIR = '/home/cloud-copasi/log/'
+STORAGE_DIR = '/home/cloudcopasi/user-files/'
+KEYPAIR_FILEPATH = '/home/cloudcopasi/instance_keypairs/'
+LOG_DIR = '/home/cloudcopasi/log/'
 
 #The location of the CopasiSE binary
-COPASI_LOCAL_BINARY = '/home/cloud-copasi/copasi/bin/CopasiSE'
+COPASI_LOCAL_BINARY = '/home/cloudcopasi/copasi/bin/CopasiSE'
 
 #Load balancing parameter
 IDEAL_JOB_TIME = 15 #Minutes
