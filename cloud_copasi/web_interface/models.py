@@ -28,10 +28,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-#Add a south introspection rule for the uuid field
-from south.modelsinspector import add_introspection_rules
-add_introspection_rules([], ["^cloud_copasi\.web_interface\.fields\.UUIDField"])
-
 class Profile(models.Model):
     """Stores additional profile information for a user
     """

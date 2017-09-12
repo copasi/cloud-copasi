@@ -203,7 +203,6 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'cloud_copasi.web_interface',
     'cloud_copasi.django_recaptcha',
-    'south',
 )
 
 

@@ -18,7 +18,7 @@
 import uuid
 
 from django import forms
-from django.db.models import Field, SubfieldBase
+from django.db.models import Field
 from django.utils.encoding import smart_unicode
 
 try:
@@ -48,8 +48,6 @@ class UUIDField(Field):
     new UUID value (calculated using the UUID1 method). Note that while all
     UUIDs are expected to be unique we enforce this with a DB constraint.
     """
-    # TODO: support binary storage types
-    __metaclass__ = SubfieldBase
 
     def __init__(self, version=4, node=None, clock_seq=None,
             namespace=None, name=None, auto=False, *args, **kwargs):
