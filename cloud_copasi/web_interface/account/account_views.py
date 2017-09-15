@@ -30,7 +30,7 @@ import boto.exception
 from cloud_copasi.web_interface.models import VPC, CondorPool
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 from cloud_copasi.web_interface.account import user_countries
 from cloud_copasi import settings

@@ -6,6 +6,7 @@ are made available under the terms of the GNU Public License v3.0
 which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
+{% load static %}
 <div id="footer-wrapper">
     <footer id="footer" class="5grid-layout">
         <div class="row">
@@ -43,7 +44,7 @@ http://www.gnu.org/licenses/gpl.html
                         <h2>Powered by Amazon Web Services</h2>
                         <p>Cloud COPASI is powered by Amazon Web Services. While our service is free to use, your profile must be linked to an AWS account, for which you will be responsible for all charges accrued.</p>
                         {% comment %}<a href="http://html5up.net/" class="button button-alt button-icon button-icon-rarrow">More @ HTML5Up.net</a> {% endcomment %}
-                        <a href="http://aws.amazon.com" class="button button-alt button-aws"><img src="{{ STATIC_URL }}images/AWS_Logo_PoweredBy_200px.png" alt="Powered by Amazon Web Services" /></a>
+                        <a href="http://aws.amazon.com" class="button button-alt button-aws"><img src="{% static 'images/AWS_Logo_PoweredBy_200px.png' %}" alt="Powered by Amazon Web Services" /></a>
                     </section>
             {% comment %}
                 <!-- Contact -->

@@ -17,7 +17,7 @@ import sys, os, random, string
 from cloud_copasi import copasi
 import cPickle
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes import fields
 from cloud_copasi.web_interface.fields import UUIDField
 import json
 import datetime
@@ -394,7 +394,7 @@ class EC2KeyPair(models.Model):
         return self.name
     
 class ElasticIP(models.Model):
-    public_ip = models.IPAddressField()
+    public_ip = models.GenericIPAddressField()
     
     instance=models.OneToOneField(EC2Instance, null=True)
     

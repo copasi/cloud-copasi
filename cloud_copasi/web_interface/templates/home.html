@@ -10,6 +10,8 @@ which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
 
+{% load static %}
+
 {% block bodyclass %}homepage{% endblock %}
 
 {% block extra_scripts %}
@@ -39,7 +41,7 @@ http://www.gnu.org/licenses/gpl.html
                     <div class="row">
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{{ STATIC_URL }}images/AWS_Logo_PoweredBy_384px.png" alt=""/></span>
+                                <span class="image image-full"><img src="{% static 'images/AWS_Logo_PoweredBy_384px.png' %}" alt=""/></span>
                                 <header class="second second-gear">
                                     <h3>Powered by AWS</h3>
                                     <span class="byline">Launch a cloud-based compute pool</span>
@@ -48,7 +50,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{{ STATIC_URL }}images/HTCondor_red_blk_384px.png" alt="" /></span>
+                                <span class="image image-full"><img src="{% static 'images/HTCondor_red_blk_384px.png' %}" alt="" /></span>
                                 <header class="second second-gear">
                                     <h3>Parallel computation</h3>
                                     <span class="byline">Connect existing computational resources</span>
@@ -57,7 +59,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{{ STATIC_URL }}images/COPASI_384px.png" alt="" /></span>
+                                <span class="image image-full"><img src="{% static 'images/COPASI_384px.png' %}" alt="" /></span>
                                 <header class="second second-chart">
                                     <h3>COPASI simulation backend</h3>
                                     <span class="byline">Includes SBML import and export</span>

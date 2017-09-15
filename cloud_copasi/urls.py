@@ -6,19 +6,21 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from cloud_copasi.web_interface import views
 from cloud_copasi.web_interface.account import account_views
 from cloud_copasi.web_interface.aws import resource_views
 from cloud_copasi.web_interface.pools import pool_views, task_views 
 from cloud_copasi.web_interface.client_api import api_views
-from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done
+from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done, password_reset_confirm
 from django.views.generic import RedirectView
+from . import settings
+from django.conf.urls.static import static
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
     url(r'^$', views.LandingView.as_view(), name='landing_view'),
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
@@ -36,7 +38,7 @@ urlpatterns = patterns('',
     url(r'^my_account/keys/(?P<key_id>\d+)/unshare/(?P<user_id>\d+)/$', account_views.KeysShareView.as_view(), {'remove':True}, name='my_account_keys_unshare'),
     url(r'^my_account/keys/(?P<key_id>\d+)/rename/$', account_views.KeysRenameView.as_view(), name='my_account_keys_rename'),
 
-    url(r'^my_account/password/reset/$', 'django.contrib.auth.views.password_reset',
+    url(r'^my_account/password/reset/$', password_reset,
         {'post_reset_redirect' : '/my_account/password/reset/done/',
          'template_name': 'account/password_reset_form.html',
          'extra_context' : {'page_title': 'Reset password'},
@@ -44,16 +46,16 @@ urlpatterns = patterns('',
          'subject_template_name' : 'account/password_reset_email_subject.html',
          },
         name='password_reset'),
-    url(r'^my_account/password/reset/done/$', 'django.contrib.auth.views.password_reset_done',
+    url(r'^my_account/password/reset/done/$', password_reset_done,
         {'template_name': 'account/password_reset_done.html',
          'extra_context' : {'page_title': 'Reset password'},}),
     url(r'^my_account/password/reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
-        'django.contrib.auth.views.password_reset_confirm',
+        password_reset_confirm,
         {'post_reset_redirect' : '/my_account/password/done/',
          'template_name': 'account/password_reset_confirm.html',
          'extra_context' : {'page_title': 'Reset password'},
          }),
-    url(r'^my_account/password/done/$','django.contrib.auth.views.password_reset_complete',
+    url(r'^my_account/password/done/$', password_reset_complete,
         {'template_name': 'account/password_reset_complete.html',
          'extra_context' : {'page_title': 'Reset password'},}),
     
@@ -166,4 +168,4 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-)
+]

@@ -4,6 +4,9 @@
     html5up.net | @n33co
     Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
+
+{% load static %}
+
 <html>
     <head>
         <title>Cloud COPASI - {{ page_title }}</title>
@@ -11,25 +14,25 @@
         <meta name="description" content="" />
         <meta name="keywords" content="" />
         <!-- <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,700,800" rel="stylesheet" type="text/css" />  -->
-        <script src="{{ STATIC_URL }}js/jquery-1.8.3.min.js"></script>
-        <script src="{{ STATIC_URL }}css/5grid/init.js?use=mobile,desktop,1000px&amp;mobileUI=1&amp;mobileUI.theme=none"></script>
-        <script src="{{ STATIC_URL }}js/jquery.dropotron-1.2.js"></script>
-        <script src="{{ STATIC_URL }}js/init.js"></script>
+        <script src="{% static 'js/jquery-1.8.3.min.js' %}"></script>
+        <script src="{% static 'css/5grid/init.js' %}?use=mobile,desktop,1000px&amp;mobileUI=1&amp;mobileUI.theme=none"></script>
+        <script src="{% static 'js/jquery.dropotron-1.2.js' %}"></script>
+        <script src="{% static 'js/init.js' %}"></script>
             <script>
             {% include 'scripts.js' %}
             </script>
             {% block extra_scripts %}{% endblock %}
         </script>
-        <script src="{{ STATIC_URL }}js/popup_box.js"></script>
+        <script src="{% static 'js/popup_box.js' %}"></script>
         {% include 'google_analytics.js' %}
 
         <noscript>
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/5grid/core.css" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/5grid/core-desktop.css" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/5grid/core-1200px.css" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/5grid/core-noscript.css" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css" />
-            <link rel="stylesheet" href="{{ STATIC_URL }}css/style-desktop.css" />
+            <link rel="stylesheet" href="{% static 'css/5grid/core.css' %}" />
+            <link rel="stylesheet" href="{% static 'css/5grid/core-desktop.css' %}" />
+            <link rel="stylesheet" href="{% static 'css/5grid/core-1200px.css' %}" />
+            <link rel="stylesheet" href="{% static 'css/5grid/core-noscript.css' %}" />
+            <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+            <link rel="stylesheet" href="{% static 'css/style-desktop.css' %}" />
         </noscript>
         <!--[if lte IE 9]><link rel="stylesheet" href="css/ie9.css" /><![endif]-->
         <!--[if lte IE 8]><link rel="stylesheet" href="css/ie8.css" /><![endif]-->

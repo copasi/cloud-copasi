@@ -1,6 +1,6 @@
 boto==2.48.0
 cycler==0.10.0
-Django==1.5
+Django==1.11.5
 functools32==3.2.3.post2
 lxml==3.8.0
 matplotlib==2.0.2

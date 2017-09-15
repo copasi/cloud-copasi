@@ -30,7 +30,7 @@ import tempfile, subprocess
 from django.core.validators import RegexValidator
 import os
 from django.forms.forms import NON_FIELD_ERRORS
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.models import User
 from cloud_copasi.web_interface.email import email_tools
