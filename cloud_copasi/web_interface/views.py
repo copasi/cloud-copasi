@@ -179,7 +179,7 @@ class LoginView(FormView):
     initial={}
     
     def get_success_url(self):
-        next_page = self.request.REQUEST.get('next', '')
+        next_page = self.request.POST.get('next', '')
         if next_page:
             return next_page
         else: 
