@@ -132,13 +132,13 @@ class RestrictedFormView(RestrictedView, FormMixin, ProcessFormView):
         If the form is invalid, re-render the context data with the
         data-filled form and errors.
         """        
-        return self.render(self.get_context_data(**kwargs))
+        return self.render_to_response(self.get_context_data(**kwargs))
     
     def get(self, request, *args, **kwargs):
         """
         Handles GET requests and instantiates a blank version of the form.
         """              
-        return self.render(self.get_context_data(**kwargs))
+        return self.render_to_response(self.get_context_data(**kwargs))
 
     def post(self, request, *args, **kwargs):
         """
