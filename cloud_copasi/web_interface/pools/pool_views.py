@@ -664,6 +664,7 @@ class AddBoscoPoolForm(forms.Form):
                                                            ('pbs', 'PBS'),
                                                            ('lsf', 'LSF'),
                                                            ('sge', 'Sun Grid Engine'),
+                                                           ('slurm', 'Slurm Workload Manager'),
                                                            ),
                                  initial='condor',
                                  )

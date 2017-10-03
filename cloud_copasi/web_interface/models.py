@@ -170,6 +170,7 @@ class CondorPool(models.Model):
                                                            ('pbs', 'PBS'),
                                                            ('lsf', 'LSF'),
                                                            ('sge', 'Sun Grid Engine'),
+                                                           ('slurm', 'Slurm Workload Manager'),
                                                            ),
                                  default='condor',
                                  )
