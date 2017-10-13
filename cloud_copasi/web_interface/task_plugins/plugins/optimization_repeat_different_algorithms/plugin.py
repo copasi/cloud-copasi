@@ -24,7 +24,7 @@ from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 from django.utils import html
 from django.utils.safestring import mark_safe
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
