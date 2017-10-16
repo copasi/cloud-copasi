@@ -139,7 +139,6 @@ class NewTaskView(RestrictedFormView):
         
         #Save the custom task fields
         for field_name, field_object in extra_fields:
-            
             #TODO: Is the file a zip file? Try unzipping it...
             if isinstance(field_object, forms.FileField) and isinstance(form.cleaned_data[field_name], UploadedFile):
                 try:
@@ -178,7 +177,7 @@ class NewTaskView(RestrictedFormView):
                     task.set_custom_field('data_files', data_files_list)
                 except Exception, e:
                     log.exception(e)
-                    error_messages = ['An error occured while preparing the task',
+                    error_messages = ['An error occured while preparing the task data files',
                                        str(e),]
                     form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
                     try:
@@ -229,7 +228,7 @@ class NewTaskView(RestrictedFormView):
             task_instance = TaskClass(task)
         except Exception, e:
             log.exception(e)
-            error_messages = ['An error occured while preparing the task',
+            error_messages = ['An error occured while preparing the task model file',
                                str(e),]
             form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
             try:
@@ -269,7 +268,7 @@ class NewTaskView(RestrictedFormView):
             task.save()
         except Exception, e:
             log.exception(e)
-            error_messages = ['An error occured while preparing the task',
+            error_messages = ['An error occured while preparing the subtask',
                                str(e),]
             form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
             try:
