@@ -50,6 +50,8 @@ class TaskPlugin(BaseTask):
 
         self.repeats = task.get_custom_field('repeats') 
         self.data_files = task.get_custom_field('data_files')
+        if self.data_files is None:
+           self.data_files = []
         self.raw_mode_args = task.get_custom_field('raw_mode_args')
         
 
