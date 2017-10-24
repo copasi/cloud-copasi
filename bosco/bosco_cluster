@@ -9,6 +9,9 @@
 # CopasiSE binary location
 copasise=$HOME/copasi/bin/CopasiSE
 
+# Copasi test model location
+copasi_test_model_path=$HOME/copasi/brusselator_scan_test.cps
+
 # Bosco key location
 bosco_key=$HOME/.ssh/bosco_key.rsa
 
@@ -475,9 +478,7 @@ check_condor_q_classad () {
         sleep 1
     done
     return 0
-
 }
-
 
 test_cluster () {
     if [ "x$1" != "x" ]; then
@@ -556,14 +557,18 @@ do_test_cluster () {
     test_stdout=$submit_dir/test.stdout
     test_stderr=$submit_dir/test.stderr
     test_id=bosco-test.$RANDOM
+
+# The following currently assumes the test model
+# is in the same directory as the created work directory is in.
     cat > $submit_file << End_of_Submit
 universe = grid
 grid_resource = batch $cluster_type $remote_host
+input = $copasi_test_model_path
 output = $test_stdout
 error = $test_stderr
 transfer_executable=true
 executable = $copasise
-arguments = --home .
+arguments = --home . ../$(basename $copasi_test_model_path)
 log = $log_file
 notification = NEVER
 +bosco_test_id = "$test_id"
@@ -641,7 +646,7 @@ End_of_Submit
     #   finish immediately and Condor only polls its status periodically.
     # Check for job to run
     echo -n "Waiting for job to run... this could take a while (waiting 250 seconds)..."
-    check_condor_q_classad "(ClusterId == $condor_jobid) && (JobStatus == 2)" 250
+    check_condor_q_classad "(ClusterId == $condor_jobid) && ((GridJobStatus==\"COMPLETED\") || (JobStatus == 2))" 250
     if [ $? -eq 0 ]; then
         echo "Failed"
         echo "The job did not start in the 250 seconds we waited."
@@ -702,8 +707,8 @@ Error_message_end
 
     echo -n "Checking for job output..."
     output=`head -n 1 $test_stdout`
-    expected_output=^COPASI\ [0-9]+\.[0-9]+\ .Build\ [0-9]+.$
-    if [[ "$output" == "$expected_output" ]] ; then
+    expected_output='^COPASI [0-9]\+.[0-9]\+ (Build [0-9]\+)$'
+     if echo $output | grep "$expected_output" ; then
 	echo "Passed!"
     else
 	echo "Failed"
