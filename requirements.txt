@@ -5,6 +5,8 @@ django-extensions==1.9.9
 functools32==3.2.3.post2
 lxml==3.8.0
 matplotlib==2.0.2
+mod-wsgi==4.5.24
+mod-wsgi-httpd==2.4.27.1
 numpy==1.13.1
 psycopg2==2.7.3.1
 pyparsing==2.2.0
