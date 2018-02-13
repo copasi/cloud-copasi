@@ -14,6 +14,9 @@
 
 
 import sys, time
+import django
+django.setup()
+
 from tools.daemon import Daemon
 import tools.background_script
 from tools.response import RemoteLoggingResponse
