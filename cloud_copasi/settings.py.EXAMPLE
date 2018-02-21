@@ -208,7 +208,6 @@ INSTALLED_APPS = [
     'cloud_copasi.web_interface',
     'cloud_copasi.django_recaptcha',
     'django_extensions',
-    'mod_wsgi.server',
 ]
 
 LOGIN_REDIRECT_URL = '/'
