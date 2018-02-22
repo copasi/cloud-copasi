@@ -476,7 +476,7 @@ class AccountRegisterForm(UserCreationForm):
     email_address = forms.EmailField()
 
     institution = forms.CharField(max_length=50)
-    country = forms.ChoiceField(choices=user_countries.COUNTRIES, initial='GB')
+    country = forms.ChoiceField(choices=user_countries.COUNTRIES, initial='US')
     
     terms = forms.BooleanField(required=True, label='Agree to terms and conditions?',
                                help_text = 'You must agree to the terms and conditions in order to register. Click <a href="%s" target="new">here</a> for further details',
