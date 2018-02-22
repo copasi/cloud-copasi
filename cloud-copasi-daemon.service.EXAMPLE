@@ -7,7 +7,7 @@
 # . . . to immediately start the service
 
 [Unit]
-Description=cloud-copasi daemon to periodically poll the bosco queue for completed jobs
+Description=cloud-copasi daemon to start bosco and periodically poll it's queue for completed jobs
 Before=multi-user.target
 Before=graphical.target
 Before=shutdown.target
