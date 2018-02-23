@@ -24,3 +24,6 @@ GuessMainPID=no
 RemainAfterExit=yes
 ExecStart=/home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh start
 ExecStop=/home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh stop
+
+[Install]
+WantedBy=multi-user.target
