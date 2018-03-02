@@ -913,7 +913,7 @@ class PoolRemoveView(RestrictedView):
                 error_list += errors
                 request.session['errors']=error_list
 
-            elif pool.get_pool_type == 'bosco' and pool.copy_of == None:
+            elif pool.get_pool_type() == 'bosco' and pool.copy_of == None:
                 try:
                     #Remove any copied pools first
                     for copied_pool in copied_pools:
