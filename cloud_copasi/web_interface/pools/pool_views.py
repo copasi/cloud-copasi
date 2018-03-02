@@ -13,8 +13,8 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance,\
-    EC2Pool, BoscoPool, Task, SpotRequest
+from cloud_copasi.web_interface.models import PLATFORM_CHOICES, POOL_TYPE_CHOICES, AWSAccessKey,\
+    VPCConnection, CondorPool, EC2Instance, EC2Pool, BoscoPool, Task, SpotRequest
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
@@ -659,24 +659,14 @@ class AddBoscoPoolForm(forms.Form):
     username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node',
                                validators=[RegexValidator(r'^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$')])
     
-    pool_type = forms.ChoiceField(choices = (
-                                                           ('condor', 'Condor'),
-                                                           ('pbs', 'PBS'),
-                                                           ('lsf', 'LSF'),
-                                                           ('sge', 'Sun Grid Engine'),
-                                                           ('slurm', 'Slurm Workload Manager'),
-                                                           ),
-                                 initial='condor',
-                                 )
+    pool_type = forms.ChoiceField(choices = POOL_TYPE_CHOICES,
+                                  initial = POOL_TYPE_CHOICES[0][0],
+                                 ) 
     
     platform = forms.ChoiceField(label='Remote platform',
                                  help_text='The platform of the remote submitter we are connecting to. Not sure which to select? See the documentation for full details.',
-                                choices = (
-                                           ('DEB6', 'Debian 6'),
-                                           ('RH5', 'Red Hat 5'),
-                                           ('RH6', 'Red Hat 6'),
-                                           ),
-                                initial='DEB6',
+                                 choices = PLATFORM_CHOICES,
+                                 initial = PLATFORM_CHOICES[0][0],
                                 )
 
     ssh_key = forms.CharField(max_length = 10000,

@@ -28,6 +28,20 @@ import logging
 
 log = logging.getLogger(__name__)
 
+PLATFORM_CHOICES = (
+    ('DEB6', 'Debian 6'),
+    ('RH5', 'Red Hat 5'),
+    ('RH6', 'Red Hat 6'),
+)
+
+POOL_TYPE_CHOICES = (
+    ('condor', 'Condor'),
+    ('pbs', 'PBS'),
+    ('lsf', 'LSF'),
+    ('sge', 'Sun Grid Engine'),
+    ('slurm', 'Slurm Workload Manager'),
+)
+
 class Profile(models.Model):
     """Stores additional profile information for a user
     """
@@ -150,13 +164,9 @@ class CondorPool(models.Model):
     copy_of = models.ForeignKey('self', blank=True, null=True, help_text = 'Is this pool a copy of an existing pool belonging to another user?')
     
     platform = models.CharField(max_length = 4,
-                                verbose_name='The platform of the remote condor submitter we are connecting to',
-                                choices = (
-                                           ('DEB6', 'Debian 6'),
-                                           ('RH5', 'Red Hat 5'),
-                                           ('RH6', 'Red Hat 6'),
-                                           ),
-                                default='DEB6',
+                                verbose_name ='The platform of the remote condor submitter we are connecting to',
+                                choices = PLATFORM_CHOICES,
+                                default = PLATFORM_CHOICES[0][0],
                                 )
     
     address = models.CharField(max_length=200,
@@ -165,14 +175,9 @@ class CondorPool(models.Model):
                                default='',
                                )
     
-    pool_type = models.CharField(max_length=20, choices = (
-                                                           ('condor', 'Condor'),
-                                                           ('pbs', 'PBS'),
-                                                           ('lsf', 'LSF'),
-                                                           ('sge', 'Sun Grid Engine'),
-                                                           ('slurm', 'Slurm Workload Manager'),
-                                                           ),
-                                 default='condor',
+    pool_type = models.CharField(max_length=20,
+                                 choices = POOL_TYPE_CHOICES,
+                                 default = POOL_TYPE_CHOICES[0][0],
                                  )
 
     class Meta:
