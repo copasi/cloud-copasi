@@ -30,8 +30,11 @@ log = logging.getLogger(__name__)
 
 PLATFORM_CHOICES = (
     ('DEB6', 'Debian 6'),
+    ('DEB7', 'Debian 7'),
     ('RH5', 'Red Hat 5'),
     ('RH6', 'Red Hat 6'),
+    ('RH7', 'Red Hat 7'),
+    ('UBUNTU12', 'Ubuntu 12'),
 )
 
 POOL_TYPE_CHOICES = (
