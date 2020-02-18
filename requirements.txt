@@ -1,6 +1,6 @@
 boto==2.48.0
 cycler==0.10.0
-Django==1.11.5
+Django==1.11.28
 django-extensions==1.9.9
 functools32==3.2.3.post2
 lxml==3.8.0
