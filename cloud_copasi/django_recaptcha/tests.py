@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from cloud_copasi.django_recaptcha import fields
+from cc_scratch.django_recaptcha import fields
 from django.forms import Form
 
 

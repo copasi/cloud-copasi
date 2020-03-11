@@ -95,7 +95,7 @@ def update_tasks(user=None, task=None):
                         #If this wasn't a local subtask, submit to condor  
                         if not subtask.local:
                             condor_tools.submit_task(prepared_subtask)
-            except Exception, e:
+            except Exception as e:
                 subtask.status = 'error'
                 subtask.set_job_count()
                 subtask.set_run_time()

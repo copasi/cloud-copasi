@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerE
 from django.views.generic import TemplateView, RedirectView, View, FormView
 from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, VPCConnection, CondorPool, EC2Instance
