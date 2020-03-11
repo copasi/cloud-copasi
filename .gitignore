@@ -5,3 +5,4 @@
 .DS_Store
 .idea/
 cc-venv/
+cloud_copasi/settings.py
