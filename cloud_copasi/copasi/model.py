@@ -1780,7 +1780,7 @@ class CopasiModel(object):
                             best_line = line
                 else:
                     pass
-            except Exception, e:
+            except Exception as e:
                 if custom_report:
                     pass
                 else:
@@ -1801,7 +1801,7 @@ class CopasiModel(object):
                                     best_line = line
                         else:
                             pass
-                    except Exception, e:
+                    except Exception as e:
                         if custom_report:
                             pass
                         else:

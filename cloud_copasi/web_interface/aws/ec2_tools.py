@@ -14,7 +14,8 @@ from cloud_copasi.web_interface.aws import aws_tools, ec2_config
 from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP, Task,\
     SpotRequest
 import sys, os
-from exceptions import Exception
+#from exceptions import Exception
+#from . import exceptions as Exception
 from time import sleep
 from cloud_copasi import settings
 from boto import sqs
@@ -22,7 +23,7 @@ import logging
 import datetime
 from django.utils.timezone import now as utcnow, now
 from django.utils.timezone import utc
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 import subprocess
 from boto.exception import BotoServerError, EC2ResponseError
 
@@ -104,7 +105,7 @@ def refresh_pool(ec2_pool):
                 spot_request.ec2_instance = None
             
             spot_request.save()
-        except Exception, e:
+        except Exception as  e:
             log.exception(e)
     
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
@@ -152,7 +153,7 @@ def refresh_pool(ec2_pool):
             ec2_instance.instance_status = status.instance_status.status
             ec2_instance.system_status = status.system_status.status
             ec2_instance.save()
-        except Exception, e:
+        except Exception as  e:
             log.exception(e)
     
     #Add instance termination alarms. Because instance metrics don't appear instantly,
@@ -305,7 +306,7 @@ def launch_pool(ec2_pool):
                                                )
                     spot_request.save()
                 
-        except EC2ResponseError, e:
+        except EC2ResponseError as e:
             errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
             however a master instance was launched successfully. Check your AWS usage limit to ensure you \
             are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
@@ -335,7 +336,7 @@ def launch_pool(ec2_pool):
     
     try:
         sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
-    except BotoServerError, e:
+    except BotoServerError as e:
         errors.append(('Error enabling smart termination', 'Smart termination was not successfully enabled'))
         try:
             ec2_pool.smart_terminate = False
@@ -351,7 +352,7 @@ def launch_pool(ec2_pool):
     try:
         elastic_ip = assign_ip_address(master_ec2_instance)
         log.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
-    except Exception, e:
+    except Exception as  e:
         log.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
         log.exception(e)
         raise e
@@ -439,7 +440,7 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
                                            )
                 spot_request.save()
                 
-    except EC2ResponseError, e:
+    except EC2ResponseError as e:
         errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
         however a master instance was launched successfully. Check your AWS usage limit to ensure you \
         are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
@@ -508,7 +509,7 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
                 spot_request.delete()
         if instances_to_terminate != []:
             terminate_instances(instances)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
 
@@ -528,7 +529,7 @@ def terminate_instances(instances):
             ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
             for spot_request in spot_requests_to_terminate:
                 spot_request.delete()
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
     
     log.debug('Deleting termination alarms')
@@ -538,7 +539,7 @@ def terminate_instances(instances):
 
             if instance.termination_alarm:
                 cloudwatch_connection.delete_alarms([instance.termination_alarm])
-        except Exception, e:
+        except Exception as  e:
             log.exception(e)
             
             
@@ -564,7 +565,7 @@ def terminate_pool(ec2_pool):
     #First, refresh the status of the pool
     try:
         refresh_pool(ec2_pool)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
     
@@ -577,7 +578,7 @@ def terminate_pool(ec2_pool):
             ec2_connection.cancel_spot_instance_requests(request_ids=spot_request_ids)
             for spot_request in spot_requests:
                 spot_request.delete()
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
 
@@ -589,13 +590,13 @@ def terminate_pool(ec2_pool):
     #Dissassociate the IP address of the master instance and release i
     try:
         release_ip_address_from_instance(ec2_pool.master)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
         
     try:
         terminate_instances(instances)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
 
@@ -603,13 +604,13 @@ def terminate_pool(ec2_pool):
     
     try:
         ec2_connection.delete_key_pair(key_pair.name)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
     log.debug('Removing keypair file')
     try:
         os.remove(key_pair.path)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         pass
 
@@ -620,13 +621,13 @@ def terminate_pool(ec2_pool):
         queue = sqs_connection.get_queue(ec2_pool.get_queue_name())
         if queue != None:
             sqs_connection.delete_queue(queue)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
     try:
         log.debug('Deleting SQS topic')
         sns_connection = aws_tools.create_sns_connection(ec2_pool.vpc.access_key)
         sns_connection.delete_topic(ec2_pool.alarm_notify_topic_arn)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         
     ec2_pool.delete()
@@ -652,7 +653,7 @@ def assign_ip_address(ec2_instance):
         elastic_ip=ips[0]
         try:
             release_ip_address(ec2_instance.condor_pool.vpc.acess_key, allocation_id=elastic_ip.allocation_id, association_id=elastic_ip.association_id)
-        except Exception, e:
+        except Exception as  e:
             log.exception(e)
             allocate_new = True
     elif ips.count() == 0 or allocate_new:
@@ -671,7 +672,7 @@ def assign_ip_address(ec2_instance):
                 assert elastic_ip.allocation_id != None
                 assert elastic_ip.allocation_id != ''
                 break
-            except Exception, e:
+            except Exception as  e:
                 #Something is wrong here with the elastic ip
                 log.exception(e)
                 attempt_count += 1
@@ -723,7 +724,7 @@ def assign_ip_address(ec2_instance):
                 
             return elastic_ip
     
-        except Exception, e:
+        except Exception as  e:
             log.debug('Unable to associate IP address with instance')
             log.debug(e)
             attempt_count += 1
@@ -743,7 +744,7 @@ def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
         if public_ip:
             log.debug('Disassociating IP')
             ec2_connection.disassociate_address(public_ip=public_ip)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         
     try:
@@ -752,7 +753,7 @@ def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
             ec2_connection.release_address(allocation_id=allocation_id)
         else:
             ec2_connection.release_address(public_ip=public_ip)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
 
 
@@ -767,19 +768,19 @@ def release_ip_address_from_instance(ec2_instance):
         ip = ElasticIP.objects.get(instance=ec2_instance)
         log.debug('Disassociating IP')
         ec2_connection.disassociate_address(association_id=ip.association_id)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
      
     try:
         log.debug('Releasing IP')
         ec2_connection.release_address(allocation_id=ip.allocation_id)
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
     try:
         ip.delete()
-    except Exception, e:
+    except Exception as  e:
         log.exception(e)
         errors.append(e)
     
@@ -852,7 +853,7 @@ def remove_instance_alarm(instance):
             connection.delete_alarms([instance.termination_alarm])
             instance.termination_alarm = None
             instance.save()
-        except Exception, e:
+        except Exception as  e:
             log.exception(e)
             return e
     return None

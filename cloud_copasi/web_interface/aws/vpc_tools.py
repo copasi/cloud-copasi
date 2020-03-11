@@ -102,42 +102,42 @@ def delete_vpc(vpc, vpc_connection, ec2_connection):
     
     try:
         ec2_connection.delete_security_group(group_id=vpc.master_group_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         ec2_connection.delete_security_group(group_id=vpc.worker_group_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.disassociate_route_table(vpc.route_table_association_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.delete_route_table(vpc.route_table_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.detach_internet_gateway(vpc.internet_gateway_id, vpc.vpc_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.delete_internet_gateway(vpc.internet_gateway_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.delete_subnet(vpc.subnet_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     try:
         vpc_connection.delete_vpc(vpc.vpc_id)
-    except Exception, e:
+    except Exception as e:
         errors.append(e)
     
     vpc.delete()
