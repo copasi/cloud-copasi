@@ -4,5 +4,5 @@
 /sqlite.db
 .DS_Store
 .idea/
-cc-venv/
+venv/
 cloud_copasi/settings.py
