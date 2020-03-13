@@ -44,5 +44,5 @@ def get_process_children(pid):
     return [int(p) for p in stdout.split()]
 
 if __name__ == '__main__':
-    print run('find /', shell = True, timeout = 3)
-    print run('find', shell = True)
+    print(run('find /', shell = True, timeout = 3))
+    print (run('find', shell = True))

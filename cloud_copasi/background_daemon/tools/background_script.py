@@ -12,14 +12,14 @@ from boto.sqs import connection
 import sys, json
 import response
 
-from cc_scratch import settings
+from cloud_copasi import settings
 
 import logging
 
 
 
-from cc_scratch.web_interface.pools import condor_tools, task_tools
-from cc_scratch.background_daemon.tools import pool_tools
+from cloud_copasi.web_interface.pools import condor_tools, task_tools
+from cloud_copasi.background_daemon.tools import pool_tools
 
 if __name__ == '__main__':
     log = logging.getLogger('cloud_copasi.background_daemon.tools.background_script')

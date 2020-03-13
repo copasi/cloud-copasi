@@ -24,7 +24,7 @@ def refresh_all_ec2_pools():
     for ec2_pool in pools:
         try:
             ec2_tools.refresh_pool(ec2_pool)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
 
 def terminate_idle_pools():
@@ -54,13 +54,13 @@ def terminate_idle_pools():
                     for copied_pool in copied_pools:
                         try:
                             copied_pool.delete()
-                        except Exception, e:
+                        except Exception as e:
                             log.exception(e)
                             error_list += ['Error deleting duplicate pool', str(e)]
                     #Remove from bosco
                     try:
                         condor_tools.remove_ec2_pool(ec2_pool)
-                    except Exception, e:
+                    except Exception as e:
                         log.exception(e)
                         error_list += ['Error removing pool from bosco', str(e)]
                     try:
@@ -69,6 +69,6 @@ def terminate_idle_pools():
                         log.exception(e)
                     ec2_tools.terminate_pool(ec2_pool)
 
-        except Exception, e:
+        except Exception as e:
             log.exception('Error terminating pool')
             log.exception(e)
