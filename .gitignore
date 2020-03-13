@@ -2,3 +2,7 @@
 .project
 .pydevproject
 /sqlite.db
+.DS_Store
+.idea/
+venv/
+cloud_copasi/settings.py
