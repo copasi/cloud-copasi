@@ -6,7 +6,7 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-import json, urllib2
+import json, urllib
 import sys
 from cloud_copasi import settings
 
@@ -38,9 +38,9 @@ class JSONResponder(object):
         data['secret_key']=secret_key
 
         
-        request = urllib2.Request(url)
+        request = urllib.Request(url)
         request.add_header('Content-Type', 'application/json')
-        response=urllib2.urlopen(request, json.dumps(data))
+        response=urllib.urlopen(request, json.dumps(data))
         
         assert response.info().getheaders('content-type') == ['application/json']
         response_data=json.loads(response.read())
