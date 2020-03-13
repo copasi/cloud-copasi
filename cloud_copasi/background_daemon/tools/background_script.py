@@ -10,7 +10,8 @@ import boto
 import boto.sqs
 from boto.sqs import connection
 import sys, json
-import response
+#import response
+from .response import *
 
 from cloud_copasi import settings
 
