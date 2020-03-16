@@ -10,7 +10,8 @@ import boto
 import boto.sqs
 from boto.sqs import connection
 import sys, json
-import response
+#import response
+from .response import *
 
 from cloud_copasi import settings
 
@@ -31,7 +32,7 @@ else:
 def run():
     try:
         pool_tools.refresh_all_ec2_pools()
-    except Exception, e:
+    except Exception as e:
         log.exception(e)
         
     condor_tools.process_condor_q()
@@ -40,7 +41,7 @@ def run():
     
     try:
         pool_tools.terminate_idle_pools()
-    except Exception, e:
+    except Exception as e:
         log.exception(e)
     
     log.debug('Finished background script')

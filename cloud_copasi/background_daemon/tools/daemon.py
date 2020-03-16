@@ -29,7 +29,7 @@ class Daemon(object):
                         if pid > 0:
                                 # exit first parent
                                 sys.exit(0) 
-                except OSError, e: 
+                except OSError as e:
                         sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
                         sys.exit(1)
         
@@ -44,7 +44,7 @@ class Daemon(object):
                         if pid > 0:
                                 # exit from second parent
                                 sys.exit(0) 
-                except OSError, e: 
+                except OSError as e:
                         sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
                         sys.exit(1) 
         
@@ -61,7 +61,9 @@ class Daemon(object):
                 # write pidfile
                 atexit.register(self.delpid)
                 pid = str(os.getpid())
-                file(self.pidfile,'w+').write("%s\n" % pid)
+                #file(self.pidfile,'w+').write("%s\n" % pid)   #--> Python 2.7
+                open(self.pidfile,'w+').write("%s\n" % pid)   #--> Python 3.7
+
         
         def delpid(self):
                 os.remove(self.pidfile)
@@ -72,7 +74,8 @@ class Daemon(object):
                 """
                 # Check for a pidfile to see if the daemon already runs
                 try:
-                        pf = file(self.pidfile,'r')
+                        #pf = file(self.pidfile,'r') #--> Python 2.7
+                        pf = open(self.pidfile,'r') #--> Python 3.7
                         pid = int(pf.read().strip())
                         pf.close()
                 except IOError:
@@ -93,7 +96,8 @@ class Daemon(object):
                 """
                 # Get the pid from the pidfile
                 try:
-                        pf = file(self.pidfile,'r')
+                        #pf = file(self.pidfile,'r') #--> Python 2.7
+                        pf = open(self.pidfile,'r') #--> Python 3.7
                         pid = int(pf.read().strip())
                         pf.close()
                 except IOError:
@@ -109,13 +113,13 @@ class Daemon(object):
                         while 1:
                                 os.kill(pid, SIGTERM)
                                 time.sleep(0.1)
-                except OSError, err:
+                except OSError as err:
                         err = str(err)
                         if err.find("No such process") > 0:
                                 if os.path.exists(self.pidfile):
                                         os.remove(self.pidfile)
                         else:
-                                print str(err)
+                                print (str(err))
                                 sys.exit(1)
 
         def restart(self):

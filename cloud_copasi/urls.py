@@ -10,9 +10,11 @@ from django.conf.urls import include, url
 from cloud_copasi.web_interface import views
 from cloud_copasi.web_interface.account import account_views
 from cloud_copasi.web_interface.aws import resource_views
-from cloud_copasi.web_interface.pools import pool_views, task_views 
+from cloud_copasi.web_interface.pools import pool_views, task_views
 from cloud_copasi.web_interface.client_api import api_views
-from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done, password_reset_confirm
+#from django.contrib.auth.views import password_reset, password_reset_complete, password_reset_done, password_reset_confirm
+
+from django.contrib.auth.views import PasswordResetView, PasswordResetCompleteView, PasswordResetDoneView, PasswordResetConfirmView
 from django.views.generic import RedirectView
 from . import settings
 from django.conf.urls.static import static
@@ -22,6 +24,9 @@ admin.autodiscover()
 
 urlpatterns = [
     # Examples:
+    #following line is added by HB
+    url(r'^', include('django.contrib.auth.urls')),
+    #---------------------------------------------
     url(r'^$', views.LandingView.as_view(), name='landing_view'),
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
 
@@ -29,7 +34,8 @@ urlpatterns = [
     url(r'^my_account/$', account_views.MyAccountView.as_view(), name='my_account'),
     url(r'^my_account/profile/$', account_views.AccountProfileView.as_view(), name='my_account_profile'),
 
-    #Keys
+    #
+
     url(r'^my_account/keys/$', account_views.KeysView.as_view() , name='my_account_keys'),
     url(r'^my_account/keys/add/$', account_views.KeysAddView.as_view(), name='my_account_keys_add'),
     url(r'^my_account/keys/(?P<key_id>\d+)/delete/$', account_views.KeysDeleteView.as_view(), {'confirmed' : False }, name='my_account_keys_delete'),
@@ -38,7 +44,7 @@ urlpatterns = [
     url(r'^my_account/keys/(?P<key_id>\d+)/unshare/(?P<user_id>\d+)/$', account_views.KeysShareView.as_view(), {'remove':True}, name='my_account_keys_unshare'),
     url(r'^my_account/keys/(?P<key_id>\d+)/rename/$', account_views.KeysRenameView.as_view(), name='my_account_keys_rename'),
 
-    url(r'^my_account/password/reset/$', password_reset,
+    url(r'^my_account/password/reset/$', PasswordResetView.as_view(),
         {'post_reset_redirect' : '/my_account/password/reset/done/',
          'template_name': 'account/password_reset_form.html',
          'extra_context' : {'page_title': 'Reset password'},
@@ -46,16 +52,16 @@ urlpatterns = [
          'subject_template_name' : 'account/password_reset_email_subject.html',
          },
         name='password_reset'),
-    url(r'^my_account/password/reset/done/$', password_reset_done,
+    url(r'^my_account/password/reset/done/$', PasswordResetDoneView,
         {'template_name': 'account/password_reset_done.html',
          'extra_context' : {'page_title': 'Reset password'},}),
     url(r'^my_account/password/reset/(?P<uidb36>[0-9A-Za-z]+)-(?P<token>.+)/$',
-        password_reset_confirm,
+        PasswordResetConfirmView,
         {'post_reset_redirect' : '/my_account/password/done/',
          'template_name': 'account/password_reset_confirm.html',
          'extra_context' : {'page_title': 'Reset password'},
          }),
-    url(r'^my_account/password/done/$', password_reset_complete,
+    url(r'^my_account/password/done/$', PasswordResetCompleteView,
         {'template_name': 'account/password_reset_complete.html',
          'extra_context' : {'page_title': 'Reset password'},}),
     
@@ -167,5 +173,5 @@ urlpatterns = [
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 ]

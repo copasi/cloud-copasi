@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerE
 from django.views.generic import TemplateView, RedirectView, View, FormView
 from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task, Subtask
@@ -23,7 +23,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 from cloud_copasi.web_interface.aws import vpc_tools, ec2_tools
-import task_tools, condor_tools
+#import task_tools, condor_tools
+from cloud_copasi.web_interface.pools import task_tools, condor_tools
 from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
@@ -175,7 +176,7 @@ class NewTaskView(RestrictedFormView):
                         #Write the name of the data file to data_files_list
                         data_files_list.append(filename)
                     task.set_custom_field('data_files', data_files_list)
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
                     error_messages = ['An error occured while preparing the task data files',
                                        str(e),]
@@ -226,7 +227,7 @@ class NewTaskView(RestrictedFormView):
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
             
             task_instance = TaskClass(task)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             error_messages = ['An error occured while preparing the task model file',
                                str(e),]
@@ -266,7 +267,7 @@ class NewTaskView(RestrictedFormView):
             
             task.status = 'running'
             task.save()
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             error_messages = ['An error occured while preparing the subtask',
                                str(e),]
@@ -342,13 +343,13 @@ class TaskDetailsView(RestrictedView):
             try:
                 wall_clock_time = task.finish_time - task.submit_time
                 wall_clock_time = timedelta(seconds=round(wall_clock_time.total_seconds()))
-            except Exception, e:
+            except Exception as e:
                 wall_clock_time = ''
             total_cpu = task.get_run_time()
             try:
                 speed_up_factor = (total_cpu * 86400) / wall_clock_time.total_seconds()
                 speed_up_factor = '%0.2f' % speed_up_factor
-            except Exception, e:
+            except Exception as e:
                 speed_up_factor = ''
             kwargs['speed_up_factor'] = speed_up_factor
             kwargs['wall_clock_time'] = wall_clock_time
@@ -456,7 +457,7 @@ class TaskDirectoryDownloadView(RestrictedView):
         """
         try:
             task = Task.objects.get(id=kwargs['task_id'], user=request.user)
-        except Exception, e:
+        except Exception as e:
             request.session['errors'] = [('Error Finding Job', 'The requested job could not be found')]
             log.exception(e)
             return HttpResponseRedirect(reverse_lazy('task_details'), kwargs={'task_id': kwargs['task_id']})
