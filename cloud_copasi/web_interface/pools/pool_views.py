@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerE
 from django.views.generic import TemplateView, RedirectView, View, FormView
 from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import PLATFORM_CHOICES, POOL_TYPE_CHOICES, AWSAccessKey,\
@@ -193,7 +193,7 @@ class EC2PoolAddView(RestrictedFormView):
             
             key_pair=ec2_tools.create_key_pair(pool)
             pool.key_pair = key_pair
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
             return HttpResponseRedirect(reverse_lazy('ec2_pool_add'))
@@ -206,7 +206,7 @@ class EC2PoolAddView(RestrictedFormView):
         
             #Connect to Bosco
             condor_tools.add_ec2_pool(pool)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
             return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':pool.id}))
@@ -387,11 +387,11 @@ class PoolDetailsView(RestrictedView):
             try:
                 assert pool.vpc.access_key.user == request.user
                 ec2_tools.refresh_pool(pool)
-            except EC2ResponseError, e:
+            except EC2ResponseError as e:
                 request.session['errors'] = [error for error in e.errors]
                 log.exception(e)
                 return HttpResponseRedirect(reverse_lazy('pool_list'))
-            except Exception, e:
+            except Exception as e:
                 self.request.session['errors'] = [e]
                 log.exception(e)
                 return HttpResponseRedirect(reverse_lazy('pool_list'))
@@ -490,7 +490,7 @@ class EC2PoolScaleUpView(RestrictedFormView):
             ec2_pool.save()
             self.request.session['errors'] = aws_tools.process_errors(errors)
 
-        except Exception, e:
+        except Exception as e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
             return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id}))
@@ -588,7 +588,7 @@ class EC2PoolScaleDownView(RestrictedFormView):
             if errors:
                 self.request.session['errors'] = aws_tools.process_errors(errors)
             self.success_url = reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id})
-        except Exception, e:
+        except Exception as e:
             self.request.session['errors'] = aws_tools.process_errors([e])
             log.exception(e)
             return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':ec2_pool.id}))
@@ -898,13 +898,13 @@ class PoolRemoveView(RestrictedView):
                 for copied_pool in copied_pools:
                     try:
                         copied_pool.delete()
-                    except Exception, e:
+                    except Exception as e:
                         log.exception(e)
                         error_list += ['Error deleting duplicate pool', str(e)]
                 #Remove from bosco
                 try:
                     condor_tools.remove_ec2_pool(pool)
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
                     error_list += ['Error removing pool from bosco', str(e)]
                 
@@ -928,7 +928,7 @@ class PoolRemoveView(RestrictedView):
                     
                     #However, still delete the db entry
                     pool.delete()
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
                     request.session['errors'] = [e]
                     return HttpResponseRedirect(reverse_lazy('pool_details', pool_id = pool.id))
@@ -937,7 +937,7 @@ class PoolRemoveView(RestrictedView):
             else:
                 try:
                     pool.delete()
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
                     request.session['errors'] = [e]
                     return HttpResponseRedirect(reverse_lazy('pool_details', pool_id = pool.id))

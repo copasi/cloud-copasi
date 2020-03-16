@@ -19,7 +19,7 @@ import uuid
 
 from django import forms
 from django.db.models import Field
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
 
 try:
     # psycopg2 needs us to register the uuid type

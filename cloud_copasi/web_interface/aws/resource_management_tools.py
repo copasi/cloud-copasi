@@ -14,7 +14,7 @@ from cloud_copasi.web_interface.aws import aws_tools, ec2_config, ec2_tools
 from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP,\
     AWSAccessKey, Task
 import sys, os
-from exceptions import Exception
+#from exceptions import Exception
 from time import sleep
 from cloud_copasi import settings
 from boto import sqs
@@ -85,7 +85,7 @@ def get_remote_resources(user, key=None):
                     if instance.state == 'pending' or instance.state=='running':
                         overview.add_ec2_instance(key, instance.id)
             
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
         
         try:
@@ -96,7 +96,7 @@ def get_remote_resources(user, key=None):
                 else:
                     overview.add_elastic_ip(key, address.allocation_id, address.association_id, None)
                 
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
         
         
@@ -191,7 +191,7 @@ def terminate_resources(user, resources):
                     ec2_tools.release_ip_address(key, None, None, public_ip)
                 else:
                     ec2_tools.release_ip_address(key, allocation_id, association_id, None)
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 
                 
@@ -201,7 +201,7 @@ def terminate_resources(user, resources):
         try:
             vpc_connection, ec2_connection = aws_tools.create_connections(key)
             ec2_connection.terminate_instances(ec2_instances[key])
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
     
 

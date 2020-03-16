@@ -34,7 +34,9 @@ env['HOME'] = settings.HOME_DIR
 
 ###Custom env options
 if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
-    env = dict(env.items() + settings.BOSCO_CUSTOM_ENV.items())
+    #env = dict(env.items() + settings.BOSCO_CUSTOM_ENV.items())
+    env = env.copy()
+    env.update(settings.BOSCO_CUSTOM_ENV)
 
 
 
@@ -132,7 +134,7 @@ def condor_submit(condor_file):
         number_of_jobs = int(r.match(process_output).group('n'))
         cluster_id = int(r.match(process_output).group('cluster'))
 
-    except Exception, e:
+    except Exception as e:
         log.exception('Failed to submit job')
         log.exception(e)
         log.exception(output)
@@ -252,7 +254,7 @@ def remove_task(subtask):
         try:
             for job in subtask.condorjob_set.all():
                 job.delete()
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
     else:
         return (None, None, None)

@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerE
 from django.views.generic import TemplateView, RedirectView, View, FormView
 from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django import forms
 from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 from cloud_copasi.web_interface.models import AWSAccessKey, CondorJob, Subtask,\
@@ -31,7 +31,8 @@ import json, logging
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from cloud_copasi.web_interface.task_plugins import base, tools
-import urllib2
+#import urllib2
+import urllib
 import datetime
 
 log = logging.getLogger(__name__)
@@ -89,7 +90,7 @@ class RegisterJobView(APIView):
 
         try:
             ec2_tools.add_instances_alarms(pool)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
                 
 
@@ -161,7 +162,7 @@ class UpdateCondorStatusView(APIView):
                     errors = True
             
             if errors:
-                print sys.stderr, 'Error!'
+                print (sys.stderr, 'Error!')
                 subtask.active=False
                 subtask.status='error'
                 subtask.save()
@@ -184,7 +185,7 @@ class UpdateCondorStatusView(APIView):
                 
                 if subtask.index < subtask_count:
                     #We have another subtask to run
-                    print 'Another subtask to run!'
+                    print('Another subtask to run!')
                     
                     task_instance.submit_subtask(subtask.index + 1)
                     
@@ -197,7 +198,7 @@ class UpdateCondorStatusView(APIView):
         #Finally, add instance alarms to the task if needed:
         try:
             ec2_tools.add_instances_alarms(pool)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
 
         
@@ -352,7 +353,7 @@ class CheckResourceView(APIView):
                 elif health == 'healthy': status ='healthy'
                 else: status = 'problem'
             
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             status='error'
             
@@ -406,7 +407,7 @@ class ExtraTaskFieldsView(APIView):
             response_data={}
             response_data['fields'] = field_list
             json_response=json.dumps(response_data)
-        except Exception, e:
+        except Exception as e:
             log.debug(e)
         return HttpResponse(json_response, content_type="application/json", status=200)
     
@@ -422,7 +423,7 @@ class TerminateInstanceAlarm(APIView):
         
         #If this is a subscription confirmation message, then confirm the request
         if data['Type'] == 'SubscriptionConfirmation':
-            connection = urllib2.urlopen(data['SubscribeURL'])
+            connection = urllib.urlopen(data['SubscribeURL'])
             log.debug('Request to subscribe to termination alarm subscription')
             assert connection.getcode() == 200
             log.debug('Successfully subscribed')
@@ -443,7 +444,7 @@ class TerminateInstanceAlarm(APIView):
                 log.debug('Terminating instance %s due to inactivity'%instance.instance_id)
                 #Attempt to terminate the instance. Checks on whether this should happen are made in the terminate_instances method
                 ec2_tools.terminate_instances([instance])
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 return HttpResponse(status=500)
 
