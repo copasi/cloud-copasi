@@ -11,4 +11,8 @@ export DJANGO_SETTINGS_MODULE=cloud_copasi.settings
 source /home/cloudcopasi/bosco/bosco_setenv
 bosco_start
 
+# The daemon needs to use the virtual environment
+source /home/cloudcopasi/cloud-copasi/venv/bin/activate
+
+# Start the daemon
 python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py $@
