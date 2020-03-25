@@ -151,7 +151,7 @@ class VPC(models.Model):
 
 def create_secret_key():
         length=30
-        return "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(length)])
+        return "".join([random.choice(string.ascii_letters + string.digits) for n in range(length)])
     
     
     
