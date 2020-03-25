@@ -11,4 +11,3 @@ export DJANGO_SETTINGS_MODULE=cloud_copasi.settings
 source /home/cloudcopasi/bosco/bosco_setenv
 bosco_start
 
-python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py $@
