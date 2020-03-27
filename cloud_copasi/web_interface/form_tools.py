@@ -10,12 +10,14 @@
 from django import forms
 from django.db import models
 
-#Subclass the modelchoicefield so that we can just use the display name of the object
+
+# Subclass the modelchoicefield so that we can just use the display name of the object
 class NameChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return "%s" % (obj.name)
 
-#Subclass the modelchoicefield so that we can just use the display name of the object
+
+# Subclass the modelchoicefield so that we can just use the display name of the object
 class PoolChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         if hasattr(obj, 'ec2pool'):
@@ -30,7 +32,8 @@ class PoolChoiceField(forms.ModelChoiceField):
         else:
             return "%s (%s)" % (obj.name, pool_type)
 
-#Generic function for saving a django UploadedFile to a destination
+
+# Generic function for saving a django UploadedFile to a destination
 def handle_uploaded_file(f,destination):
     destination = open(destination, 'wb+')
     for chunk in f.chunks():
