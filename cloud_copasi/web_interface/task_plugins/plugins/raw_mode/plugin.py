@@ -18,7 +18,7 @@ from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model impor
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from cloud_copasi.condor import condor_spec
 from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
@@ -150,7 +150,7 @@ class TaskPlugin(BaseTask):
                     partial_output_file.close()
                 output_file.close()
                 collated_output_files.append(output_filename)
-            except Exception, e:
+            except Exception as e:
                 raise e
                 pass
             

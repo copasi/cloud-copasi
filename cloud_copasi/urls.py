@@ -27,6 +27,7 @@ urlpatterns = [
     #following line is added by HB
     url(r'^', include('django.contrib.auth.urls')),
     #---------------------------------------------
+
     url(r'^$', views.LandingView.as_view(), name='landing_view'),
     url(r'^favicon\.ico$', RedirectView.as_view(url='/static/favicon.ico')),
 

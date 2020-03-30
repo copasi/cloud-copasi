@@ -2430,7 +2430,7 @@ class CopasiModel(object):
         dir = os.path.join(self.path, '')
         parameters = self.get_parameter_estimation_parameters()
         number_of_parameters = len(parameters)    
-        storage = [[0]*number_of_parameters for x in xrange(jobs)]
+        storage = [[0]*number_of_parameters for x in range(jobs)]
    
         
         with open(os.path.join(dir, 'ScalingFactors.txt')) as scaling_factors_list:
@@ -2477,7 +2477,7 @@ class CopasiModel(object):
 
         #Calculates the mean vector in (28) and the covariance matrix cov in (29)
         mean = [0] * number_of_parameters
-        covariance = [[0]*number_of_parameters for x in xrange(number_of_parameters)]
+        covariance = [[0]*number_of_parameters for x in range(number_of_parameters)]
 
         if kappa > 0:                   #Excludes the initial data set stored in the jobs-1 directory
             #Mean           
