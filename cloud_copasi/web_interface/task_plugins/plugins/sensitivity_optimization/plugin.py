@@ -17,7 +17,7 @@ from cloud_copasi.copasi.model import CopasiModel
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from django.utils.timezone import now
 log = logging.getLogger(__name__)
 
