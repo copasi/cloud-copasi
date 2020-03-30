@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+#local version
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cloud_copasi.settings")

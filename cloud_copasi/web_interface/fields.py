@@ -121,7 +121,7 @@ class UUIDField(Field):
         if val is None:
             data = ''
         else:
-            data = unicode(val)
+            data = str(val)
         return data
 
     def to_python(self, value):
@@ -135,7 +135,7 @@ class UUIDField(Field):
             return None
         # attempt to parse a UUID including cases in which value is a UUID
         # instance already to be able to get our StringUUID in.
-        return StringUUID(smart_unicode(value))
+        return StringUUID(smart_text(value))
 
     def formfield(self, **kwargs):
         defaults = {

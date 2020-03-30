@@ -13,11 +13,11 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
@@ -211,7 +211,7 @@ class TaskForm(BaseTaskForm):
                     
                     self.fields[algorithm['prefix'] + '_' + prefix] = field
 
-        except Exception, e:
+        except Exception as e:
             log.debug(e)
 
     
