@@ -13,11 +13,11 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from copasi_model import ORCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat.copasi_model import ORCopasiModel # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.core.urlresolvers import reverse_lazy
+from django.urls import reverse_lazy
 from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
@@ -180,7 +180,7 @@ class TaskPlugin(BaseTask):
                 try:
                     lb_repeats = int(repeats_str)
                     time = float(time_str)
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
