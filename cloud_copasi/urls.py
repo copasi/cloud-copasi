@@ -83,11 +83,10 @@ urlpatterns = [
     url(r'^help/tasks/$', views.DefaultView.as_view(),
         {'template_name': 'help/tasks.html',
          'page_title': 'Help - Task submission'}, name='help_tasks'),
-    
+
     url(r'^help/terms/$', views.DefaultView.as_view(),
         {'template_name': 'help/terms.html',
          'page_title': 'Terms and conditions'}, name='terms'),
-
 
     url(r'^help/contact/$', views.DefaultView.as_view(),
         {'template_name': 'help/contact.html',

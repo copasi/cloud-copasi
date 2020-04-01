@@ -6,11 +6,15 @@ are made available under the terms of the GNU Public License v3.0
 which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
+
 <p>Required fields are listed in <span class="required">bold</span></p>
 {% if form.errors %}
     <h4 class="formerror">There were errors in the form below!</h4>
 {% endif %}
-    <form {% if multipart %} enctype="multipart/form-data"{% endif %} method="post" id="form1">{% csrf_token %}
+
+    <form {% if multipart %} enctype="multipart/form-data"{% endif %} method="post" id="form1">
+        {% csrf_token %}
+
         {% if form.non_field_errors %}
             <table class="formtable">
                 <tr>
@@ -24,6 +28,7 @@ http://www.gnu.org/licenses/gpl.html
             {% for hidden in form.hidden_fields%}
                 {{ hidden }}
             {% endfor %}
+
             {% for field in form.visible_fields %}
                 {% if not forloop.first %}
                     <tr><td class="topline" colspan="2"> </td></tr>
@@ -43,8 +48,8 @@ http://www.gnu.org/licenses/gpl.html
         </table>
         <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
         {% if show_loading_screen %}
-        <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
+            <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
         {% else %}
-        <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
+            <a class="form-button button button-icon button-icon-check" id="form-submit-link" onclick="formSubmit('form1', false)">{{ submit_text }}</a>
         {% endif %}
     </form>

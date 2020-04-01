@@ -6,15 +6,16 @@ are made available under the terms of the GNU Public License v3.0
 which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
+
 {% load static %}
 <div id="footer-wrapper">
     <footer id="footer" class="5grid-layout">
         <div class="row">
             <div class="3u">
-            
                     <section>
                         <h2>Quick Links</h2>
                         <ul class="style2">
+                            <!-- Call the specified html pages (urls) when the corresponding link is clicked. -->
                             <li><a href="{% url 'terms' %}">Terms and conditions</a></li>
                             <li><a href="{% url 'contact' %}">Contact information</a></li>
                             <li><a href="{% url 'help' %}">Instruction manual</a></li>
@@ -24,10 +25,9 @@ http://www.gnu.org/licenses/gpl.html
                             <!-- <li><a href="#">Publications</a></li> -->
                         </ul>
                     </section>
-            
             </div>
+
             <div class="3u">
-            
                     <section>
                         <h2>Useful sites</h2>
                         <ul class="style2">
@@ -35,10 +35,9 @@ http://www.gnu.org/licenses/gpl.html
                             <li><a href="http://aws.amazon.com">Amazon Web Services</a></li>
                         </ul>
                     </section>
-                        
             </div>
+
             <div class="6u">
-            
                 <!-- AWS -->
                     <section>
                         <h2>Powered by Amazon Web Services</h2>
@@ -46,6 +45,7 @@ http://www.gnu.org/licenses/gpl.html
                         {% comment %}<a href="http://html5up.net/" class="button button-alt button-icon button-icon-rarrow">More @ HTML5Up.net</a> {% endcomment %}
                         <a href="http://aws.amazon.com" class="button button-alt button-aws"><img src="{% static 'images/AWS_Logo_PoweredBy_200px.png' %}" alt="Powered by Amazon Web Services" /></a>
                     </section>
+
             {% comment %}
                 <!-- Contact -->
                     <section>
@@ -82,6 +82,7 @@ http://www.gnu.org/licenses/gpl.html
             {% endcomment %}
             </div>
         </div>
+
         <div class="row">
             <div class="12u">
                 <div id="copyright">
@@ -89,5 +90,6 @@ http://www.gnu.org/licenses/gpl.html
                 </div>
             </div>
         </div>
+
     </footer>
 </div>
