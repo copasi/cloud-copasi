@@ -25,11 +25,18 @@ http://www.gnu.org/licenses/gpl.html
     </header>
     
     <p>
-        Cloud-COPASI can connect to existing Condor, PBS, LSF, Sun/Oracle Grid Engine, and Slurm compute pools by using the <a href="http://bosco.opensciencegrid.org/">Bosco</a> software package. In order to connect, Cloud-COPASI requires SSH access to a submit node running Linux on the compute pool (see below for details on setting up SSH keys).      
+        Cloud-COPASI can connect to existing Condor, PBS, LSF, Sun/Oracle Grid Engine, and Slurm compute pools by using the
+        <a href="http://bosco.opensciencegrid.org/">Bosco</a> software package. In order to connect, Cloud-COPASI requires SSH
+        access to a submit node running Linux on the compute pool (see below for details on setting up SSH keys).
     </p>
     
     <p>
-        To connect to a compute pool, sign in to your account, and visit the 'Connect to existing pool' page. You will need to enter the address of the submit node, along with the username you use to log in. In order to submit jobs to the remote pool, <a href="http://bosco.opensciencegrid.org/">Bosco</a> will install a small binary package on the remote machine. This binary is pre-compiled for the Debian 6, Red Hat 5 and Red Hat 6 Linux distributions - you must select one of these platforms when you connect. If the machine you are connect to is not running Debian or Red Hat, then we recommend selecting Debian 6, and trying the other platforms if you experience problems connecting.
+        To connect to a compute pool, sign in to your account, and visit the 'Connect to existing pool' page. You will need to enter
+        the address of the submit node, along with the username you use to log in. In order to submit jobs to the remote pool,
+        <a href="http://bosco.opensciencegrid.org/">Bosco</a> will install a small binary package on the remote machine. This binary is
+        pre-compiled for the Debian 6, Red Hat 5 and Red Hat 6 Linux distributions - you must select one of these platforms when you connect.
+        If the machine you are connect to is not running Debian or Red Hat, then we recommend selecting Debian 6, and trying the other platforms
+        if you experience problems connecting.
     </p>
     
     
@@ -37,55 +44,87 @@ http://www.gnu.org/licenses/gpl.html
         <h4>Managing SSH Keys</h4>
     </header>
     <p>
-        Before you can connect a computing pool to Cloud-COPASI, you must first configure SSH access to the submit node so that you can authenticate with a public/private keypair (i.e. without using a password). A comprehensive guide on setting up SSH keys is <a href="http://www.eng.cam.ac.uk/help/jpmg/ssh/authorized_keys_howto.html">available here</a>. Note that you should not use a passphrase to protect the key.
+        Before you can connect a computing pool to Cloud-COPASI, you must first configure SSH access to the submit node so that you can
+        authenticate with a public/private keypair (i.e. without using a password). A comprehensive guide on setting up SSH keys is
+        <a href="http://www.eng.cam.ac.uk/help/jpmg/ssh/authorized_keys_howto.html">available here</a>. Note that you should not use a
+        passphrase to protect the key.
     </p>    
     <p>
-        Once you have configured SSH authentication using a public/private keypair, then you can connect the submit node to Cloud-COPASI. When connecting, you must paste the private key into the specified text box. You should paste all lines of the private key , including the lines '-----BEGIN RSA PRIVATE KEY-----' and '-----END RSA PRIVATE KEY-----' or similar.
+        Once you have configured SSH authentication using a public/private keypair, then you can connect the submit node to Cloud-COPASI.
+        When connecting, you must paste the private key into the specified text box. You should paste all lines of the private key ,
+        including the lines '-----BEGIN RSA PRIVATE KEY-----' and '-----END RSA PRIVATE KEY-----' or similar.
     </p>
     <p>
-        Note that this keypair is used only once when connecting to the pool, and is not stored on the server. Bosco will create a second public/private keypair combination, and this keypair will be used for all future connections;
+        Note that this keypair is used only once when connecting to the pool, and is not stored on the server. Bosco will create a second
+        public/private keypair combination, and this keypair will be used for all future connections;
     </p>
     
     <header class="major" id="ec2_launch"><h3>Launching EC2 pools</h3></header>
     <p>
-        If you do not have access to a compute pool, then you can launch a new pool using the Amazon Elastic Compute Cloud (EC2). Visit the <a href="http://aws.amazon.com/">Amazon Web Services</a> website to sign up for an account - you will have to enter credit card information when you sign up in order to pay for any accrued charges.
+        If you do not have access to a compute pool, then you can launch a new pool using the Amazon Elastic Compute Cloud (EC2). Visit
+        the <a href="http://aws.amazon.com/">Amazon Web Services</a> website to sign up for an account - you will have to enter credit
+        card information when you sign up in order to pay for any accrued charges.
     </p>
     <p>
-        Once you have signed up for an AWS account, and liked your access credentials with Cloud=COPASI (see below), simply select the number of nodes to launch, and the type of instance you want to launch (this will determine the number of cores, CPU speed and amount of RAM). You will be billed for the amount of time each instance runs for (rounded up to the nearest hour), along with a small charge for data transfer. <span class="bold">Please not that you are responsible for checking that all instances are terminated when they are no longer required. We take no responsibility for pools that do not terminate correctly, or any resulting charges!</span>.
+        Once you have signed up for an AWS account, and liked your access credentials with Cloud=COPASI (see below), simply select the
+        number of nodes to launch, and the type of instance you want to launch (this will determine the number of cores, CPU speed and
+        amount of RAM). You will be billed for the amount of time each instance runs for (rounded up to the nearest hour), along with
+        a small charge for data transfer. <span class="bold">Please not that you are responsible for checking that all instances are
+        terminated when they are no longer required. We take no responsibility for pools that do not terminate correctly, or any resulting
+        charges!</span>.
     </p>
     <p>
-        When you launch a compute pool, a 'master' node will also be launched as an 'm1.small' instance. This node is responsible for assigning jobs to the other 'worker' nodes, but will not perform any computation itself.
+        When you launch a compute pool, a 'master' node will also be launched as an 'm1.small' instance. This node is responsible for
+        assigning jobs to the other 'worker' nodes, but will not perform any computation itself.
     </p>
     
     <header class="minor" id="aws_manage"><h4>Managing AWS access keys</h4></header>
     <p>
-        In order to launch a computing pool on Amazon EC2, you must create an access key, and link it with Cloud-COPASI. To do this, visit the <a href="https://console.aws.amazon.com/iam/home?#security_credential">AWS Security Credentials</a> page, and create and download a new access keypair (or you can use an existing one). Note that use and group roles are not currently suported - only global keys.
+        In order to launch a computing pool on Amazon EC2, you must create an access key, and link it with Cloud-COPASI. To do this, visit
+        the <a href="https://console.aws.amazon.com/iam/home?#security_credential">AWS Security Credentials</a> page, and create and download
+        a new access keypair (or you can use an existing one). Note that use and group roles are not currently suported - only global keys.
     </p>
     <p>
-        Once you have created a new keypair, you can add the key to Cloud-COPASI. For your reference, give a name for the key, and upload the keypair file (usually called rootkey.csv). If the keypair was successfully added, a virtual private cloud (VPC) will be added to your AWS account, in which any new compute pools can be launched.
+        Once you have created a new keypair, you can add the key to Cloud-COPASI. For your reference, give a name for the key, and upload
+        the keypair file (usually called rootkey.csv). If the keypair was successfully added, a virtual private cloud (VPC) will be added
+        to your AWS account, in which any new compute pools can be launched.
     </p>
-    <p>Once you have added an access key to your account, you can share the key with other Cloud-COPASI users, giving them permission to launch compute pools using the access key credentials. Simpy click the 'Share key' button on the AWS access key management page.
+    <p>
+        Once you have added an access key to your account, you can share the key with other Cloud-COPASI users, giving them permission to
+        launch compute pools using the access key credentials. Simpy click the 'Share key' button on the AWS access key management page.
     </p>
     
     
     <header class="minor" id="instance_types"><h4>AWS instance types</h4></header>
     <p>
-        Various types of instance are available for launcing, with varyting degrees of CPU power, CPU cores and RAM - see the <a href="http://aws.amazon.com/ec2/instance-types/">AWS Instance Types</a> page for full details. Instances with multiple CPU cores will run multiple parallel jobs simultaneously. To begin, we recommend the 'm1.medium' instance. Note that the 'm1.micro' instance is too low-powered to be of any use!
+        Various types of instance are available for launcing, with varyting degrees of CPU power, CPU cores and RAM - see the
+        <a href="http://aws.amazon.com/ec2/instance-types/">AWS Instance Types</a> page for full details. Instances with multiple
+        CPU cores will run multiple parallel jobs simultaneously. To begin, we recommend the 'm1.medium' instance. Note that the
+        'm1.micro' instance is too low-powered to be of any use!
     </p>
     
     <header class="minor" id="usage_limits"><h4>Usage limits</h4></header>
     <p>
-        Amazon places limits on the number of instances that can be launched. At present this is 20 fixed-price instances, and 100 spot instances (see below). You can <a href="http://aws.amazon.com/contact-us/">apply</a> to increase this limit if needed.
+        Amazon places limits on the number of instances that can be launched. At present this is 20 fixed-price instances, and 100 spot
+        instances (see below). You can <a href="http://aws.amazon.com/contact-us/">apply</a> to increase this limit if needed.
     </p>
     
     <header class="minor" id="spot_requests"><h4>Spot requests</h4></header>
-        <p><a href="http://aws.amazon.com/ec2/spot-instances/">Spot requests</a> allow you to bid on AWS resources, allowing for reductions in the cost of running a compute pool by an average of 86%. To launch a spot instance pool, select the 'spot price bidding' option in the pool launch page, and enter your maximum bid price. The current spot price for the selected instance type, along with the spot price history will be displayed.</p> 
+        <p><a href="http://aws.amazon.com/ec2/spot-instances/">Spot requests</a> allow you to bid on AWS resources, allowing for reductions
+            in the cost of running a compute pool by an average of 86%. To launch a spot instance pool, select the 'spot price bidding' option
+            in the pool launch page, and enter your maximum bid price. The current spot price for the selected instance type, along with the
+            spot price history will be displayed.</p>
         
-        <p>The price of spot instances varies according to supply and demand, but you will never pay more than your maximum bid price per hour. If the market price rises above your bid price, your instances will be terminated, and will relaunch when the market price falls. If your Spot instance is interrupted by Amazon EC2, you will not be charged for any partial hour of usage. For example, if your Spot instance is interrupted after 59 minutes, you will not be charged. However, if you terminate your pool, you will pay for any partial hour of usage as you would for fixed price instances.</p>
+        <p>The price of spot instances varies according to supply and demand, but you will never pay more than your maximum bid price per hour.
+            If the market price rises above your bid price, your instances will be terminated, and will relaunch when the market price falls.
+            If your Spot instance is interrupted by Amazon EC2, you will not be charged for any partial hour of usage. For example, if your
+            Spot instance is interrupted after 59 minutes, you will not be charged. However, if you terminate your pool, you will pay for any
+            partial hour of usage as you would for fixed price instances.</p>
         
         <p>The master node will always launch as a fixed price instance.</p>
         
-        <p><span class="bold">Note that the spot market price can, in specific circumstances, rise well above the fixed instance price.</span> Only enter a bid price that you are willing to pay!</p> 
+        <p><span class="bold">Note that the spot market price can, in specific circumstances, rise well above the fixed instance price.
+        </span> Only enter a bid price that you are willing to pay!</p>
     
 </article>
 {% endblock %}
