@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 
 {% comment %}
@@ -25,7 +25,7 @@ http://www.gnu.org/licenses/gpl.html
 <div id="banner">
     <h2><strong>Cloud COPASI:</strong> 
     Biochemical simulation and analysis using cloud computing</h2>
-    <p>Find out more and sign up up for a free account today</p>
+    <p>Find out more and sign up for a free account today</p>
     <a href="{% url 'help' %}" class="button button-big button-icon button-icon-check">Learn more</a>
 </div>
 {% endblock %}
@@ -67,135 +67,100 @@ http://www.gnu.org/licenses/gpl.html
                             </section>
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="12u">
-                             <p>Cloud-COPASI is a web-based tool for running <span class="bold">computationally intensive</span> simulation and analysis tasks         in parallel on a high-throughput computing pool. Cloud-COPASI can <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>, or provides a simple interface for <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
-    </p>
-    <p>
-        Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including <a href="{% url 'help_tasks' %}#sensitivity_optimization">global sensitivity analyses</a>, <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>, <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>, <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically split into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
-    </p>
-    <p>
-        Models must be prepared using <a href="http://www.copasi.org">COPASI</a> (COmplex PAthway SImulator), a widely used free, open-source, cross-platform simulation tool.</p>
-    <p>
-        Cloud-COPASI is developed by Edward Kent in the <a href="http://www.comp-sys-bio.org">Computational Systems Biology and Biochemical Networks Modeling Group</a> at the <a href="http://www.manchester.ac.uk">University of Manchester, UK</a>, and is built on the <a href="http://www.biomedcentral.com/1752-0509/6/91">Condor-COPASI</a> software. Cloud-COPASI is written in Python using the <a href="https://www.djangoproject.com/">Django</a> web application framework. <a href="http://bosco.opensciencegrid.org/">Bosco</a> is used to connect to remote compute pools, and <a href="http://research.cs.wisc.edu/htcondor/">HTCondor</a> is used to manage job allocation on EC2 pools.
-    </p>
+
+                            <p>Cloud-COPASI is a web-based tool for running <span class="bold">computationally intensive</span> simulation and analysis
+                                tasks in parallel on a high-throughput computing pool. Cloud-COPASI can
+                                <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>, or provides a simple interface for
+                                <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the
+                                <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
+                            </p>
+
+                            <p>
+                                Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including
+                                <a href="{% url 'help_tasks' %}#sensitivity_optimization"> global sensitivity analyses
+                                </a>, <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>,
+                                <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>,
+                                <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and
+                                <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically split
+                                into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
+                            </p>
+
+                            <p>
+                                Models must be prepared using <a href="http://www.copasi.org">COPASI</a> (COmplex PAthway SImulator), a widely used
+                                free, open-source, cross-platform simulation tool.
+                            </p>
+
+                            <p>
+                                Cloud-COPASI is developed by Edward Kent in the <a href="http://www.comp-sys-bio.org">Computational Systems Biology and
+                                Biochemical Networks Modeling Group</a> at the <a href="http://www.manchester.ac.uk">University of Manchester, UK</a>,
+                                and is built on the <a href="http://www.biomedcentral.com/1752-0509/6/91">Condor-COPASI</a> software.
+                                Cloud-COPASI is written in Python using the <a href="https://www.djangoproject.com/">Django</a> web application framework.
+                                <a href="http://bosco.opensciencegrid.org/">Bosco</a> is used to connect to remote compute pools, and
+                                <a href="http://research.cs.wisc.edu/htcondor/">HTCondor</a> is used to manage job allocation on EC2 pools.
+                            </p>
                         </div>
                     </div>
                 </section>
-
         </div>
     </div>
     
-                <div class="main-wrapper-style2">
-                    <div class="inner">
+    <div class="main-wrapper-style2">
+        <div class="inner">
                 
-                            <section class="5grid-layout">
-                                <div class="row">
-                                    <div class="8u">
-                                            <header class="major">
-                                                <h2>Spot price bidding</h2>
-                                                <span class="byline">Spot price bidding can be used to vastly reduce costs</span>
-                                            </header>
-                                            <p>Spot price bidding can be used to significantly reduce instance costs, depending on EC2 demand. If the market price rises above your bid price, any running instances will be suspended until the market price falls again. This can result in a delay to any running tasks. Note that the spot price does not include VAT or other applicable taxes. All times in the spot price history are in GMT</p>
-                                            
-                                            
-                                            <p id="spotprice_history_loadingtext">Loading spot price history...</p>
-                                            <div id='spotprice_history' style="height:300px;width:600px;display:none"></div>
-                                            <footer>
-                                                <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a>
-                                            </footer>
-                                    </div>
-                                    <div class="4u">
-                                        <header class="major">
-                                            <h2>Fixed price instances</h2>
-                                            <span class="byline">Fixed price instances</span>
-                                        </header>
-                                        <p>Fixed price instances run at a set price per hour. While they can be more expensive than using spot price bidding, your instances are guaranteed to run, and will not be terminated unexpectedly. Full instance pricing details are available in the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. All instances are launched in the US-East (N. Virginia) AWS region.</p>
-                                    </div>
-                                </div>
-                            </section>
+            <section class="5grid-layout">
+                <div class="row">
+                    <div class="8u">
+                        <header class="major">
+                            <h2>Spot price bidding</h2>
+                            <span class="byline">Spot price bidding can be used to vastly reduce costs</span>
+                        </header>
 
+                        <p>
+                            Spot price bidding can be used to significantly reduce instance costs, depending on EC2 demand. If the market price rises
+                            above your bid price, any running instances will be suspended until the market price falls again. This can result in a delay
+                            to any running tasks. Note that the spot price does not include VAT or other applicable taxes. All times in the spot price
+                            history are in GMT.
+                        </p>
+
+                        <p
+                            id="spotprice_history_loadingtext">Loading spot price history...
+                        </p>
+
+                        <div
+                            id='spotprice_history' style="height:300px;width:600px;display:none">
                         </div>
-                </div>
-                {% comment %}
-                <div class="main-wrapper-style3">
-                    <div class="inner">
-                        <div class="5grid-layout">
-                            <div class="row">
-                                <div class="8u">
 
-                                        <section class="box-article-list">
-                                            <h2 class="icon icon-news">From the blog</h2>
-                                            
-                                                <article class="box-excerpt">
-                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic04.jpg" alt="" /></a>
-                                                    <div>
-                                                        <header>
-                                                            <span class="date">December 20, 2012</span>
-                                                            <h3><a href="#">On the eve of the Mayanocalypse</a></h3>
-                                                        </header>
-                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
-                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
-                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
-                                                    </div>
-                                                </article>
+                        <footer>
+                            <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a>
+                        </footer>
 
-                                                <article class="box-excerpt">
-                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic05.jpg" alt="" /></a>
-                                                    <div>
-                                                        <header>
-                                                            <span class="date">December 15, 2012</span>
-                                                            <h3><a href="#">Life as a self-aware meme</a></h3>
-                                                        </header>
-                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
-                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
-                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
-                                                    </div>
-                                                </article>
-
-                                                <article class="box-excerpt">
-                                                    <a href="#" class="image image-left"><img src="{{ STATIC_URL }}images/pic06.jpg" alt="" /></a>
-                                                    <div>
-                                                        <header>
-                                                            <span class="date">December 12, 2012</span>
-                                                            <h3><a href="#">Facepalm moments in history</a></h3>
-                                                        </header>
-                                                        <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus 
-                                                        semper mod quisturpis nisi consequat etiam lorem. Phasellus quam turpis, 
-                                                        feugiat et sit amet ornare in, hendrerit in lectus semper mod quis eget mi dolore.</p>
-                                                    </div>
-                                                </article>
-
-                                        </section>
-                                </div>
-                                <div class="4u">
-                                
-                                        <section class="box-spotlight pad-left">
-                                            <h2 class="icon icon-paper">Spotlight</h2>
-                                            <article>
-                                                <a href="#" class="image image-full"><img src="{{ STATIC_URL }}images/pic07.jpg" alt=""></a>
-                                                <header>
-                                                    <h3><a href="#">Why staplers matter</a></h3>
-                                                    <span class="byline">They hold things together</span>
-                                                </header>
-                                                <p>Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus semper mod 
-                                                quisturpis nisi consequat ornare in, hendrerit in lectus semper mod quis eget mi quat etiam 
-                                                lorem. Phasellus quam turpis, feugiat sed et lorem ipsum dolor consequat dolor feugiat sed
-                                                et tempus consequat etiam.</p>
-                                                <p>Lorem ipsum dolor quam turpis, feugiat sit amet ornare in, hendrerit in lectus semper 
-                                                mod quisturpis nisi consequat etiam lorem sed amet quam turpis.</p>
-                                                <footer>
-                                                    <a href="#" class="button button-alt button-icon button-icon-paper">Continue Reading</a>
-                                                </footer>
-                                            </article>
-                                        </section>
-                                
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                </div> -->
-            {% endcomment %}
+
+                    <div class="4u">
+                        <header class="major">
+                            <h2>Fixed price instances</h2>
+                            <span class="byline">Fixed price instances</span>
+                            </header>
+
+                            <p>
+                                Fixed price instances run at a set price per hour. While they can be more expensive than using spot price bidding,
+                                your instances are guaranteed to run, and will not be terminated unexpectedly. Full instance pricing details are available
+                                in the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. All instances are launched
+                                in the US-East (N. Virginia) AWS region.
+                            </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
 
 </div>
 {% endblock %}
