@@ -1,6 +1,6 @@
 boto==2.48.0
 cycler==0.10.0
-Django==1.11.28
+Django==1.11.29
 django-extensions==1.9.9
 lxml==3.8.0
 matplotlib==2.0.2
