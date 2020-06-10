@@ -1,0 +1,9 @@
+*.pyc
+.project
+.pydevproject
+/sqlite.db
+.DS_Store
+.idea/
+ccEnv/
+cloud_copasi/cloud_copasi/settings.py
+cloud_copasi/cloud_copasi_db

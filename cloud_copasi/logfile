@@ -1,0 +1,16 @@
+2020-06-10 00:16:20.792 EDT [83130] LOG:  starting PostgreSQL 12.2 on x86_64-apple-darwin14.5.0, compiled by clang version 4.0.1 (tags/RELEASE_401/final), 64-bit
+2020-06-10 00:16:20.796 EDT [83130] LOG:  listening on IPv6 address "::1", port 5432
+2020-06-10 00:16:20.796 EDT [83130] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2020-06-10 00:16:20.797 EDT [83130] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2020-06-10 00:16:20.817 EDT [83131] LOG:  database system was shut down at 2020-06-10 00:10:57 EDT
+2020-06-10 00:16:20.820 EDT [83130] LOG:  database system is ready to accept connections
+2020-06-10 00:21:02.901 EDT [83182] FATAL:  database "cloud_copasi_db" does not exist
+2020-06-10 00:24:20.883 EDT [83130] LOG:  server process (PID 83563) was terminated by signal 9: Killed: 9
+2020-06-10 00:24:20.883 EDT [83130] LOG:  terminating any other active server processes
+2020-06-10 00:24:20.883 EDT [83135] WARNING:  terminating connection because of crash of another server process
+2020-06-10 00:24:20.883 EDT [83135] DETAIL:  The postmaster has commanded this server process to roll back the current transaction and exit, because another server process exited abnormally and possibly corrupted shared memory.
+2020-06-10 00:24:20.883 EDT [83135] HINT:  In a moment you should be able to reconnect to the database and repeat your command.
+2020-06-10 00:24:20.886 EDT [83130] LOG:  all server processes terminated; reinitializing
+2020-06-10 00:24:20.896 EDT [83130] LOG:  startup process (PID 83564) was terminated by signal 9: Killed: 9
+2020-06-10 00:24:20.896 EDT [83130] LOG:  aborting startup due to startup process failure
+2020-06-10 00:24:20.898 EDT [83130] LOG:  database system is shut down
