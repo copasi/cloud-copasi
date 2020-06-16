@@ -44,7 +44,7 @@
                                   <div class="inner">
 
                                       <!-- Logo -->
-                                          <!-- <h1><a href="{% url 'landing_view' %}" class="mobileUI-site-name">Cloud COPASI</a></h1> -->
+                                          {% comment %} <h1><a href="{% url 'landing_view' %}" class="mobileUI-site-name">Cloud COPASI</a></h1> {% endcomment %}
                                           <h1><a href="#" class="mobileUI-site-name">Cloud COPASI</a></h1>
 
                                       <!-- Nav -->
@@ -52,35 +52,35 @@
                                               <ul>
                                                   <li><a href="{% url 'home' %}">Home</a></li>
                                                   <li>
-                                                      <!-- <a href="{% url 'help' %}" class="arrow">Help</a> -->
+                                                      {% comment %} <a href="{% url 'help' %}" class="arrow">Help</a> {% endcomment %}
                                                       <a href="#" class="arrow">Help</a>
                                                       <ul>
-                                                        <!-- <li><a href="{% url 'contact' %}">Contact</a></li> -->
+                                                        {% comment %} <li><a href="{% url 'contact' %}">Contact</a></li> {% endcomment %}
                                                         <li><a href="#">Contact</a></li>
-                                                        <!-- <li><a href="{% url 'help' %}">Instruction manual</a></li> -->
+                                                        {% comment %} <li><a href="{% url 'help' %}">Instruction manual</a></li> {% endcomment %}
                                                         <li><a href="#">Instruction manual</a></li>
-                                                        <!-- <li><a href="#">Publications</a></li> -->
+                                                        {% comment %} <li><a href="#">Publications</a></li> {% endcomment %}
                                                         <li><a href="https://github.com/copasi/cloud-copasi">Source code</a></li>
                                                         <li><a href="#">Service status</a></li>
 
                                                       </ul>
                                                   </li>
                                                   {% if user.is_authenticated %}
-                                                    <!-- <li><a href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li> -->
+                                                    {% comment %} <li><a href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li> {% endcomment %}
                                                     <li><a href="#">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
 
                                                     {% if user.is_superuser %}
-                                                      <!-- <li><a href="{% url 'admin:index' %}">Admin</a></li> -->
+                                                      {% comment %} <li><a href="{% url 'admin:index' %}">Admin</a></li> {% endcomment %}
                                                       <li><a href="#">Admin</a></li>
                                                     {% endif %}
 
-                                                  <!-- <li><a href="{% url 'sign_out' %}">Sign out</a></li> -->
+                                                  {% comment %} <li><a href="{% url 'sign_out' %}">Sign out</a></li> {% endcomment %}
                                                   <li><a href="#">Sign out</a></li>
 
                                                   {% else %}
-                                                    <!-- <li><a href="{% url 'my_account_register' %}">Register</a></li> -->
+                                                    {% comment %} <li><a href="{% url 'my_account_register' %}">Register</a></li> {% endcomment %}
                                                     <li><a href="#">Register</a></li>
-                                                    <!-- <li><a href="{% url 'sign_in' %}">Sign in</a></li> -->
+                                                    {% comment %} <li><a href="{% url 'sign_in' %}">Sign in</a></li> {% endcomment %}
                                                     <li><a href="#">Sign in</a></li>
                                                   {% endif %}
                                               </ul>
