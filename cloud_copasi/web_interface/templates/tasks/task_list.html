@@ -1,0 +1,75 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>{{page_title}}</h2>
+        <span class="byline">{{byline}}</span>
+    </header>
+    <p>
+        <a href="{% url 'my_account' %}" %}>Return to account home</a>
+    </p>
+    {%if tasks %}
+    <div class="tablelist">
+        <table>
+            <tr>
+                <th>Name</th>
+                {% if user.is_superuser %}
+                <th>Internal ID</th>
+                {% endif %}
+                <th>Type</th>
+                {% if show_finish_time %}
+                <th>Finish time</th>
+                {% endif %}
+                <th>Submit time</th>
+                <th>Compute pool</th>
+                <th>Subtasks</th>
+                <th>Status</th>
+            </tr>
+        {% for task in tasks %}
+            <tr>
+                <th><a href="{% url 'task_details' task_id=task.id %}">{{ task.name }}</a></th>
+                {% if user.is_superuser %}
+                <td><a href="{% url 'admin:web_interface_task_change' task.id %}">{{task.id}}</a></th>
+                {% endif %}
+                <td>{{task.get_task_type_name}}</td>
+                {% if show_finish_time %}
+                <td>{{task.finish_time }}</td>
+                {% endif %}
+                <td>{{task.submit_time }}</td>
+                <td>
+                    {% if task.condor_pool %}
+                    <a href="{% url 'pool_details' pool_id=task.condor_pool.id %}">{{task.get_condor_pool_name}}</a>
+                    {% else %}
+                    {{task.get_condor_pool_name}} (removed)
+                    {% endif %}
+                    </td>
+                <td>{{ task.subtask_set.count }}</td>
+                <td> {{ task.get_status_display }}</td>
+            </tr>
+        {% endfor %}
+        </table>
+    </div>
+    {% else %}
+    <p>No tasks with this status.</p>
+    {% endif %}
+
+    
+</article>
+{% endblock %}

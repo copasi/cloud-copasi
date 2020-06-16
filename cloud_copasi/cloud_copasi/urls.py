@@ -13,9 +13,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from web_interface import views
+#from cloud_copasi.web_interface.account import account_views
+#from cloud_copasi.web_interface.aws import resource_views
+#from cloud_copasi.web_interface.pools import pool_views, task_views
+#from cloud_copasi.web_interface.client_api import api_views
+
+#from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView,\
+#    PasswordResetCompleteView, PasswordResetConfirmView
+#from django.views.generic import RedirectView
+#from . import settings
+#from django.conf.urls.static import static
+from django.contrib import admin 
+#admin.autodiscover()
 
 urlpatterns = [
+    #path('home/', views.HomeView.as_view(), name='home'),
+    path('', views.index, name = 'index'),
+    path('home/', include('web_interface.urls')),
     path('admin/', admin.site.urls),
 ]

@@ -1,0 +1,38 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/pool_launch.js' %}</script>
+    
+{% endblock %}
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Launch pool</h2>
+        <span class="byline">Launch a new compute pool</span>
+    </header>
+    {% if access_keys.count == 0 %}
+    <h4>You must add an AWS access key to continue</h4>
+    {% endif %}
+    
+    {% include 'form.html' with submit_text="Launch pool"%}
+
+    
+</article>
+{% endblock %}

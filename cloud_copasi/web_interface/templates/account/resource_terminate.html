@@ -1,0 +1,67 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>AWS Resource Terminate</h2>
+        <span class="byline">Are you sure you want to terminate these resources? This cannot be undone!</span>
+    </header>
+    
+    <p><a href="{% url 'resource_terminate_confirmed' key_id=key_id %}" class="button button-icon button-icon-check" onclick="showLoadingScreen()">Terminate</a> <a href="{%  url 'resource_overview' %}" class="button button-alt">Cancel</a></p>
+    
+    {% if resources.ec2_instances %}
+    <h4>EC2 Instances</h4>
+    <div class="tablelist">
+        
+        <table>
+            <tr>
+                <th>Key name</th>
+                <th>Instance ID</th>
+            </tr>
+            {% for key, instance_id in resources.ec2_instances %}
+            <tr>
+                <td>{{key.name}}</td>
+                <td>{{instance_id}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    
+    {% if resources.elastic_ips %}
+    <h4>Elastic IPs</h4>
+    <div class="tablelist">
+        
+        <table>
+            <tr>
+                <th>Key name</th>
+                <th>IP allocation ID</th>
+            </tr>
+            {% for key, allocation_id, association_id in resources.elastic_ips %}
+            <tr>
+                <td>{{key.name}}</td>
+                <td>{{allocation_id}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    
+    
+</article>
+{% endblock %}

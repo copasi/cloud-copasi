@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Cloud COPASI - {{ page_title }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+
+
+    <noscript>
+      <link rel="stylesheet" href="{% static 'css/5grid/core.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-desktop.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-1200px.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-noscript.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/style-desktop.css' %}" />
+    </noscript>
+
+  </head>
+
+  <body class="{% block bodyclass %}{% endblock %}" {% if errors %}onload="popup('{% filter escapejs %}{% include 'errorbox.html' %}{% endfilter %}')" {% endif %}>
+  <div id="dialog-overlay">
+
+  </div>
+  <div id="dialog-box">
+      <div class="dialog-content">
+          <p>
+           <div id="dialog-message"> </div>
+           </p>
+           <p>
+              <a href="#" class="button button-popup button-icon button-icon-check">Close</a>
+           </p>
+      </div>
+  </div>
+      <!-- Header Wrapper -->
+          <div id="header-wrapper">
+              <div class="5grid-layout">
+                  <div class="row">
+                      <div class="12u">
+
+                          <!-- Header -->
+                              <header id="header">
+                                  <div class="inner">
+
+                                      <!-- Logo -->
+                                          <!-- <h1><a href="{% url 'landing_view' %}" class="mobileUI-site-name">Cloud COPASI</a></h1> -->
+                                          <h1><a href="#" class="mobileUI-site-name">Cloud COPASI</a></h1>
+
+                                      <!-- Nav -->
+                                          <nav id="nav" class="mobileUI-site-nav">
+                                              <ul>
+                                                  <li><a href="{% url 'home' %}">Home</a></li>
+                                                  <li>
+                                                      <!-- <a href="{% url 'help' %}" class="arrow">Help</a> -->
+                                                      <a href="#" class="arrow">Help</a>
+                                                      <ul>
+                                                        <!-- <li><a href="{% url 'contact' %}">Contact</a></li> -->
+                                                        <li><a href="#">Contact</a></li>
+                                                        <!-- <li><a href="{% url 'help' %}">Instruction manual</a></li> -->
+                                                        <li><a href="#">Instruction manual</a></li>
+                                                        <!-- <li><a href="#">Publications</a></li> -->
+                                                        <li><a href="https://github.com/copasi/cloud-copasi">Source code</a></li>
+                                                        <li><a href="#">Service status</a></li>
+
+                                                      </ul>
+                                                  </li>
+                                                  {% if user.is_authenticated %}
+                                                    <!-- <li><a href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li> -->
+                                                    <li><a href="#">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
+
+                                                    {% if user.is_superuser %}
+                                                      <!-- <li><a href="{% url 'admin:index' %}">Admin</a></li> -->
+                                                      <li><a href="#">Admin</a></li>
+                                                    {% endif %}
+
+                                                  <!-- <li><a href="{% url 'sign_out' %}">Sign out</a></li> -->
+                                                  <li><a href="#">Sign out</a></li>
+
+                                                  {% else %}
+                                                    <!-- <li><a href="{% url 'my_account_register' %}">Register</a></li> -->
+                                                    <li><a href="#">Register</a></li>
+                                                    <!-- <li><a href="{% url 'sign_in' %}">Sign in</a></li> -->
+                                                    <li><a href="#">Sign in</a></li>
+                                                  {% endif %}
+                                              </ul>
+                                          </nav>
+
+                                  </div>
+                              </header>
+                              {% block header_content %}
+                              {% endblock %}
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+      <!--Warning bar -->
+      {% if show_status_bar %}
+      <div id="status-bar">
+          <span id="checking-text">Checking AWS status...</span>
+
+          <div id="response-bar">
+                      <span id="response-text"> </span>
+          </div>
+      </div>
+      {% endif %}
+{% block main_content %}
+{% endblock %}
+
+
+
+{% include 'footer.html' %}
+
+
+{% include 'loading_screen.html' %}
+  </body>
+</html>

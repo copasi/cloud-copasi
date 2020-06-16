@@ -1,0 +1,52 @@
+{% extends "left_sidebar.html" %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/spotprice_history.js' %}</script>
+    
+{% endblock %}
+{% block sidebar %}
+{% include "account/sidebar.html" %}
+
+{% endblock %}
+
+
+{% block content %}
+<article>
+    <header class="major">
+        <h2>Spot price history</h2>
+    </header>
+
+    
+    <p>Note that the spot price does not include VAT or any other applicable taxes. For information on fixed instance pricing, refer to the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. All instances are launched in the US-East (N. Virginia) AWS region. All times are in GMT</p>
+
+    <table class="formtable" id="formtable">
+        <tr>
+            <th class="fieldlabel required">Instance type:</th>
+            <td>{{form.visible_fields.0}}</td>
+        </tr>
+        <tr><td class="bottomline" colspan="2"></td></tr>
+        <tr><td class="topline" colspan="2"></td></tr>
+        <tr><th class="fieldlabel required">Current price:</th>
+            <td id="spotprice_current"></td>
+        </tr>
+                <tr><td class="bottomline" colspan="2"></td></tr>
+        <tr><td class="topline" colspan="2"></td></tr>
+        <tr>
+            <th class="fieldlabel required">Spot price history:</th>
+            <td ><div id="spotprice_history" style="width:600px; height:300px;"></div></td>
+        </tr>
+    </table>
+    
+</article>
+{% endblock %}
