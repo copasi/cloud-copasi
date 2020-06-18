@@ -22,7 +22,9 @@
 		mobileUI_slideSpeed:			200,
 		mobileUI_theme:					'modern',
 		mobileUI_themeNavColor:			'#1f1f1f',
+		// mobileUI_themeNavColor:			'#b00404',
 		mobileUI_themeTitleBarColor:	'#444444',
+		// mobileUI_themeTitleBarColor:	'#649410',
 		mobileUI_titleBarFixed:			1,
 		mobileUI_titleBarHeight:		44,
 		mobileUI_titleBarOverlaid:		0,
@@ -61,7 +63,7 @@
 	{
 		if (!this.events[name])
 			this.events[name] = new Array();
-		
+
 		this.events[name].push(f);
 	}
 
@@ -69,7 +71,7 @@
 	{
 		if (!this.isReady || !this.events[name] || this.events[name].length < 1)
 			return;
-			
+
 		for (i in this.events[name])
 			(this.events[name][i])();
 	}
@@ -80,7 +82,7 @@
 
 		this.bind('ready', f);
 	}
-	
+
 	// Custom events
 		_5gridC.prototype.orientationChange = function(f) { this.bind('orientationChange', f); }
 		_5gridC.prototype.mobileUINavOpen = function(f) { this.bind('mobileUINavOpen', f); }
@@ -89,7 +91,7 @@
 	_5gridC.prototype.readyCheck = function()
 	{
 		var x = this;
-		
+
 		window.setTimeout(function() {
 			if (x.isReady)
 				x.trigger('ready');
@@ -143,14 +145,14 @@
 							(f)(e);
 						}
 					});
-					
+
 				if (noMove)
 					target
 						.bind('touchmove' + (suffix ? '.' + suffix : ''), function(e) {
 							isTapLocked = false;
 							window.clearTimeout(tapId);
 						});
-					
+
 			}
 			else
 				target.bind('click' + (suffix ? '.' + suffix : ''), f);
@@ -160,7 +162,7 @@
 
 		jQuery.fn.untap_5grid = function(suffix) {
 			var target = jQuery(this);
-			
+
 			if (isTouch)
 			{
 				target
@@ -170,13 +172,13 @@
 			}
 			else
 				target.unbind('click' + (suffix ? '.' + suffix : ''));
-				
+
 			return target;
 		};
-		
+
 	// Shortcut methods
 		headQueue.pushI_5grid = function(s) { headQueue.push({ type: 'i', value: s }); };
-		headQueue.pushE_5grid = function(s) { headQueue.push({ type: 'e', value: s }); }; 
+		headQueue.pushE_5grid = function(s) { headQueue.push({ type: 'e', value: s }); };
 		headQueue.process_5grid = function() {
 			var doE;
 			if (document.createStyleSheet)
@@ -210,23 +212,23 @@
 					w = x[v].split('=');
 					wk = w[0].replace(/\./, '_');
 					wv = w[1];
-					
+
 					// Thanks, @cmsalvado! :)
 					if (!isNaN(parseFloat(wv)) && isFinite(wv))
 						wv = parseInt(wv);
-					
+
 					_settings[wk] = wv;
 				}
 			}
-	
+
 	// Debug settings
 		if (_settings.debug_noExtLoad == 1)
 			headQueue.pushE_5grid = function(s) { };
-	
+
 	// Determine viewing modes
 		doDesktop = doMobile = doFluid = do1000px = do1200px = doMobileOnly = false;
 		v = _settings.use.split(',');
-		
+
 		if (jQuery.inArray('fluid', v) > -1)
 			doFluid = true;
 		if (jQuery.inArray('desktop', v) > -1)
@@ -294,7 +296,7 @@
 			_5grid.isMobile = true;
 			_head.prepend('<meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />');
 			headQueue.pushE_5grid(baseURL + '5grid/core-mobile.css');
-			
+
 			if (_settings.mobileUI == 1)
 			{
 				_settings.mobileUI_force = 1;
@@ -330,14 +332,14 @@
 				_5grid.isDesktop = true;
 				headQueue.pushE_5grid(baseURL + '5grid/core-desktop.css');
 				headQueue.pushE_5grid(baseURL + _settings.prefix + '-desktop.css');
-			
+
 				// 1200px
 				if (ww >= _settings.breakpoint_1000px)
 				{
 					_5grid.is1200px = true;
 					_head.prepend('<meta name="viewport" content="width=' + _settings.viewport_is1200px + '" />');
 					headQueue.pushE_5grid(baseURL + '5grid/core-1200px.css');
-					
+
 					// Load 1200px stylesheet if 1200px was explicitly enabled
 					if (do1200px)
 						headQueue.pushE_5grid(baseURL + _settings.prefix + '-1200px.css');
@@ -392,8 +394,8 @@
 				_body.addClass('is-1200px');
 			if (_5grid.isMobile)
 				_body.addClass('is-mobile');
-			
-			jQuery('.5grid-layout').addClass('5grid'); 
+
+			jQuery('.5grid-layout').addClass('5grid');
 		});
 	})();
 
@@ -417,25 +419,25 @@
 				wh = _window.height(),
 				_nav_isActing = false,
 				_nav_isOpen = false;
-		
+
 			_body.wrapInner('<div id="mobileUI-site-content" />');
 			_body.wrapInner('<div id="mobileUI-site-wrapper" />');
 			_body.wrapInner('<div id="mobileUI-site-viewer" />');
-		
+
 			// Move primary content
 				var	_main_content = jQuery('.mobileUI-main-content'),
 					_main_content_target = jQuery('.mobileUI-main-content-target');
-				
+
 				if (_main_content.length > 0)
 					if (_main_content_target.length > 0)
 						_main_content.prependTo(_main_content_target);
 					else
 						_main_content.prependTo(_main_content.parent());
-		
+
 			// Get site name, nav options
 				var	x = jQuery('.mobileUI-site-name'), site_name = (x.length > 0 ? x.html() : ''),
 					site_nav_options = new Array();
-				
+
 				jQuery('.mobileUI-site-nav a').each(function() {
 					var t = jQuery(this), indent;
 					indent = Math.max(0,t.parents('li').length - 1);
@@ -505,7 +507,7 @@
 								t.tap_5grid(function(e) {
 									e.preventDefault();
 									e.stopPropagation();
-								
+
 									if (_nav_isOpen)
 									{
 										var href = t.attr('xhref');
@@ -536,7 +538,7 @@
 						.height(_settings.mobileUI_titleBarHeight)
 						.css('z-index', 10000)
 						.prependTo(_viewer);
-						
+
 					if (_settings.mobileUI_titleBarFixed)
 					{
 						_titlebar
@@ -566,7 +568,7 @@
 					_content
 						.width(_content_width)
 						.css('position', 'relative');
-						
+
 					if (_settings.mobileUI_titleBarOverlaid)
 						_content
 							.bind('resize', function() { _viewer.height(_content.height()); });
@@ -591,11 +593,11 @@
 								_body.trigger('5grid_openNav');
 						})
 						.bind('5grid_openNav', function() {
-							
+
 							// Check locking
 								if (isLocked)
 									return true;
-								
+
 								isLocked = true;
 
 							// Mark nav as acting
@@ -607,12 +609,12 @@
 										e.stopPropagation();
 										e.preventDefault();
 									});
-									
+
 								_window
 									.bind('scroll.5grid_nav_block', function(e) {
 										e.preventDefault();
 										e.stopPropagation();
-										
+
 										if (_nav_isOpen)
 											_body.trigger('5grid_closeNav', [null, true]);
 									});
@@ -634,18 +636,18 @@
 									.animate({ left: _nav_width }, speed, easing, function() {
 										// Unlock
 											isLocked = false;
-										
+
 										// Correct body position (in case it was still scrolling when the nav opened)
 											var x = parseInt(_nav.css('top'));
 											if (x > 0)
 												_window.scrollTop(parseInt(_nav.css('top')));
-										
+
 										// Mark nav as open, unmark as acting
 											window.setTimeout(function() {
 												_nav_isOpen = true;
 												_nav_isActing = false;
 											}, 300);
-										
+
 										// Add close event to content
 											_content
 												.tap_5grid(function(e) {
@@ -653,13 +655,13 @@
 													e.stopPropagation();
 													_body.trigger('5grid_closeNav');
 												}, '5grid_nav_cclose');
-						
+
 										// Trigger event
 											_5grid.trigger('mobileUINavOpen');
 									});
 						})
 						.bind('5grid_closeNav', function(e, url, fast) {
-							
+
 							// Check locking
 								if (isLocked)
 									return true;
@@ -675,7 +677,7 @@
 							// Animate
 								_wrapper.add(_titlebar)
 									.animate({ left: 0 }, (fast ? 0 : speed), easing, function() {
-										
+
 										// Reactivate titlebar
 											_titlebar
 												.trigger('goActive_5grid');
@@ -685,7 +687,7 @@
 
 										// Unlock
 											isLocked = false;
-										
+
 										// Re-enable scrolling
 											_body.unbind('touchstart.5grid_nav_block');
 											_window.unbind('touchmove.5grid_nav_block');
@@ -693,7 +695,7 @@
 										// Mark nav as closed, unmark as acting
 											_nav_isOpen = false;
 											_nav_isActing = false;
-										
+
 										// If a URL was passed, go to it
 											if (url)
 												window.setTimeout(function() {
@@ -705,7 +707,7 @@
 					// Window
 						_window
 							.bind('orientationchange', function(e) {
-								
+
 								// Recalculate widths
 									ww = _window.width();
 									_nav_width = ww - _settings.mobileUI_openerWidth;
@@ -728,7 +730,7 @@
 
 			// Remove mobileUI-hide elements
 				jQuery('.mobileUI-hide').remove();
-				
+
 			// Remove address bar
 				if (_settings.mobileUI_hideAddressBar == 1)
 					_window.load(function() {

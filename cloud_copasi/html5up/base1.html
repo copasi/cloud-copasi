@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!-- {% load static %} -->
+{% load static %}
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Cloud COPASI - {{ page_title }}</title>
+    <!--  Including jquery 3.5.1 -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+
+    <!--  Including Bootstrap 4.4.1 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+    <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
+    <link rel="stylesheet" href="{% static '/css/bootstrap.css' %}" />
+    <link rel="stylesheet" href="{% static '/css/base.css' %}" />
+
+
+    <!-- original scripts -->
+    <script src="{% static 'css/5grid/init.js' %}?use=mobile,desktop,1000px&amp;mobileUI=1&amp;mobileUI.theme=none"></script>
+    <script src="{% static 'js/jquery.dropotron-1.2.js' %}"></script>
+    <script src="{% static 'js/init.js' %}"></script>
+
+    <noscript>
+      <!-- <link rel="stylesheet" href="{% static '/css/base.css' %}" /> -->
+      <link rel="stylesheet" href="{% static 'css/5grid/core.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-desktop.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-1200px.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/5grid/core-noscript.css' %}" />
+      <!-- <link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
+      <link rel="stylesheet" href="{% static 'css/style-desktop.css' %}" />
+    </noscript>
+
+  </head>
+  <body>
+
+
+
+  <!--<header id="header"> -->
+
+  <!-- Navigation Bar -->
+  <!-- ********************************************************************* -->
+  <div class="container-md" border>
+    <nav id="navbar" class="navbar navbar-expand-lg navbar-light" >
+    <!-- Brand/logo -->
+    <a class="navbar-brand" href="#"> <img src="/static/images/cloudcop2.png" alt="logo" style="width:40px;"> Cloud COPASI</a>
+
+    <!-- Links -->
+    <ul class="navbar-nav justify-content-end">
+      <li class="nav-item"> <a class="nav-link" href="#">Home</a> </li>
+
+      <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown"> Help </a>
+         <!-- <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" -->
+         <!-- role="button" aria-haspopup="true" aria-expanded="false">Help</a> -->
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="#">Contact</a>
+          <a class="dropdown-item" href="#">Instruction Manual</a>
+          <a class="dropdown-item" href="#">Source Code</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="#">Service Status</a>
+        </div>
+      </li>
+      <!-- <li class="nav-item">
+        <a class="nav-link" href="#">Help</a>
+      </li> -->
+
+      <li class="nav-item"> <a class="nav-link" href="#">Register</a> </li>
+      <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
+    </ul>
+    </nav>
+  </div>
+<!--</header> -->
+
+
+
+{% block header_content %}
+{% endblock %}
+
+<!--Warning bar -->
+{% if show_status_bar %}
+<div id="status-bar">
+    <span id="checking-text">Checking AWS status...</span>
+
+    <div id="response-bar">
+                <span id="response-text"> </span>
+    </div>
+</div>
+{% endif %}
+
+{% block main_content %}
+
+{% endblock %}
+
+  <!-- Features -->
+  <!-- ********************************************************************* -->
+<!-- <div class="container">
+  <div class="features">
+
+    <div id="feature1">
+      <h3>Powered By AWS</h3>
+      <span class="byline">Launch a cloud-based compute pool</span>
+    </div>
+
+    <div id="feature2">
+      <h3>Parallel Computation</h3>
+      <span class="byline">Connect existing computational resources</span>
+    </div>
+
+    <div id="feature3">
+      <h3>Powered by Copasi</h3>
+      <span class="byline">Backened simulation on Copasi</span>
+    </div>
+  </div>
+</div> -->
+
+
+
+
+<!-- Description -->
+<!-- ********************************************************************* -->
+<div class="container">
+
+  <div class="description">
+    <p>
+      Cloud-COPASI is a web-based tool for running <span class="bold">
+      computationally intensive</span> simulation and analysis tasks in parallel
+      on a high-throughput computing pool. Cloud-COPASI can
+      <a href="#">connect to existing computing pools</a>,
+      or provides a simple interface for <a href="#">
+      launching a new computing pool</a> using the
+      <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
+    </p>
+
+    <p>
+      Cloud-COPASI can run <a href="#">a number of simulation
+      and analysis tasks</a>, including <a href="#"> global sensitivity analyses</a>,
+      <a href="#">stochastic simulations</a>, <a href="#">parameter scans</a>,
+      <a href="#">optimizations</a>, and <a href="#">parameter fitting</a>.
+      Each task is automatically split into a number of smaller jobs, which are
+      executed in parallel, allowing for significant speed-ups in running time.
+    </p>
+
+    <p>
+      Models must be prepared using <a href="http://www.copasi.org">COPASI</a>
+      (COmplex PAthway SImulator), a widely used free, open-source, cross-platform
+      simulation tool.
+    </p>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<!-- ********************************************************************* -->
+{% comment %} <div class="container">
+
+  <div class="footer">
+    <p>(c) 2020 Mendes Lab. </p>
+  </div>
+
+</div> {% endcomment %}
+
+
+
+  </body>
+</html>

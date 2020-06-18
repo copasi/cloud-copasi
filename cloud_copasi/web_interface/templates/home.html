@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% extends 'base.html' %}
+{% extends 'base1.html' %}
 
 {% comment %}
 Cloud-COPASI
@@ -23,9 +23,9 @@ http://www.gnu.org/licenses/gpl.html
 {% block header_content %}
 <!-- Banner -->
 <div id="banner">
-    <h2><strong>Cloud COPASI:</strong>
-    Biochemical simulation and analysis using cloud computing</h2>
-    <p> Find out more and sign up for a free account today </p>
+    <h2><strong>Cloud COPASI</strong><br></h2>
+    <p class="description"> Biochemical simulation and analysis using <br> cloud computing</p>
+    {# <p> Find out more and sign up for a free account today </p> #}
     {% comment %} <a href="{% url 'help' %}" class="button button-big button-icon button-icon-check">Learn more</a> {% endcomment %}
     <a href="#" class="button button-big button-icon button-icon-check">Learn more</a>
 </div>
@@ -42,7 +42,7 @@ http://www.gnu.org/licenses/gpl.html
                     <div class="row">
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/AWS_Logo_PoweredBy_384px.png' %}" alt=""/></span>
+                                {# <span class="image image-full"><img src="{% static 'images/AWS_Logo_PoweredBy_384px.png' %}" alt=""/></span> #}
                                 <header class="second second-gear">
                                     <h3>Powered by AWS</h3>
                                     <span class="byline">Launch a cloud-based compute pool</span>
@@ -51,7 +51,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/HTCondor_red_blk_384px.png' %}" alt="" /></span>
+                                {# <span class="image image-full"><img src="{% static 'images/HTCondor_red_blk_384px.png' %}" alt="" /></span> #}
                                 <header class="second second-gear">
                                     <h3>Parallel computation</h3>
                                     <span class="byline">Connect existing computational resources</span>
@@ -60,7 +60,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/COPASI_384px.png' %}" alt="" /></span>
+                                {# <span class="image image-full"><img src="{% static 'images/COPASI_384px.png' %}" alt="" /></span> #}
                                 <header class="second second-chart">
                                     <h3>COPASI simulation backend</h3>
                                     <span class="byline">Includes SBML import and export</span>
@@ -116,6 +116,7 @@ http://www.gnu.org/licenses/gpl.html
         </div>
     </div>
 
+    {% comment %}
     <div class="main-wrapper-style2">
         <div class="inner">
 
@@ -143,7 +144,8 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
 
                         <footer>
-                            <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a>
+                            {# <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a> #}
+                            <a href="#" class="button button-medium button-icon button-icon-info">Learn more</a>
                         </footer>
 
                     </div>
@@ -170,6 +172,6 @@ http://www.gnu.org/licenses/gpl.html
         </div>
 
     </div>
-
+    {% endcomment %}
 </div>
 {% endblock %}

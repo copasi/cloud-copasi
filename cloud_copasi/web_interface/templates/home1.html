@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+{% extends 'base1.html' %}
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2013 Edward Kent.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{% load static %}
+
+{% block bodyclass %}homepage{% endblock %}
+
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/spotprice_history_home.js' %}</script>
+{% endblock %}
+
+
+
+{% block header_content %}
+<!-- Banner -->
+<!-- ********************************************************************* -->
+<div class="container">
+  <div id="banner">
+      <h1>Cloud COPASI</h1><br>
+      <h3>Biochemical Simulation And Analysis <br>
+        Using Cloud Computing</h3>
+      <!-- <p>Find out more and sign up for a free account today</p> -->
+      <!-- <a href="#" class="button button-big button-icon button-icon-check">Learn more</a> -->
+      <!-- <a href="#" class="btn btn-primary btn-lg"> Learn More</a> -->
+      <a href="#" class="btn btn-primary btn-lg">Learn more</a>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block main_content %}
+<!-- Main Wrapper -->
+<!-- Features -->
+<!-- ********************************************************************* -->
+<div class="container">
+  <div class="features">
+
+    <div id="feature1">
+      <h3>Powered By AWS</h3>
+      <span class="byline">Launch a cloud-based compute pool</span>
+    </div>
+
+    <div id="feature2">
+      <h3>Parallel Computation</h3>
+      <span class="byline">Connect existing computational resources</span>
+    </div>
+
+    <div id="feature3">
+      <h3>Powered by Copasi</h3>
+      <span class="byline">Backened simulation on Copasi</span>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

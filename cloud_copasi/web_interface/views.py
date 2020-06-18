@@ -32,8 +32,8 @@ from django.views.generic import View, TemplateView
 #     page_title = 'Home'
 
 class HomeView(TemplateView):
-    template_name = 'home.html'
-    page_title = 'Home'
+    template_name = 'home1.html'
+    page_title = "Home"
 
 def index(request):
     my_mes ={'message' : 'Hello! I am coming from views.py'}

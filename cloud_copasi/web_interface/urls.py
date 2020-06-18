@@ -5,5 +5,5 @@ from web_interface import views
 
 urlpatterns = [
     # path('', views.index, name='home')
-    path('', views.HomeView.as_view(), name='home')
+    path('', views.HomeView.as_view(), name='home1')
 ]
