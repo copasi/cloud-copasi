@@ -1,17 +1,11 @@
-
-
 body{
   background: inherit;
 }
-
 
 #learn-more .btn .btn-primary .btn-lg{
   background-color: #b55502;
   border-color: #007bff;
 }
-
-
-
 /******************************************************************************/
 /* Banner                                                                     */
 /******************************************************************************/
@@ -31,7 +25,7 @@ body{
     margin: auto;
     margin-top: 1em;
     box-sizing: border-box;
-    /* background: url("../images/cloudcopasi3.jpeg") top center fixed; */
+    /* background: url("../images/cloudcopasi4.jpg") top center fixed; */
     /* background-size: cover; */
     background-size: fixed;
     /* opacity: 0.7 */
@@ -101,6 +95,7 @@ body{
     letter-spacing: 0.01em;
 }
 
+
 /******************************************************************************/
 /* Navigation Bar                                                             */
 /******************************************************************************/
@@ -128,8 +123,6 @@ body{
   width: 67em; //to define the size of container
   background: #fff
 }
-
-
 
 /*********** Features styling ************/
 .features{
@@ -194,7 +187,6 @@ body{
   margin-top: 5em;
   /* margin-top: 10em; */
 }
-/***************************************/
 
 #copyright {
     border-top: solid 1px;
@@ -209,85 +201,11 @@ body{
 #copyright a {
     color: #666;
 }
+/***************************************/
 
-/* Left Sidebar */
 
-.sidebar {
-  margin-top: 0em;
-  margin-left: 0em;
-  padding: 0;
-  width: 250px;
-  background-color: #f1f1f1;
-  position: fixed;
-  height: 40%;
-  /* overflow: auto; */
-}
 
-.sidebar a {
-  display: block;
-  color: black;
-  padding: 16px;
-  text-decoration: none;
-}
-
-.sidebar a.active {
-  background-color: #af774c;
-  color: white;
-}
-
-.sidebar a:hover:not(.active) {
-  background-color: #555;
-  color: white;
-}
-
-div.content {
-  margin-top: 6em;
-  margin-left: 40em;
-  padding: 10px 16px;
-  height: 100px;
-}
-
-/* .sidebar h4{
-    text-align:left;
-    font-size: 1em;
-} */
-
-#sidebar-subheading{
-  margin-left: 10px;
-  text-align: left;
-  font-size: 1.5em;
-  text-decoration: underline;
-}
-
-/*
-header.major {
-    border-bottom: solid 1px #dbdbdb;
-    margin: 0 0 1em 0;
-}
-
-header.major:after {
-    content: '';
-    display: block;
-    border-top: solid 1px #dbdbdb;
-    height: 8px;
-}
-
-header.major h2, header.major h3 {
-    margin: 0 0 0.5em 0;
-}
-
-header.major .byline {
-    margin: 0 0 0.5em 0;
-    position: relative;
-    top: -1em;
-} */
-
-.help-contents{
-  width: 75%;
-  margin-left: 25em;
-  /* margin-top: 0em; */
-}
-
+/* Sidebar */
 .vertical-menu {
   width: 25%;
   height: 850px;

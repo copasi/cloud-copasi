@@ -5,5 +5,11 @@ from web_interface import views
 
 urlpatterns = [
     # path('', views.index, name='home')
-    path('', views.HomeView.as_view(), name='home1')
+    path('', views.HomeView.as_view(), name='homeN'),
+    path('home/', views.HomeView.as_view(), name='homeN'),
+
+    # Help pages
+    path('help/', views.DefaultView.as_view(),
+    {'template_name':'help/help.html', 'page_title': 'Help'},
+    name='help'),
 ]

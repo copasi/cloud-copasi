@@ -19,7 +19,7 @@ from django.views.generic import View, TemplateView
 #from cloud_copasi.web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
 #from cloud_copasi.web_interface.aws import resource_management_tools
 #import logging
-#from cloud_copasi import settings
+from cloud_copasi import settings
 
 #log = logging.getLogger(__name__)
 # Create your views here.
@@ -27,12 +27,36 @@ from django.views.generic import View, TemplateView
 # class DefaultView(TemplateView):
 #     page_title=''
 #
-# class HomeView(DefaultView):
-#     template_name = 'home.html'
-#     page_title = 'Home'
 
-class HomeView(TemplateView):
-    template_name = 'home1.html'
+class DefaultView(TemplateView):
+    page_title=''
+
+
+    def get(self, request, *args, **kwargs):
+        #log.debug('GET request [\"%s\"]' % request.path)
+        return super(DefaultView, self).get(request, *args, **kwargs)
+
+    def dispatch(self, request, *args, **kwargs):
+
+        #Override the template name if it is requested from the url
+        if kwargs.get('template_name', None):
+            self.template_name = kwargs['template_name']
+        if self.page_title:
+            kwargs['page_title'] = self.page_title
+        #Check for errors in request.session
+        kwargs['debug'] = settings.DEBUG
+        errors = request.session.pop('errors', None)
+        if errors:
+            kwargs['errors'] = errors
+
+        if request.user.is_authenticated:
+            if hasattr(self, 'template_name') and self.template_name != 'homeN.html':
+                #Don't show on the home screen, regardless of logged in or not
+                kwargs['show_status_bar']=True
+        return super(DefaultView, self).dispatch(request, *args, **kwargs)
+
+class HomeView(DefaultView):
+    template_name = 'homeN.html'
     page_title = "Home"
 
 def index(request):

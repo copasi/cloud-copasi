@@ -25,12 +25,13 @@ from web_interface import views
 #from django.views.generic import RedirectView
 #from . import settings
 #from django.conf.urls.static import static
-from django.contrib import admin 
+from django.contrib import admin
 #admin.autodiscover()
 
 urlpatterns = [
     #path('home/', views.HomeView.as_view(), name='home'),
-    path('', views.index, name = 'index'),
-    path('home/', include('web_interface.urls')),
+    # path('', views.index, name = 'index'),
+    # path('home/', include('web_interface.urls')),
+    path('', include('web_interface.urls')),
     path('admin/', admin.site.urls),
 ]
