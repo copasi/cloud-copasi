@@ -25,7 +25,9 @@ body{
     margin: auto;
     margin-top: 1em;
     box-sizing: border-box;
-    /* background: url("../images/cloudcopasi4.jpg") top center fixed; */
+    /* background: blue; */
+
+    background: url("../images/cloudcopasi2dark.jpg") top center fixed;
     /* background-size: cover; */
     background-size: fixed;
     /* opacity: 0.7 */
@@ -207,7 +209,7 @@ body{
 
 /* Sidebar */
 .vertical-menu {
-  width: 25%;
+  width: 65%;
   height: 850px;
   overflow-y: auto;
 }
