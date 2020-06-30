@@ -10,6 +10,6 @@ urlpatterns = [
 
     # Help pages
     path('help/', views.DefaultView.as_view(),
-    {'template_name':'help/help.html', 'page_title': 'Help'},
+    {'template_name':'help/helpN.html', 'page_title': 'Help'},
     name='help'),
 ]

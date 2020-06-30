@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+
+{% block main_content %}
+  <!-- {% block sidebar %} -->
+    <!-- {# {% include "help/sidebarN.html" %} -->
+     <!-- #} -->
+
+     <!-- <div class="leftside-container">
+         <a class="active" href="#Home">Introduction</a>
+         <hr>
+         <h4>Tasks</h4>
+
+         <a href="#task">Tasks Submissions</a>
+         <a href="#tasktypes">Tasks Types</a>
+         <a href="#">Load Balancing Algorithm</a>
+         <a href="#">Troubleshooting</a>
+
+         <hr>
+         <h4>Compute Pools</h4>
+         <a href="#task">Connecting existing pools</a>
+         <a href="#tasktypes">Managing SSH keys</a>
+         <a href="#">Launching EC2 pools</a>
+         <a href="#">Managing AWS keys</a>
+         <a href="#">Instance types</a>
+         <a href="#">Usage limits</a>
+         <a href="#">Spot requests</a>
+
+         <hr>
+         <h4>Terms</h4>
+         <a href="#">Terms and Conditions</a>
+
+     </div> -->
+
+     <div class="row">
+       {% block sidebar %}
+       {% endblock %}
+
+       {%block content %}
+
+       {% endblock %}
+     </div>
+
+
+  <!-- {% endblock %} -->
+{% endblock %}

@@ -18,41 +18,42 @@
   </head>
   <body>
 
-    <!--<header id="header"> -->
 
     <!-- Navigation Bar -->
     <!-- ********************************************************************* -->
     <header>
-      <div class="container-md" border>
+        {# <div class="container fixed-top"> #}
+        <div class="container">
+          {# <nav id="navbar" class="navbar navbar-fixed-top navbar-expand navbar-light " > #}
+          <nav id="navbar" class="navbar navbar-expand navbar-light " >
 
-        <nav id="navbar" class="navbar navbar-expand-lg navbar-light" >
-          <!-- Brand/logo -->
-          <a class="navbar-brand" href="#"> <img src="/static/images/cloudcop2.png" alt="logo" style="width:40px;"> Cloud COPASI</a>
+            <!-- Brand/logo -->
+            <a class="navbar-brand" href="#"> <img src="/static/images/cloudcop2.png" alt="logo" style="width:40px;"> Cloud COPASI</a>
 
-          <!-- Links -->
-          <ul class="navbar-nav justify-content-end">
-            <li class="nav-item"> <a class="nav-link" href="{% url 'homeN' %}">Home</a> </li>
+            <!-- Links -->
+            <ul class="navbar-nav ml-auto justify-content-right">
+              <li class="nav-item"> <a class="nav-link" href="{% url 'homeN' %}">Home</a> </li>
 
-            <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="{% url 'help' %}" id="navbardrop" data-toggle="dropdown"> Help </a>
-              <!-- <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" -->
-              <!-- role="button" aria-haspopup="true" aria-expanded="false">Help</a> -->
-              <div class="dropdown-menu">
-                <a class="dropdown-item" href="#">Contact</a>
-                <a class="dropdown-item" href="#">Instruction Manual</a>
-                <a class="dropdown-item" href="#">Source Code</a>
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Service Status</a>
-              </div>
-            </li>
-            <!-- <li class="nav-item">
-            <a class="nav-link" href="#">Help</a>
-          </li> -->
+              <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="{% url 'help' %}" id="navbardrop" data-toggle="dropdown"> Help </a>
+                <!-- <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" -->
+                <!-- role="button" aria-haspopup="true" aria-expanded="false">Help</a> -->
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">Contact</a>
+                  <a class="dropdown-item" href="#">Instruction Manual</a>
+                  <a class="dropdown-item" href="#">Source Code</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Service Status</a>
+                </div>
+              </li>
+              <!-- <li class="nav-item">
+              <a class="nav-link" href="#">Help</a>
+            </li> -->
 
-          <li class="nav-item"> <a class="nav-link" href="#">Register</a> </li>
-          <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
-        </ul>
-      </nav>
-    </div>
+            <li class="nav-item"> <a class="nav-link" href="#">Register</a> </li>
+            <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
+          </ul>
+        </nav>
+      </div>
 
     </header>
 
@@ -75,7 +76,18 @@
 {% endblock %}
 
 
-{% include 'footer1.html' %}
+{# {% include 'footer1.html' %} #}
+
+<div class="container">
+  {# <div class="row"> #}
+    <div class="footer">
+      <p>&copy; {% now "Y" %} Mendes Research Group.
+        <span id="license">Creative Commons Attribution 4.0 International License.</span>
+      </p>
+
+    </div>
+  {# </div> #}
+</div>
 
   </body>
 </html>
