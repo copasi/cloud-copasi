@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        {% include "help/sidebarN.html" %}
+      </div>
+
+      <div class="col-9">
+        <div class="information">
+
+          <h2>Contact Us</h2>
+
+          <p>To get in touch, send an email to <a href="mailto:cloud.copasi@gmail.com">cloud.copasi@gmail.com</a></p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

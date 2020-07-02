@@ -1,26 +1,29 @@
 
-<div class="leftside-container">
-    <a class="active" href="#Home">About Cloud COPASI</a>
+{% load static %}
+
+<div id="left-sidebar" class="leftside-container">
+    <h3>Instruction Manual</h3>
+    <a class="btn active" href="{% url 'helpN' %}">About Cloud COPASI</a>
     <hr>
     <h4>Tasks</h4>
 
-    <a href="#task">Tasks Submissions</a>
-    <a href="#tasktypes">Tasks Types</a>
-    <a href="#">Load Balancing Algorithm</a>
-    <a href="#">Troubleshooting</a>
+    <a class="btn" href="{% url 'help_tasks' %}#task_submissions">Tasks Submissions</a>
+    <a class="btn" href="{% url 'help_tasks' %}#task_types">Tasks Types</a>
+    <a class="btn" href="{% url 'help_tasks' %}#load_balancing">Load Balancing Algorithm</a>
 
     <hr>
     <h4>Compute Pools</h4>
-    <a href="#task">Connecting existing pools</a>
-    <a href="#tasktypes">Managing SSH keys</a>
-    <a href="#">Launching EC2 pools</a>
-    <a href="#">Managing AWS keys</a>
-    <a href="#">Instance types</a>
-    <a href="#">Usage limits</a>
-    <a href="#">Spot requests</a>
+    <a class="btn" href="#task">Connecting existing pools</a>
+    <a class="btn" href="#tasktypes">Managing SSH keys</a>
+    <a class="btn" href="#">Launching EC2 pools</a>
+    <a class="btn" href="#">Managing AWS keys</a>
+    <a class="btn" href="#">Instance types</a>
+    <a class="btn" href="#">Usage limits</a>
+    <a class="btn" href="#">Spot requests</a>
 
     <hr>
-    <h4>Terms</h4>
-    <a href="#">Terms and Conditions</a>
+    <a class="btn" href="#">Terms and Conditions</a>
+    <a class="btn" href="{% url 'contactN' %}#">Contact Us</a>
 
 </div>
+<script src="{% static 'js/sidebar.js' %}"></script>

@@ -2,15 +2,16 @@ body {
   min-width:1200px;
   min-height: 600px;
   /* padding-top: 70px; */
-  background: inherit;
+  /* background: inherit; */
 
 }
+/*** Navigation Bar ***/
 header{
+  /* To keep the navbar at the top */
   z-index: 1;
   position: relative;
-  height: 1em;
+  /* height: 1em; */
 }
-/*** Navigation Bar ***/
 .navbar-light {
   border: 3px;
   border-style: solid;
@@ -123,18 +124,13 @@ header{
 
   /* Defining border */
   border: 1px solid black;
-  border-radius: 2px;
+  border-radius: 1em;
 
   margin: 5em 0 0 0.2em;
-
-  /* Padding */
-  /* The CSS padding properties are used to generate space
-  around an element's content, inside of any defined borders. */
-  /* padding format: top right bottom left */
-  /* padding: 0.5em 1em 0 1em; */
 }
 
 .leftside-container a {
+  text-align: left;
   display: block;
   color: black;
   padding: 10px;
@@ -150,9 +146,22 @@ header{
   color: white;
 }
 
-.leftside-container h4{
+.leftside-container h3{
+  padding: 4px 0 6px 0;
+
   text-align: center;
   text-decoration: underline;
+}
+
+.leftside-container h4{
+  text-align: left;
+  padding-left: 7px;
+  text-decoration: underline;
+}
+
+.leftside-container hr{
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 
@@ -164,7 +173,10 @@ header{
   /* position: fixed; */
   text-align: justify;
   border: 1px solid black;
-  border-radius: 2px;
+  border-radius: 1em;
   padding: 1em ;
+  /* to keep the text inside the box */
+  overflow: scroll;
+
 }
 /* ********************* */

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.generic import View, TemplateView
+from django.views.generic import View, TemplateView, RedirectView
 
 #from django.template import RequestContext
 #from django.views.generic import TemplateView, RedirectView, View, FormView
@@ -58,6 +58,13 @@ class DefaultView(TemplateView):
 class HomeView(DefaultView):
     template_name = 'homeN.html'
     page_title = "Home"
+
+class LandingView(RedirectView):
+    def get_redirect_url(self, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return reverse_lazy('my_account')
+        else:
+            return reverse_lazy('home')
 
 def index(request):
     my_mes ={'message' : 'Hello! I am coming from views.py'}
