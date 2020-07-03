@@ -17,7 +17,7 @@
         <!-- <p>Find out more and sign up for a free account today</p> -->
         <!-- <a href="#" class="button button-big button-icon button-icon-check">Learn more</a> -->
         <!-- <a href="#" class="btn btn-primary btn-lg"> Learn More</a> -->
-        <a id="learn-more" href="#" class="btn btn-primary btn-lg">Learn more</a>
+        <a id="learn-more" href="{% url 'helpN' %}" class="btn btn-primary btn-lg">Learn more</a>
     </div>
   </div>
 </div>
@@ -32,6 +32,11 @@
   <div class="features">
 
     <div class="row">
+
+      <div class="col-4">
+        <h3>Powered By COPASI</h3>
+        <p>Backend simulation on COPASI</p>
+      </div>
       <div class="col-4">
         <h3>Powered By AWS</h3>
         <p>Launch a cloud-based compute pool</p>
@@ -42,10 +47,7 @@
         <p> Connect existing computational resources </p>
       </div>
 
-      <div class="col-4">
-        <h3>Powered By COPSAI</h3>
-        <p>Backened simulation on COPASI</p>
-      </div>
+
 
     </div>
 

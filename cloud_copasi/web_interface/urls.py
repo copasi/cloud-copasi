@@ -23,6 +23,11 @@ urlpatterns = [
     {'template_name':'help/tasksN.html', 'page_title':'Help - Task Submission'},
     name='help_tasks'),
 
+    path('help/compute_pools/', views.DefaultView.as_view(),
+    {'template_name':'help/poolsN.html', 'page_title':'Help - Compute Pools'},
+    name='help_pools'),
 
-
+    path('help/terms/', views.DefaultView.as_view(),
+    {'template_name':'help/termsN.html','page_title':'Help - Terms and Conditions'},
+    name="help_terms"),
 ]
