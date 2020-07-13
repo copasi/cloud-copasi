@@ -11,17 +11,17 @@ from django.views.generic import View, TemplateView, RedirectView
 #from django.contrib.auth import authenticate, login, logout
 #from django.contrib.auth.forms import AuthenticationForm
 #from django.http import HttpResponseRedirect
-#from django.urls import reverse_lazy
+from django.urls import reverse_lazy
 #from django.contrib.auth import logout
 #from django import forms
 #import sys
 #from boto.exception import BotoServerError
 #from cloud_copasi.web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
 #from cloud_copasi.web_interface.aws import resource_management_tools
-#import logging
+import logging
 from cloud_copasi import settings
 
-#log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 # Create your views here.
 #
 # class DefaultView(TemplateView):
@@ -64,7 +64,7 @@ class LandingView(RedirectView):
         if self.request.user.is_authenticated:
             return reverse_lazy('my_account')
         else:
-            return reverse_lazy('home')
+            return reverse_lazy('homeN')
 
 def index(request):
     my_mes ={'message' : 'Hello! I am coming from views.py'}

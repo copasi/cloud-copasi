@@ -1,5 +1,6 @@
 from django.urls import path
 from web_interface import views
+from web_interface.account import account_viewsN
 
 # app_name = 'web_interface'
 
@@ -30,4 +31,14 @@ urlpatterns = [
     path('help/terms/', views.DefaultView.as_view(),
     {'template_name':'help/termsN.html','page_title':'Help - Terms and Conditions'},
     name="help_terms"),
+
+    # registrations
+    path('register/', account_viewsN.AccountRegisterView.as_view(),
+    name='my_account_register'),
+
+
+    #login Logout
+    
+
+
 ]

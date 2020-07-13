@@ -27,7 +27,7 @@
           <nav id="navbar" class="navbar navbar-expand navbar-light " >
 
             <!-- Brand/logo -->
-            <a class="navbar-brand" href="{% url 'landing_view' %}"> <img src="/static/images/cloudcop2.png" alt="logo" style="width:40px;"> Cloud COPASI</a>
+            <a class="navbar-brand" href="{% url 'landing_view' %}"> <img src="/static/images/CClogo3sat_64.jpg" alt="logo" style="width:40px;"> Cloud COPASI</a>
 
             <!-- Links -->
             <ul class="navbar-nav ml-auto justify-content-right">
@@ -47,9 +47,16 @@
               <!-- <li class="nav-item">
               <a class="nav-link" href="#">Help</a>
             </li> -->
-
-            <li class="nav-item"> <a class="nav-link" href="#">Register</a> </li>
-            <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
+                {% if user.is_superuser %}
+                  <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                {% endif %}
+                <li><a href="{% url 'sign_out' %}">Sign out</a></li>
+            {% else %}
+                <li class="nav-item"> <a class="nav-link" href="{% url 'my_account_register' %}">Register</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
+            {% endif %}
           </ul>
         </nav>
       </div>

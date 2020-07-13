@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path, include
 from web_interface import views
-#from cloud_copasi.web_interface.account import account_views
+from web_interface.account import account_viewsN
 #from cloud_copasi.web_interface.aws import resource_views
 #from cloud_copasi.web_interface.pools import pool_views, task_views
 #from cloud_copasi.web_interface.client_api import api_views

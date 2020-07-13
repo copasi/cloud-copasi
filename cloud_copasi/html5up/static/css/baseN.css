@@ -137,7 +137,8 @@ header{
 }
 
 .leftside-container a.active{
-  background-color: #d17c2c;
+  /* background-color: #d17c2c; */
+  background-color: #156abf;
   color: white;
 
 }
@@ -180,3 +181,90 @@ header{
 
 }
 /* ********************* */
+
+
+#registration{
+  margin: auto;
+  margin-top: 5em;
+}
+
+
+/*********************************************************************************/
+/* Forms
+/*********************************************************************************/
+.formerror {
+    color: #8e0000;
+}
+.errorlist {
+    color: #8e0000;
+    margin-bottom: 0em;
+}
+
+input[type="text"], input[type="password"], textarea, select {
+    padding: 9px;
+    border: solid 1px #b3b3b3;
+    outline: 0;
+    font: normal;
+    width: 20em;
+    background: #FFFFFF;
+}
+
+
+textarea {
+    width: 400px;
+    max-width: 400px;
+    height: 150px;
+    line-height: 150%;
+}
+input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+    border-color: #585858;
+}
+.form label {
+    margin-left: 10px;
+    color: #999999;
+}
+.fieldlabel {
+    padding-right: 10px;
+}
+td.topline {
+    border-top: 1px dotted #999999;
+}
+td.bottomline {
+    padding-top: 6px;
+}
+.fielddata, .fieldrow {
+    padding: 6px 0px 0px 0px;
+}
+
+.fielderror, .fieldhelp {
+}
+
+.form-button {
+    cursor: default;
+}
+
+th.required, span.required{
+    font-weight: bold;
+}
+.hidden-submit {
+    border: 0 none;
+    height: 0;
+    width: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.btn.btn-primary.btn-lg{
+  color: white;
+  margin-bottom: 1em;
+}
+
+.jumbotron p{
+  margin-top: -1.5em;
+}
+
+.jumbotron{
+  height:  53em;
+  margin-bottom: 0.5em;
+}
