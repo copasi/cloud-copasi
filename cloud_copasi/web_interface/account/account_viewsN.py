@@ -13,22 +13,22 @@ from django.urls import reverse_lazy
 # from django.views.generic.edit import FormMixin, ProcessFormView
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-# from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login
 from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 
-# from cloud_copasi.web_interface.models import AWSAccessKey, Task, EC2Instance,\
-#     ElasticIP, EC2Pool, Profile
+from web_interface.models import AWSAccessKey, Task, EC2Instance,\
+    ElasticIP, EC2Pool, Profile
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
 # import sys
 # from django.contrib.auth.forms import PasswordChangeForm
-# from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools
-# from cloud_copasi.web_interface import models, form_tools
+from web_interface.aws import vpc_tools, aws_tools, ec2_tools
+from web_interface import models, form_tools
 # from django.views.decorators.cache import never_cache
 # from boto.exception import EC2ResponseError, BotoServerError
 # import boto.exception
-# from cloud_copasi.web_interface.models import VPC, CondorPool
+from web_interface.models import VPC, CondorPool
 # from django.forms.forms import NON_FIELD_ERRORS
 import logging
 # from django.forms.utils import ErrorList
@@ -38,8 +38,8 @@ from cloud_copasi import settings
 # from django.views.generic.base import ContextMixin
 # from cloud_copasi.web_interface.pools import condor_tools
 # import tempfile
-# import re
-# import os
+import re
+import os
 
 log = logging.getLogger(__name__)
 

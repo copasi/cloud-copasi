@@ -4,18 +4,17 @@ from django.views.generic import View, TemplateView, RedirectView, FormView
 
 #from django.template import RequestContext
 from django.views.generic.edit import FormMixin, ProcessFormView
-#from django.views.generic.base import ContextMixin
+from django.views.generic.base import ContextMixin
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
-#from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-#from django import forms
-#import sys
+from django import forms
+import sys
 #from boto.exception import BotoServerError
 from web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
-#from cloud_copasi.web_interface.aws import resource_management_tools
+from web_interface.aws import resource_management_tools
 import logging
 from cloud_copasi import settings
 

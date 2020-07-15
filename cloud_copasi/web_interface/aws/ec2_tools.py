@@ -9,9 +9,9 @@
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection, cloudwatch
 from boto.ec2.instance import Instance
-from cloud_copasi.web_interface import models
-from cloud_copasi.web_interface.aws import aws_tools, ec2_config
-from cloud_copasi.web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP, Task,\
+from web_interface import models
+from web_interface.aws import aws_tools, ec2_config
+from web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP, Task,\
     SpotRequest
 import sys, os
 #from exceptions import Exception
@@ -45,22 +45,22 @@ def refresh_pool(ec2_pool):
     else:
         copied_pool = None
     #If this pool is not an original, then don't refresh.
-    
+
     log.debug('refreshing status of pool %s' % ec2_pool.name)
     difference = utcnow() - ec2_pool.last_update_time.replace(tzinfo=utc)
     log.debug('Time difference %s' % str(difference))
     if difference < datetime.timedelta(seconds=3):
         log.debug('Pool recently refreshed. Not updating')
         return
-    
+
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
-    
+
     #Get a list of any spot requests associated with the pool
-    
+
     spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool) | SpotRequest.objects.filter(ec2_pool__copy_of=ec2_pool)
-    
+
     spot_request_ids = [request.request_id for request in spot_requests]
-    
+
     try:
         if spot_request_ids != []:
             spot_request_list = ec2_connection.get_all_spot_instance_requests(request_ids=spot_request_ids)
@@ -78,14 +78,14 @@ def refresh_pool(ec2_pool):
                 log.debug('Spot request %s not found, not updating status' %spot_request_id)
                 not_found_requests.append(spot_request_id)
             #Don't do anything with spot requests that weren't found for now
-    
+
     for request in spot_request_list:
         try:
             spot_request = SpotRequest.objects.get(request_id=request.id)
             spot_request.status_code = request.status.code
             spot_request.status_message = request.status.message
             spot_request.state = request.state
-            
+
             if request.instance_id != None:
                 try:
                     ec2_instance = EC2Instance.objects.get(instance_id=request.instance_id)
@@ -100,20 +100,20 @@ def refresh_pool(ec2_pool):
                                                )
                     ec2_instance.save()
                 spot_request.ec2_instance = ec2_instance
-                    
+
             else:
                 spot_request.ec2_instance = None
-            
+
             spot_request.save()
         except Exception as  e:
             log.exception(e)
-    
+
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
-    
+
     instances = instances.exclude(state='terminated')
-    
+
     instance_ids = [instance.instance_id for instance in instances]
-    
+
     try:
         instance_status_list = ec2_connection.get_all_instance_status(instance_ids)
     except EC2ResponseError:
@@ -127,17 +127,17 @@ def refresh_pool(ec2_pool):
             except:
                 log.debug('Instance %s not found, presuming terminated' % instance_id)
                 not_found_instances.append(instance_id)
-        
+
         for instance_id in not_found_instances:
             ec2_instance = EC2Instance.objects.get(instance_id=instance_id)
             ec2_instance.state='terminated'
             ec2_instance.instance_status = 'terminated'
             ec2_instance.system_status = 'terminated'
             ec2_instance.state_transition_reason = 'Unknown'
-            
+
             ec2_instance.save()
-    
-    
+
+
     for status in instance_status_list:
         #assert isinstance(status, )
         log.debug('Refreshing instance %s' % status.id)
@@ -149,46 +149,46 @@ def refresh_pool(ec2_pool):
                 ec2_instance.save()
                 instance=ec2_instance.get_instance()
                 ec2_instance.state_transition_reason=instance.state_reason
-                
+
             ec2_instance.instance_status = status.instance_status.status
             ec2_instance.system_status = status.system_status.status
             ec2_instance.save()
         except Exception as  e:
             log.exception(e)
-    
+
     #Add instance termination alarms. Because instance metrics don't appear instantly,
     #We have to do this now, as opposed to when the pool was first launched
     #If instance alarms have already been added, this step will be quickly skipped
     if ec2_pool.smart_terminate:
         add_instances_alarms(ec2_pool)
-    
+
     ec2_pool.last_update_time = now()
     ec2_pool.save()
-    
+
     #Did we just update the status of a copied pool?
     if copied_pool:
         copied_pool.last_update_time = ec2_pool.last_update_time
         copied_pool.save()
-    
-    
+
+
 
 def create_key_pair(pool):
     """Create a keypair and store it in the users storage directory
     """
-    
+
     assert isinstance(pool, models.EC2Pool)
     vpc_connection, ec2_connection = aws_tools.create_connections(pool.vpc.access_key)
     name =  'keypair_%s' % pool.uuid
     key = ec2_connection.create_key_pair(name)
-    
+
     #The directory where we store the ssh keypairs. Must be writable
     filepath = settings.KEYPAIR_FILEPATH
-    
+
     path=os.path.join(filepath, name + '.pem')
     key.save(filepath)
-    
+
     key_pair = EC2KeyPair(name=name, path=path)
-    
+
     key_pair.save()
     return key_pair
 
@@ -196,18 +196,18 @@ def launch_pool(ec2_pool):
     """
     Launch a EC2 pool with the definitions provided by the ec2_pool object
     """
-    
+
     log.debug('Launcing EC2 pool')
     assert isinstance(ec2_pool, EC2Pool)
-    
+
     errors = []
-    
-    #Initiate the connection    
+
+    #Initiate the connection
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
-    
+
     log.debug('Retrieving machine image')
     ami = get_active_ami(ec2_connection)
-    
+
     #Launch the master instance
     #Add the pool details to the launch string
     master_launch_string = ec2_config.MASTER_LAUNCH_STRING
@@ -224,7 +224,7 @@ def launch_pool(ec2_pool):
                                                )
     #
     sleep(2)
-    
+
     ec2_instances = []
 
     master_instance = master_reservation.instances[0]
@@ -233,16 +233,16 @@ def launch_pool(ec2_pool):
     master_ec2_instance.instance_id = master_instance.id
     master_ec2_instance.instance_type = settings.MASTER_NODE_TYPE
     master_ec2_instance.instance_role = 'master'
-    
-    
+
+
     master_ec2_instance.save()
     ec2_instances.append(master_ec2_instance)
 
     ec2_pool.master = master_ec2_instance
-    
+
     ec2_pool.last_update_time = now()
     ec2_pool.save()
-    
+
     #wait until the master has a private ip address
     #sleep in beween
     log.debug('Waiting for private IP to be assigned to master node')
@@ -255,7 +255,7 @@ def launch_pool(ec2_pool):
     sleep(2)
     if ec2_pool.size > 0:
         log.debug('Launching worker nodes')
-        
+
         #Are we launcing fixed price or spot instances?
         try:
             if not ec2_pool.spot_request:
@@ -277,12 +277,12 @@ def launch_pool(ec2_pool):
                     ec2_instance.instance_id = instance.id
                     ec2_instance.instance_type = ec2_pool.initial_instance_type
                     ec2_instance.instance_role = 'worker'
-                    
+
                     ec2_instance.save()
-                
+
                     ec2_instances.append(ec2_instance)
-            
-            
+
+
             else:
                 #We're launching a spot request pool instead.
                 worker_requests = ec2_connection.request_spot_instances(str(ec2_pool.spot_price),
@@ -305,35 +305,35 @@ def launch_pool(ec2_pool):
                                                instance_type=ec2_pool.initial_instance_type,
                                                )
                     spot_request.save()
-                
+
         except EC2ResponseError as e:
             errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
             however a master instance was launched successfully. Check your AWS usage limit to ensure you \
             are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
             errors.append(e)
-            
+
     #Create an sqs queue
     log.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(ec2_pool.vpc.access_key)
     queue = sqs_connection.get_queue(ec2_pool.get_queue_name())
     if queue != None:
         sqs_connection.delete_queue(queue)
-    
+
     sqs_connection.create_queue(ec2_pool.get_queue_name())
-    
+
     #Create an SNS topic for instance alarm notifications
     log.debug('Creating SNS topic for alarms')
     sns_connection = aws_tools.create_sns_connection(ec2_pool.vpc.access_key)
     topic_data = sns_connection.create_topic(ec2_pool.get_alarm_notify_topic())
-    
+
     topic_arn = topic_data['CreateTopicResponse']['CreateTopicResult']['TopicArn']
-    
+
     log.debug('SNS topic created with arn %s' %topic_arn)
-    
+
     ec2_pool.alarm_notify_topic_arn = topic_arn
     #And create a  subscription to the api_terminate_instance_alarm endpoint
     termination_notify_url = 'http://' + settings.HOST + str(reverse_lazy('api_terminate_instance_alarm'))
-    
+
     try:
         sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
     except BotoServerError as e:
@@ -345,7 +345,7 @@ def launch_pool(ec2_pool):
             pass
     #Apply an alarm to each of the ec2 instances to notify that they should be shutdown should they be unused
     ##Note, this is now performed when the master node sends a notification back to the server through the API
-    
+
     #Assign an elastic IP to the master instance
     #Try up to 5 times
     log.debug('Assigning elastic IP to master node')
@@ -356,37 +356,37 @@ def launch_pool(ec2_pool):
         log.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
         log.exception(e)
         raise e
-    
+
     ec2_pool.address = 'ubuntu@' + str(elastic_ip.public_ip)
-    
-    
+
+
     #Check to see if we can ssh in
     #Try a couple of times
     tries = 15
     for i in range(tries):
         log.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ec2_pool.key_pair.path, ec2_pool.address, 'pwd']
-        
+
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
-        
+
         log.debug('SSH response:')
         log.debug(output)
-        
+
         if process.returncode == 0:
             log.debug('SSH success')
             break
         sleep(5)
-    
-    
+
+
     return errors
 
 def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
     log.debug('Scaling condor pool %s with %d extra nodes'%(ec2_pool.id, extra_nodes))
-    
+
     errors = []
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
-    
+
     log.debug('Retrieving machine image')
     ami = get_active_ami(ec2_connection)
 
@@ -411,11 +411,11 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
                 ec2_instance.instance_id = instance.id
                 ec2_instance.instance_type = ec2_pool.initial_instance_type
                 ec2_instance.instance_role = 'worker'
-                
+
                 ec2_instance.save()
-            
-        
-        
+
+
+
         else:
             #We're launching a spot request pool instead.
             log.debug('Launching spot requests')
@@ -439,24 +439,24 @@ def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
                                            instance_type=ec2_pool.initial_instance_type,
                                            )
                 spot_request.save()
-                
+
     except EC2ResponseError as e:
         errors.append(('Error launching worker instances', 'An error occured when launching the worker instances, \
         however a master instance was launched successfully. Check your AWS usage limit to ensure you \
         are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
         errors.append(e)
 
-    
-    
+
+
     return errors
 
 def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_order, spot_price_custom):
-    
+
     log.debug('Scaling pool %s down' % ec2_pool.name)
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     errors=[]
     #Filter down instances so that they match the query
-    
+
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(instance_role='master')
     spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool)
 
@@ -468,7 +468,7 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
         spot_requests = spot_requests.none()
     else:
         instances = instances.exclude(spotrequest=None)
-    
+
     if pricing == 'spot' and spot_price_order == 'custom':
         spot_requests = spot_requests.filter(price=spot_price_custom)
         instances = instances.filter(spotrequest__in=spot_requests)
@@ -478,19 +478,19 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
     elif pricing == 'spot' and spot_price_order == 'highest':
         spot_requests = spot_requests.order_by('-price')
         instances = instances.order_by('-spotrequest__price')
-        
-    
+
+
     #Now we have the list of instances to terminate, terminate them
     if nodes_to_terminate > instances.count():
         instances = instances
     else:
         instances = instances[0:nodes_to_terminate]
-        
+
     if nodes_to_terminate > spot_requests.count():
         spot_requests = spot_requests
     else:
         spot_requests = spot_requests[0:nodes_to_terminate]
-    
+
     if pricing == 'fixed':
         instances_to_terminate = [instance.instance_id for instance in instances]
     else:
@@ -498,7 +498,7 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
         for spot_request in spot_requests:
             if spot_request.ec2_instance != None:
                 instances_to_terminate.append(spot_request.ec2_instance.instance_id)
-    
+
     #Are there any spot requests to terminate?
     try:
         spot_request_ids = [request.request_id for request in spot_requests]
@@ -515,11 +515,11 @@ def scale_down(ec2_pool, nodes_to_terminate, instance_type, pricing, spot_price_
 
 def terminate_instances(instances):
     """Terminate the selected instances. Will also involve terminating any associated alarms and spot requests
-    
+
     instances: iterable EC2Instances, list or queryset
     """
     vpc_connection, ec2_connection = aws_tools.create_connections(instances[0].ec2_pool.vpc.access_key)
-    
+
     #Terminate any spot requests first
     spot_requests_to_terminate = SpotRequest.objects.filter(ec2_instance__in=instances)
     spot_request_ids = [request.request_id for request in spot_requests_to_terminate]
@@ -531,7 +531,7 @@ def terminate_instances(instances):
                 spot_request.delete()
     except Exception as  e:
         log.exception(e)
-    
+
     log.debug('Deleting termination alarms')
     for instance in instances:
         try:
@@ -541,37 +541,37 @@ def terminate_instances(instances):
                 cloudwatch_connection.delete_alarms([instance.termination_alarm])
         except Exception as  e:
             log.exception(e)
-            
-            
+
+
     instance_ids = [instance.instance_id for instance in instances]
-    
+
     log.debug('Terminating instances')
-    
+
     #TODO: terminate the necessary alarms and spot requests before terminating the instances themselves.
-    
+
     ec2_connection.terminate_instances(instance_ids)
-    
+
 
 def terminate_pool(ec2_pool):
     assert isinstance(ec2_pool, EC2Pool)
     log.debug('Terminating condor pool %s (user %s)' %(ec2_pool.name, ec2_pool.vpc.access_key.user.username))
-    
+
     #Keep a track of the following errors
     errors=[]
     #Create an ec2_connection object
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
     assert isinstance(ec2_connection, EC2Connection)
-    
+
     #First, refresh the status of the pool
     try:
         refresh_pool(ec2_pool)
     except Exception as  e:
         log.exception(e)
         errors.append(e)
-    
+
     spot_requests = SpotRequest.objects.filter(ec2_pool=ec2_pool)
     spot_request_ids = [request.request_id for request in spot_requests]
-    
+
     try:
         log.debug('Cancelling %d spot requests'%len(spot_request_ids))
         if spot_request_ids != []:
@@ -582,18 +582,18 @@ def terminate_pool(ec2_pool):
         log.exception(e)
         errors.append(e)
 
-    
-    
+
+
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
     instances = instances.exclude(state='terminated').exclude(state='shutting-down')
-    
+
     #Dissassociate the IP address of the master instance and release i
     try:
         release_ip_address_from_instance(ec2_pool.master)
     except Exception as  e:
         log.exception(e)
         errors.append(e)
-        
+
     try:
         terminate_instances(instances)
     except Exception as  e:
@@ -601,7 +601,7 @@ def terminate_pool(ec2_pool):
         errors.append(e)
 
     key_pair = ec2_pool.key_pair
-    
+
     try:
         ec2_connection.delete_key_pair(key_pair.name)
     except Exception as  e:
@@ -614,7 +614,7 @@ def terminate_pool(ec2_pool):
         log.exception(e)
         pass
 
-    
+
     try:
         log.debug('Deleting SQS queue for pool')
         sqs_connection = aws_tools.create_sqs_connection(ec2_pool.vpc.access_key)
@@ -629,7 +629,7 @@ def terminate_pool(ec2_pool):
         sns_connection.delete_topic(ec2_pool.alarm_notify_topic_arn)
     except Exception as  e:
         log.exception(e)
-        
+
     ec2_pool.delete()
     key_pair.delete()
 
@@ -639,12 +639,12 @@ def terminate_pool(ec2_pool):
 def assign_ip_address(ec2_instance):
     """Assign a public IP address to the ec2 instance
     """
-    #Check to see if there are any unassigned IP addresses:    
+    #Check to see if there are any unassigned IP addresses:
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_instance.ec2_pool.vpc.access_key)
     sleep(2)
     assert isinstance(ec2_instance, EC2Instance)
     ips = ElasticIP.objects.filter(vpc=ec2_instance.ec2_pool.vpc).filter(instance=None)
-    
+
     sleep_time=5
     allocate_new = False
     if ips.count() > 0:
@@ -664,7 +664,7 @@ def assign_ip_address(ec2_instance):
             try:
                 log.debug('Allocating new IP address')
                 address=ec2_connection.allocate_address('vpc')
-                
+
                 elastic_ip = ElasticIP()
                 elastic_ip.allocation_id = address.allocation_id
                 elastic_ip.public_ip = address.public_ip
@@ -685,7 +685,7 @@ def assign_ip_address(ec2_instance):
                 except:
                     pass
                 sleep(sleep_time)
-                
+
     #Wait until the instance is in state running, then associate the ip address
     #Sleep 5 seconds between attempts
     #Max 6 attemps...
@@ -701,29 +701,29 @@ def assign_ip_address(ec2_instance):
             log.warning('Instance not running. Sleeping...')
             sleep(sleep_time)
             attempt_count +=1
-    
+
     #Now try associating an elastic IP
     max_attempts=5
     attempt_count=0
     while attempt_count < max_attempts:
         try:
-        
+
             assert ec2_connection.associate_address(instance_id=ec2_instance.instance_id, allocation_id=elastic_ip.allocation_id)
             sleep(sleep_time)
             log.debug('IP associated with instance')
             elastic_ip.instance=ec2_instance
-            
+
             #Use an inelegent workaround to get the association id of the address, since the api doesn't tell us this
             #Reload the address object
             new_address = ec2_connection.get_all_addresses(allocation_ids=[elastic_ip.allocation_id])[0]
-            
+
             elastic_ip.association_id=new_address.association_id
-            
+
             elastic_ip.save()
-        
-                
+
+
             return elastic_ip
-    
+
         except Exception as  e:
             log.debug('Unable to associate IP address with instance')
             log.debug(e)
@@ -734,9 +734,9 @@ def assign_ip_address(ec2_instance):
 def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
     """Dissociate and release the IP address with the allocation id and optional association id. Alternatively just use public ip
     """
-    
+
     vpc_connection, ec2_connection = aws_tools.create_connections(key)
-    
+
     try:
         if association_id:
             log.debug('Disassociating IP')
@@ -746,7 +746,7 @@ def release_ip_address(key, allocation_id, association_id=None, public_ip=None):
             ec2_connection.disassociate_address(public_ip=public_ip)
     except Exception as  e:
         log.exception(e)
-        
+
     try:
         log.debug('Releasing IP')
         if allocation_id:
@@ -762,7 +762,7 @@ def release_ip_address_from_instance(ec2_instance):
     """
     assert isinstance(ec2_instance, EC2Instance)
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_instance.ec2_pool.vpc.access_key)
-    
+
     errors=[]
     try:
         ip = ElasticIP.objects.get(instance=ec2_instance)
@@ -771,7 +771,7 @@ def release_ip_address_from_instance(ec2_instance):
     except Exception as  e:
         log.exception(e)
         errors.append(e)
-     
+
     try:
         log.debug('Releasing IP')
         ec2_connection.release_address(allocation_id=ip.allocation_id)
@@ -783,23 +783,23 @@ def release_ip_address_from_instance(ec2_instance):
     except Exception as  e:
         log.exception(e)
         errors.append(e)
-    
+
     return errors
 
 def add_instance_alarm(instance):
     """Add a termination alarm to an EC2 instance. Alarm parameters are taken from ec2_config. Assumes that there is no alarm already present.
     """
-    
+
     assert isinstance(instance, EC2Instance)
     #Only go forward if a termination alarm hasn't already been set
     if not instance.termination_alarm:
-        
+
         log.debug('Adding termination alarm for instance %s' %instance.instance_id)
-        
+
         connection = aws_tools.create_cloudwatch_connection(instance.ec2_pool.vpc.access_key)
-        
+
         #Get the appropriate metric for creating the alarm
-        
+
         metrics = connection.list_metrics(dimensions={'InstanceId': instance.instance_id}, metric_name='CPUUtilization')
         if len(metrics) == 0:
             log.debug('Metric not found yet, try again later')
@@ -808,13 +808,13 @@ def add_instance_alarm(instance):
         assert len(metrics) == 1
         log.debug('Metric found')
         metric = metrics[0]
-        
+
         #Create alarm for this metric
-        
+
         alarm_name = 'cpu_termination_alarm_%s' % instance.instance_id
-        
+
         log.debug('Adding termination alarm for instance %s'%instance.instance_id)
-        
+
         alarm = metric.create_alarm(name=alarm_name,
                             comparison='<=',
                             threshold=ec2_config.DOWNSCALE_CPU_THRESHOLD,
@@ -826,14 +826,14 @@ def add_instance_alarm(instance):
         instance.termination_alarm = alarm_name
         assert isinstance(alarm, cloudwatch.MetricAlarm)
         instance.save()
-        
+
     else:
         pass#Instance alarm already applied. Do nothing
-    
+
 def add_instances_alarms(ec2_pool, include_master=False, instances=None):
     """Apply instance alarms to all instances in the pool. By default, will not apply to master node
     """
-    
+
     assert isinstance(ec2_pool, EC2Pool)
     if instances == None:
         instances = EC2Instance.objects.filter(ec2_pool=ec2_pool)
@@ -857,7 +857,7 @@ def remove_instance_alarm(instance):
             log.exception(e)
             return e
     return None
-            
+
 def remove_instances_alarms(ec2_pool):
     assert isinstance(ec2_pool, EC2Pool)
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool).exclude(id=ec2_pool.master.id)
