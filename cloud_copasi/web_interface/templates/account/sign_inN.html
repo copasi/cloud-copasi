@@ -16,3 +16,23 @@ http://www.gnu.org/licenses/gpl.html
 
 {% block header_content %}
 {% endblock %}
+
+
+{% block main_content %}
+<div class="container">
+  <div id="signin" class="row">
+    <article>
+      <section>
+        <header class="major">
+          <h2>Sign in to your account</h2>
+        </header>
+
+        {% include "form.html" with submit_text="Sign in" %}
+
+      </section>
+
+    </article>
+
+  </div>
+</div>
+{% endblock %}

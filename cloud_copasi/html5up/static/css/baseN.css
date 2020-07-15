@@ -183,9 +183,13 @@ header{
 /* ********************* */
 
 
-#registration{
+#registration, #signin{
   margin: auto;
   margin-top: 5em;
+}
+
+#registration h2, #signin h2{
+  margin-left: 0.5em;
 }
 
 
@@ -258,13 +262,16 @@ th.required, span.required{
 .btn.btn-primary.btn-lg{
   color: white;
   margin-bottom: 1em;
+  font-size: 100%;
+
 }
 
 .jumbotron p{
-  margin-top: -1.5em;
+  margin-top: -3em;
 }
 
 .jumbotron{
-  height:  53em;
+  height:  52em;
   margin-bottom: 0.5em;
+  font-size: 90%;
 }

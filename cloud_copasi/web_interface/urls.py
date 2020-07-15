@@ -8,6 +8,7 @@ urlpatterns = [
     # path('', views.index, name='home')
     path('', views.HomeView.as_view(), name='homeN'),
     path('home/', views.HomeView.as_view(), name='homeN'),
+
     #Landing view
     path('', views.LandingView.as_view(), name='landing_view'),
 
@@ -38,7 +39,10 @@ urlpatterns = [
 
 
     #login Logout
-    
+    path('sign_in/', views.LoginView.as_view(), name='sign_in'),
+    path('sign_out/', views.LogoutView.as_view(), name='sign_out'),
 
-
+    #account views
+    path('my_account/', account_viewsN.MyAccountView.as_view(), name='my_account'),
+    path('my_account/profile/', account_viewsN.AccountProfileView.as_view(), name='my_account_profile'),
 ]

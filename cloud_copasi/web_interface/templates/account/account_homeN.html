@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        {% include "help/sidebarN.html" %}
+
+      </div>
+
+      <div class="col-9">
+        <article>
+            <header class="major">
+                <h2>My account: Summary</h2>
+            </header>
+
+            <section>
+            <h4>AWS resources in use</h4>
+               <div class="smalltablelist">
+                    <table>
+                        <tr>
+                            <th>Compute nodes</th>
+                            <th>Elastic IPs</th>
+                        </tr>
+                        <tr>
+                            <td>{{compute_nodes.count}}</td>
+                            <td>{{elastic_ips.count}}</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </section>
+
+
+            <section>
+                <h4>Task overview</h4>
+                <div class="smalltablelist">
+                    <table>
+                        <tr>
+                            <th>Running tasks</th>
+                            <th>Finished tasks</th>
+                            <th>Errors</th>
+                        </tr>
+                        <tr>
+                            <td>{{running_tasks.count}}</td>
+                            <td>{{finished_tasks.count}}</td>
+                            <td>{{task_errors.count}}</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </section>
+
+            <section>
+            <h4>Compute pools</h4>
+
+                {% if compute_pools.count == 0 %}
+                    <p>No compute pools are currently connected or running. You must launch or connect a compute pool before you can run tasks.
+                    <br />
+                    {% else %}
+                    <div class="smalltablelist">
+                    <table>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                        </tr>
+                        {% for pool in compute_pools %}
+                        <tr>
+                            <td><a href="{% url 'pool_details' pool_id=pool.id %}">{{pool.name}}</a></td>
+                            <td>{{pool.get_pool_type_display_true}}</td>
+                            <td>{% if pool.get_pool_type == 'ec2' %}{{pool.get_recast_pool.get_health }}
+                                {% else %}
+                                {% if pool.get_recast_pool.status_page != '' %}
+                                    <a href="{{pool.get_recast_pool.status_page}}">Status</a>
+                                    {% endif %}
+                                {% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+
+                {% endif %}
+
+
+                <a href="{% url 'pool_list' %}">Click here</a> to manage your compute pools.
+            </p>
+            </section>
+
+            <section>
+                <h4>AWS Keys</h4>
+                <p>
+                    {% if access_keys.count == 0 %}
+                    No AWS keys are currently associated with this account. You must add an AWS key before you can run tasks.
+                    {% else %}
+                    You have <span class="bold">{{ access_keys.count }}</span> AWS key{{ access_keys.count|pluralize }} associated with this account.
+                    {% endif %}
+                    <br />
+                    <a href="{% url 'my_account_keys' %}">Click here</a> to manage your AWS keys.
+                </p>
+            </section>
+        </article>
+      </div>
+
+    </div>
+
+
+  </div>
+  {% endblock %}

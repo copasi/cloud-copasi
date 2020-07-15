@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- {% load static %} -->
 {% load static %}
 <html lang="en" dir="ltr">
   <head>
@@ -55,7 +54,7 @@
                 <li><a href="{% url 'sign_out' %}">Sign out</a></li>
             {% else %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'my_account_register' %}">Register</a> </li>
-                <li class="nav-item"> <a class="nav-link" href="#">Sign In</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'sign_in' %}">Sign In</a> </li>
             {% endif %}
           </ul>
         </nav>
