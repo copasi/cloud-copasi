@@ -1,0 +1,1113 @@
+#!/bin/bash
+# cloud-copasi customized version of bosco_cluster
+# bosco_add_host: Used to install ssh keys and blahp on remote hosts.
+#
+# BOSCO can manage max 254 clusters, the # of clusters is returned sometime
+# as function exit code (by return) and this is modulo 256
+# see cluster_list_iterator, list
+
+# CopasiSE binary location
+copasise=$HOME/copasi/bin/CopasiSE
+
+# Copasi test model location
+copasi_test_model_path=$HOME/copasi/brusselator_scan_test.cps
+
+# Bosco key location
+bosco_key=$HOME/.ssh/bosco_key.rsa
+
+# Bosco password location
+PASSPHRASE_LOCATION=$HOME/.bosco/.pass
+
+# Bosco cluster list location
+CLUSTERLIST_LOCATION=$HOME/.bosco/.clusterlist
+
+# Check if invoked by a regular user on a BOSCO Multi User installation
+# if PRIVATE_ON_MU is defined will be unable to use glideins and to set the system rouitng
+condor_id=`condor_config_val condor_ids 2>/dev/null`
+if [ "x$condor_id" == "x" ]; then
+    condor_id=`id -u condor 2> /dev/null`
+else
+    condor_id=${condor_id%.*}
+fi 
+if [ ! "x$condor_id" == "x`id -u`" ]; then
+    PRIVATE_ON_MU=yes
+fi
+
+# SSH Control Path
+ssh_control_path="/tmp/bosco_ssh_control.%r@%h:%p"
+
+# Executables
+TR=tr
+
+if [ `uname` = Darwin ] ; then
+    MD5SUM=md5
+else
+    MD5SUM=md5sum
+fi
+
+usage()
+{
+cat << EOM
+usage: $0 command
+
+commands:
+ -l|--list                  List the installed clusters
+ -a|--add host sched        Install and add a cluster, with scheduler sched
+ -r|--remove [host]         Remove the installed cluster (first in list)
+ -s|--status [host]         Get status of installed cluster
+ -z|--pool_status [host]    Get status of cluster resources
+ -t|--test [host]           Test the installed cluster (all clusters)
+ -h|--help                  Show this help message
+
+Where host is user@fqdn.example.com
+$0 can manage max 254 clustars
+
+EOM
+}
+
+cluster_list_iterator () {
+    # $1 function iterating on list, will accept 3 parameters
+    #  if the return value is 1, the loop is interropted
+    # File:  $CLUSTERLIST_LOCATION
+    # Line looks like:
+    # entry=user@host.edu max_queued=2000 cluster_type=pbs
+    # Check for the clusterlist file
+    # call the function on each entry
+    # The exit code is the number of entries visited (iterations on the cluster list)
+    let counter=0
+    if [ -s $CLUSTERLIST_LOCATION ]; then
+        while read line; do
+            name=`expr "$line" : "entry=\(.*\) max"`
+            max_q=`expr "$line" : ".*max_queued=\(.*\) cluster"`
+            type_q=`expr "$line" : ".*cluster_type=\(.*\)"`
+            $1 $name $type_q $max_q
+            [ $? -eq 1 ] && break
+            let counter+=1
+        done < $CLUSTERLIST_LOCATION
+    else
+        # file not existing or zero length
+        echo "No clusters configured"
+        return 255
+    fi
+    return $counter
+
+}
+
+list()
+{
+    # Line looks like:
+    # entry=user@host.edu max_queued=2000 cluster_type=pbs
+    # Check for the clusterlist file
+    # $1 control the output format (default user@host.edu/cluster_type)
+    #  host - user@host.edu
+    #  remote_gahp - user@host.edu  (to use in HTCondor remote_gahp)
+    #  queue - queue_type
+    #  all -  user@host.edu cluster_type max_queued
+    # The exit code is the number of entries (lines)
+    let counter=0
+    if [ -e $CLUSTERLIST_LOCATION ]; then
+        while read line; do
+            name=`expr "$line" : "entry=\(.*\) max"`
+            max_q=`expr "$line" : ".*max_queued=\(.*\) cluster"`
+            type_q=`expr "$line" : ".*cluster_type=\(.*\)"`
+            if [ "x$1" = "xhost" ]; then
+                echo $name
+            elif [ "x$1" = "xremote_gahp" ]; then
+                echo $name
+                return 1
+            elif [ "x$1" = "xgrid_resource" ]; then
+                echo "batch $type_q $name"
+                return 1
+            elif [ "x$1" = "xall" ]; then
+                echo $name $type_q $max_q
+            else
+                echo $name/$type_q
+            fi
+            let counter+=1
+        done < $CLUSTERLIST_LOCATION
+    else
+        echo "No clusters configured"
+        return 0
+    fi
+    return $counter
+}
+
+# grid_resource = batch queue name@host
+# SUBMIT_EXPRS = grid_resource
+# no reconfig needed because only condor_submit using it, no daemon
+set_bosco_routing () {
+    # $1 file to write the routing info into
+    #  default to  LOCAL_CONFIG_DIR`/condor_config.bosco_routing
+    if [ -n "$PRIVATE_ON_MU" ]; then
+        return
+    fi
+    if [ "x$1" != "x" ]; then
+        dest_file=$1
+    else
+        dest_file="`condor_config_val LOCAL_CONFIG_DIR`/condor_config.bosco_routing"
+    fi
+    grid_res=$(list grid_resource)
+    if [ $? -ne 1 ]; then
+        # No default cluster 
+        rm $dest_file 2>/dev/null
+    else
+        cat > $dest_file << EOF 
+# Specifying a default grid_resource doesn't work in HTCondor 8.4.7+/8.5.5+
+#grid_resource = $grid_res
+#SUBMIT_EXPRS = grid_resource
+EOF
+    fi
+}
+
+start_ssh () {
+    # Copy blahp
+    PASSPHRASE=""
+    if [ -f $PASSPHRASE_LOCATION ]; then
+        PASSPHRASE=`cat $PASSPHRASE_LOCATION`
+    fi
+    
+    # Start the ssh-agent
+    eval `ssh-agent -s` > /dev/null
+
+    # Call the external program to do ssh-add
+    bosco_ssh_start
+    if [ $? -eq 0 ]; then
+        # Make a master ssh connection
+        ssh -o ControlMaster=auto -o "ControlPath=$ssh_control_path" -MNn $remote_host &
+        ssh_master_connection=$!
+        return 0
+    else
+        return 1
+    fi
+
+}    
+
+ssh_upload_and_run () {
+    # upload_and_run remote_host command start_dir
+    # 1. remote host
+    # 2. start dir DEFAULT to use a temporary directory removed afterwards
+    # 3. script name
+    # All other arguments are sent on
+    remote_host=$1
+    start_dir=$2
+    local_script=$3
+    shift 3
+    # TODO: suppress banner printout  -o LogLevel=Error  does not work, 
+    # redirect stderr to /dev/null suppresses errors as well
+    if [ "x$start_dir" == "xDEFAULT" ]; then
+        # OS X mktemp requires a template
+        start_dir=`ssh $remote_host "mktemp -d /tmp/tmp_bosco_probe.XXXXXXXX" 2>/dev/null` 
+    else
+        ssh $remote_host "mkdir -p $start_dir" 
+    fi
+    scp $local_script $remote_host:$start_dir/bosco_run
+    cmd_out=`ssh -o ControlMaster=auto -o "ControlPath=$ssh_control_path" $remote_host "cd $start_dir; chmod +x bosco_run; ./bosco_run $@"  2>/dev/null`
+    #cmd_out=`ssh $remote_host "cd $start_dir; chmod +x bosco_run; ./bosco_run $4 $5 $6"`
+    cmd_ec=$?
+    if [ $cmd_ec -eq 0 ]; then
+        # output only if successful
+        echo $cmd_out
+    fi
+    if [ "x$2" == "xDEFAULT" ]; then
+        ssh $remote_host "rm -r $start_dir" 
+    fi        
+    return $cmd_ec
+}
+
+
+display_dots () {
+    while [ 1 ]; do
+        # Get parent ID
+        ppid=`ps -p $$ -o ppid=`
+        if [ "$ppid" -eq 1 ]; then
+            exit
+        fi
+        echo -n "."
+        sleep 1
+    done
+
+}
+
+show_progress () {
+    message=$1
+    shift
+    command=$@
+
+    # Display the message & dots
+    echo -n $message
+    display_dots 2>/dev/null &
+    dots_pid=$!
+
+    # Run the command
+    "$@"  
+    exit_code=$?
+    disown $dots_pid
+    kill -9 $dots_pid
+    echo ""
+    
+    return $exit_code
+
+}
+
+
+
+ssh_find_remote () {
+    # Last attempt to find remote platform
+    # More imprecise than findplatform but may succeed when upload fails (e.g. multiple login nodes in DNS RR)
+    # 1. remote host
+    remote_host=$1
+    findplatform_path=$2
+    # if .. else .. only from Python 2.5, no RH5 support
+    #ssh uc3-sub /usr/bin/python -c \"import platform\; mydist = platform.dist\(\)\; print \'DEB6\' if mydist[0]==\'debian\' and mydist[1].startswith\(\'6.\'\) else \(\'RH5\' if mydist[1].startswith\(\'5.\'\) else \'RH6\' if mydist[1].startswith\(\'6.\'\) else \'UNKNOWN\'\) if mydist[0]==\'redhat\'  else \'UNKNOWN\'\"
+    cmd_out=`ssh $remote_host "python -c \"import sys; print sys.platform\"" 2>/dev/null`
+    if [ $? -eq 0 -a "x$cmd_out" == "xdarwin" ]; then
+        # assume all Mac OK
+        echo "`$findplatform_path --url --force MAC`"
+        return 0
+    fi
+    cmd_out=`ssh $remote_host "python -c \"import platform; mydist = platform.dist(); print '%s%s' % (mydist[0], mydist[1])\"" 2>/dev/null`
+    if [ $? -eq 0 ]; then
+        # check for linux
+        case "$cmd_out" in 
+            redhat5*) echo "`$findplatform_path --url --force RH5`"
+                       ;;
+            redhat6*) echo "`$findplatform_path --url --force RH6`"
+                       ;;
+            redhat7*) echo "`$findplatform_path --url --force RH7`"
+                       ;;
+            centos7*) echo "`$findplatform_path --url --force RH7`"
+                       ;;
+            debian6*) echo "`$findplatform_path --url --force DEB6`"
+                       ;;
+            debian7*) echo "`$findplatform_path --url --force DEB7`"
+                       ;;
+            Ubuntu12*) echo "`$findplatform_path --url --force UBUNTU12`"
+                       ;;
+            *) ;; 
+        esac
+        return 0
+    fi
+    return 1
+}
+
+
+check_cluster_list2 () {
+    # $1 = cluster to check for
+    remote_host=$1
+    # $2 = action v|e|ve v=verbose e=exit
+    case "x$2" in
+     xve|xev) action=2;;
+     xv) action=1;;
+     xe) action=3;;
+     *) action=0;;
+    esac
+    grep "$remote_host" $CLUSTERLIST_LOCATION >/dev/null 2>/dev/null
+    if [ $? -eq 0 ]; then
+        return 0
+    else
+        if [ $action -eq 0 ]; then
+            return 1
+        fi
+        if [ $action -le 2 ]; then
+            echo "Unable to find $remote_host in list of installed clusters."
+            echo "Available clusters:"
+            list
+        fi
+        if [ $action -ge 2 ]; then
+            exit 1
+        fi
+        return 1
+    fi
+}
+
+check_reverse_connectivity() {
+    # check if the remote host can connect back
+    # Return 1 if the test fails (like most unix tools)
+    # $1 = cluster to check for
+    remote_host=$1
+    
+    # Get the COLLECTOR_HOST value, strip out anything after the '?'
+    myhost=`condor_config_val COLLECTOR_HOST`
+    myhost=`echo $myhost | sed 's/\(.*\)[?|$].*/\1/'`
+    
+    # Create tmp file for the python script to test connectivity
+    tmpfile=`mktemp -t tmpreversetest.XXXXXX`
+    cat << EOF > $tmpfile
+#!/usr/bin/python
+import sys,socket
+(host,port)=sys.argv[1].split(":")
+s = socket.socket()
+s.connect((host,int(port)))
+EOF
+    
+    testout=`ssh_upload_and_run $remote_host DEFAULT $tmpfile $myhost`
+    testexit=$?
+    
+    if [ "$testexit" -eq "0" ]; then
+        return 0
+    else
+        return 1
+    fi
+    
+}
+
+
+add_cluster_to_list () {
+    # $1 = cluster to add
+    # $2 = max queued setting of cluster
+    # $3 = cluster batch system (pbs, lsf, sge)
+    # Remove the host (if already there), and (re)add
+    remote_host=$1
+    max_queued=$2
+    cluster_type=$3
+    check_cluster_list2 $remote_host
+    if [ $? -eq 0 ]; then
+        tmpfile=`mktemp -t tmpclusterlist.XXXXXX`
+        sed "/entry=$remote_host max_queued=.*/d" $CLUSTERLIST_LOCATION > $tmpfile
+        mv $tmpfile $CLUSTERLIST_LOCATION
+    fi
+
+    echo "entry=$remote_host max_queued=$max_queued cluster_type=$cluster_type" >> $CLUSTERLIST_LOCATION
+
+    # Always after add/remove
+    set_bosco_routing
+}
+
+get_min_queue () {
+    # Should we do this in awk? ugh, ok
+    min_queued=1000
+    detected=0
+    while read line; do
+        max_queued=`expr "$line" : ".*max_queued=\(-*[0-9]*\)"`
+        if [ $max_queued -lt $min_queued -a $max_queued -ne -1 ]; then
+            detected=1
+            min_queued=$max_queued
+        fi
+    done < $CLUSTERLIST_LOCATION
+    if [ $detected == 0 ]; then
+        min_queued=10
+    fi
+    echo $min_queued
+    return $min_queued
+
+}
+
+
+stop_ssh () {
+    # Shut down the master ssh socket
+    if [ "x$ssh_master_connection" != "x" ]; then
+        kill $ssh_master_connection
+    fi
+    
+    # Shut down ssh-agent
+    eval `ssh-agent -sk` > /dev/null
+}
+
+remove_cluster () {
+    # $1 = cluster to remove 
+    # If no cluster is provided, remove all clusters
+    if [ "x$1" != "x" ]; then
+        # $1 could be user@hostname/queue, queue part removed
+        # bash specific, generic no removing queue: remote_host=$1 
+ 
+        remote_host=$1
+
+        # First, check if the cluster is in the cluster list, exit if not
+        check_cluster_list2 $remote_host "ve"
+
+        # Remove the cluster
+        do_remove_cluster $remote_host 
+        return $?
+    else
+        #list > /dev/null
+        #[ $? = "0" ] && echo "No cluster " 
+        # This is removing only one cluster because do_remove_cluster creates a new cluster file
+        cluster_list_iterator  do_remove_cluster
+        retv=$?
+        if [ $retv = 255 ]; then
+            echo "No clusters configured."
+        else
+            echo "$retv cluster/s removed."
+        fi
+    fi
+}
+
+do_remove_cluster () {
+    # $1 = cluster to remove 
+    # $1 could be user@hostname/queue, queue part removed
+    # bash specific, generic no removing queue: remote_host=$1 
+    # $2 and $3 ignored
+    remote_host=${1%%/*}
+
+    # First, check if the cluster is in the cluster list, exit if not
+    check_cluster_list2 $remote_host "ve"
+
+    # If here cluster is in cluster list
+
+    # Remove bosco from the remote cluster
+    start_ssh
+    ssh $remote_host "rm -rf bosco"
+    stop_ssh
+
+    # Remove the host from the cluster list
+    tmpfile=`mktemp -t tmpclusterlist.XXXXXX`
+    sed "/$remote_host/d" $CLUSTERLIST_LOCATION > $tmpfile
+    mv $tmpfile $CLUSTERLIST_LOCATION
+
+    #  Always after add/remove
+    set_bosco_routing
+}
+
+
+check_condor_q_classad () {
+    # Check a classad with a timeout
+    # Will continue to check classad until any output is given
+    # $1 = classad expression
+    # $2 = timeout (seconds)
+    # Returns 0 if not found, 1 if found
+    classad=$1
+    counter=$2
+
+    while [ $counter -gt 0 ]
+    do
+        cmd_out=`condor_q -const "$classad" -format '%s' ClusterId `
+        if [ ! "x$cmd_out" == "x" ]; then
+            return 1
+        fi
+        counter=$(( $counter - 1 ))
+        sleep 1
+    done
+    return 0
+}
+
+test_cluster () {
+    if [ "x$1" != "x" ]; then
+        remote_host=$1
+
+        # First, check if the cluster is in the cluster list, exit if not
+        check_cluster_list2 $remote_host "ve"
+
+        # Get the cluster type
+        cluster_out=`grep "$remote_host" $CLUSTERLIST_LOCATION`
+        cluster_type=`expr "$cluster_out" : ".*cluster_type=\(.*\)"`
+
+        # Do the test
+        do_test_cluster $remote_host $cluster_type
+        return $?
+    else
+        # This is stopping at the first cluster failing
+        cluster_list_iterator  do_test_cluster
+        if [ $? = 255 ]; then
+            echo "No clusters configured."
+        else
+            echo "$? cluster/s testsed successfully."
+        fi
+    fi
+}
+
+do_test_cluster () {
+    # Testing the cluster. No checks are done on the parameters
+    # $1 remote_host (user@fqdn)
+    # $2 cluster_type (pbs, condor, ...)
+    # other parameters are ignored
+    if [ "x$1" != "x" ]; then
+        remote_host=$1
+    else
+        echo "ERROR - No remote host given for the test.  Please list one of the cluster you have added"
+        exit 1
+    fi
+
+    if [ "x$2" != "x" ]; then
+        cluster_type=$2
+    else
+        echo "ERROR - No remote cluster type provided.  Please specify the correct one."
+        exit 1
+    fi
+
+    # Check if passwordless ssh works
+    echo -n "Testing ssh to $remote_host..."
+    start_ssh
+    # Get the pwd from the remote cluster, for use later in the submission file
+    default_pwd=`ssh -o "PasswordAuthentication=no" $remote_host "pwd"`
+    ssh_exit=$?
+    stop_ssh
+    if [ $ssh_exit -ne 0 ]; then
+        echo "Failed to run simple ssh on remote cluster."
+        echo "Passwordless ssh to $remote_host is not working."
+        exit 1
+    else
+        echo "Passed!"
+    fi
+    
+    # Test condor submission
+    echo -n "Testing bosco submission..."
+
+    # Get the bosco (condor) local dir
+    local_dir=`condor_config_val LOCAL_DIR`
+    root_submit_dir=$local_dir/bosco-test
+    mkdir -p $root_submit_dir
+    if [ $? -ne 0 ]; then
+        echo "Unable to create directory $root_submit_dir"
+        echo "Tests FAILED!"
+        exit 1
+    fi
+    submit_dir=`mktemp -d $root_submit_dir/boscotest.XXXXXX`
+    submit_file=$submit_dir/condor.submit
+    log_file=$submit_dir/logfile
+    test_stdout=$submit_dir/test.stdout
+    test_stderr=$submit_dir/test.stderr
+    test_id=bosco-test.$RANDOM
+
+# The following currently assumes the test model
+# is in the same directory as the created work directory is in.
+    cat > $submit_file << End_of_Submit
+universe = grid
+grid_resource = batch $cluster_type $remote_host
+input = $copasi_test_model_path
+output = $test_stdout
+error = $test_stderr
+transfer_executable=true
+executable = $copasise
+arguments = --home . ../$(basename $copasi_test_model_path)
+log = $log_file
+notification = NEVER
++bosco_test_id = "$test_id"
+queue
+End_of_Submit
+
+    submit_out=`condor_submit $submit_file 2>&1 `
+    if [ $? -ne 0 ]; then
+        echo "Failed"
+        echo $submit_out
+        exit 1
+    else
+        echo "Passed!"
+    fi
+    echo "Submission and log files for this job are in $submit_dir"
+
+    # Get the condor job id using the bosco_test_id
+    condor_jobid=`condor_q -const "bosco_test_id =?= \"$test_id\"" -format '%i' ClusterId`
+
+    # Check if the jobmanager picked up the job
+    echo -n "Waiting for jobmanager to accept job..."
+    check_condor_q_classad "(ClusterId == $condor_jobid) && (Managed == \"External\")" 20
+    if [ $? -eq 0 ]; then
+        echo "Failed!"
+        echo "Check your gridmanager log, located at: `condor_config_val GRIDMANAGER_LOG`"
+        exit 1
+    else
+        echo "Passed"
+    fi
+
+    # Check if there is anything in the user log
+    echo -n "Checking for submission to remote $cluster_type cluster (could take ~30 seconds)..."
+    counter=50
+    submit_found=0
+    while [ $counter -gt 0 ]
+    do
+        grep_out=`grep -A 2 -e "^027.*" $log_file`
+        if [ $? -eq 0 ]; then
+            submit_found=1
+            break
+        fi
+        sleep 1
+        counter=$(( $counter - 1 ))
+    done
+    
+    if [ $submit_found -eq 1 ]; then
+        echo "Passed!"
+    else
+        echo "Failed"
+        echo "Showing last 5 lines of logs:"
+        gridmanager_log=`condor_config_val GRIDMANAGER_LOG`
+        if [ -r $gridmanager_log ]; then
+            tail -5 $gridmanager_log
+        else
+            echo "Failed to open gridmanager log for reading"
+        fi
+        exit 1
+    fi
+    
+    # Check the remote job state
+    # GridJobStatus is not properly implemented for PBS
+    #echo "Checking the test job's status to change from idle to running"
+    #echo -n "This could take a very long time... "
+    #check_condor_q_classad "(ClusterId == $condor_jobid) && (isUndefined(GridJobStatus) =!= TRUE)" 60
+    #if [ $? -eq 0 ]; then
+    #    echo "Failed"
+    #    echo "GridManager did not update status of remote job"
+    #    echo "See GridManager log for information, located at `condor_config_val GRIDMANAGER_LOG`"
+    #    exit 1
+    #else
+    #    condor_q -const "(ClusterId == '$condor_jobid')" -format '%s\n' GridJobStatus
+    #fi
+
+    # NOTE: We will probably never see the job in running status, as it will
+    #   finish immediately and Condor only polls its status periodically.
+    # Check for job to run
+    echo -n "Waiting for job to run... this could take a while (waiting 250 seconds)..."
+    check_condor_q_classad "(ClusterId == $condor_jobid) && ((GridJobStatus==\"COMPLETED\") || (JobStatus == 2))" 250
+    if [ $? -eq 0 ]; then
+        echo "Failed"
+        echo "The job did not start in the 250 seconds we waited."
+        echo "This doesn't always mean there is something wrong, maybe the remote queue is long..."
+        echo "Here is the current status of the job:"
+        condor_q $condor_jobid
+        echo "You can look at job's log file at $log_file"
+        echo "for the job's current status"
+        exit 1
+    else
+        echo "Passed!"
+    fi
+    
+    echo -n "Waiting for job to exit... this could take a while (waiting 60 seconds)..."
+    check_condor_q_classad "(ClusterId == $condor_jobid) && (GridJobStatus==\"COMPLETED\") " 60
+    if [ $? -eq 0 ]; then
+        cat << Error_message_end
+Failed
+The job did not end in 60 seconds.  This is not always a bad thing...
+Maybe condor is waiting longer to poll for job completion?
+Here is the current status of the job:"
+Error_message_end
+        condor_q $condor_jobid
+        # returning zero anyway, test considered successful 
+        exit 0
+    else
+        echo "Passed!"
+    fi
+
+    # Check if there is anything in the user log
+    echo -n "Checking for completion in Condor, could take a while..."
+    counter=5
+    complete_found=0
+    while [ $counter -gt 0 ]
+    do
+        grep_out=`grep -A 2 -e "^005.*" $log_file`
+        if [ $? -eq 0 ]; then
+            complete_found=1
+            break
+        fi
+        sleep 10
+        counter=$(( $counter - 1 ))
+    done
+    
+    if [ $complete_found -eq 1 ]; then
+        echo "Passed!"
+    else
+        echo "Failed"
+        echo "Showing last 5 lines of logs:"
+        gridmanager_log=`condor_config_val GRIDMANAGER_LOG`
+        if [ -r $gridmanager_log ]; then
+            tail -5 $gridmanager_log
+        else
+            echo "Failed to open gridmanager log for reading"
+        fi
+        exit 1
+    fi
+
+    echo -n "Checking for job output..."
+    output=`head -n 1 $test_stdout`
+    expected_output='^COPASI [0-9]\+.[0-9]\+ (Build [0-9]\+)$'
+     if echo $output | grep "$expected_output" ; then
+	echo "Passed!"
+    else
+	echo "Failed"
+	echo "Job output should be:"
+        echo $expected_output
+        echo "but isn't"
+	echo "Showing contents of job stdout:"
+	cat $test_stdout
+	echo "Showing contents of job stderr:"
+	cat $test_stderr
+	exit 1
+    fi
+
+}
+
+
+get_status () {
+    remote_host=$1
+
+    # First, check if the cluster is in the clusterlist
+    check_cluster_list2 $remote_host "ve"
+
+    # Print queue status
+    tmpfile=`mktemp -t queustatustmp.XXXXXX`
+    start_ssh
+    echo "Testing cluster $1"
+    for i in "echo hello \$PATH" "qstat -q" "showq" "condor_q"
+    do
+        # Show the result only if successful
+        test_out=`ssh $1 "bash -l -c \"$i\"" 2>&1 `
+        if [ $? -eq 0 ]; then
+            echo "Showing output of $i on $remote_host"
+            echo "$test_out"
+        else
+            echo "No $i on $remote_host"
+            echo "$test_out"
+        fi
+    done
+    stop_ssh
+}
+
+get_pool_status () {
+    remote_host=$1
+
+    # First, check if the cluster is in the clusterlist
+    check_cluster_list2 $remote_host "ve"
+
+    # Print queue status
+    tmpfile=`mktemp -t queustatustmp.XXXXXX`
+    start_ssh
+    
+    for i in "condor_status -total"
+    do
+        # Show the result only if successful
+        test_out=`ssh $1 "bash -l -c \"$i\"" 2>&1 `
+        if [ $? -eq 0 ]; then
+            echo "$test_out"
+        else
+            echo "No $i on $remote_host"
+            echo "$test_out"
+        fi
+    done
+    stop_ssh
+}
+
+# The getopt command line.  Using -a for alternate (allow options with only 1 '-')
+if [ `uname` = "Darwin" ] ; then
+    # Mac OS X doesn't have GNU getopt, so not fancy argument checking here
+    TEMP="$@"
+else
+    TEMP=`getopt -a -o a:ls:t:r:hp:z: --longoptions add:,platform:,list,status:,test:,remove:,help:,pool_status  -n 'bosco_cluster' -- "$@"`
+
+    if [ $? != 0 ]; then usage; echo "Terminating..." >&2; exit 1; fi
+fi
+
+eval set -- "$TEMP"
+
+platform_force=
+
+# test and remove could have 0 or 1 parameter
+while true; do
+    case "$1" in
+        -h|--help) usage; exit 1; shift ;;
+        -p|--platform) platform_force=$2; shift 2;;
+        -a|--add) remote_host=$2; shift 2; break;;
+        -l|--list) list $2
+                   if [ $? -eq 0 ]; then
+                       exit 2
+                   fi
+                   exit 0 ;;
+        -s|--status) get_status $2;  shift 2; exit 0 ;;
+        -t|--test) test_cluster $2; exit 0 ;;
+        -r|--remove) remove_cluster $2; exit 0;;
+        -z|--pool_status) get_pool_status $2; exit 0;;
+        
+        --) echo "No command found" >&2; usage; exit 1;;
+        *) echo "Unknown option: $1" >&2; usage; exit 1;;
+    esac
+done
+
+
+################################################################
+# The rest of the file covers the 'add' cluster functionality.
+################################################################
+
+# Shift away the "--"
+if [ `uname` != "Darwin" ] ; then
+    shift
+fi
+
+# $1 - The batch system
+
+if [ "x$1" == "x" ]; then
+    echo "Warning: No batch system specified, defaulting to PBS"
+    echo "If this is incorrect, rerun the command with the batch system specified"
+    echo 
+    cluster_type="pbs"
+else
+    cluster_type=$(echo $1 | $TR '[:upper:]' '[:lower:]')
+    if [ "$cluster_type" == "htcondor" ]; then
+        cluster_type="condor"
+    fi
+    if [ ! "$cluster_type" == "pbs" -a ! "$cluster_type" == "lsf" -a ! "$cluster_type" == "sge" -a ! "$cluster_type" == "condor" -a ! "$cluster_type" == "slurm" ]; then
+        echo "Unrecognized batch system: $1 (normalized: $cluster_type)"
+        echo "Please specify one of the following: pbs, lsf, sge, condor, slurm"
+        exit 1
+    fi
+fi
+
+
+# Check if the cluster is already in the list
+check_cluster_list2 $remote_host
+if [ $? -eq 0 ]; then
+    echo "Cluster $remote_host already installed"
+    echo "Reinstalling on $remote_host"
+    reinstall=1
+else
+    reinstall=0
+fi
+
+# If the key doesn't exist, create it
+if [ ! -e $bosco_key ]; then
+    # Generate a md5sum password
+    PASSPHRASE=`echo $RANDOM$RANDOM$RANDOM$RANDOM | $MD5SUM | awk '{print $1}'`
+
+    # Output the password to a specially crafted file
+    mkdir -p `dirname $PASSPHRASE_LOCATION`
+    echo $PASSPHRASE > $PASSPHRASE_LOCATION
+    chmod go-rwx $PASSPHRASE_LOCATION
+    
+    # Check if the passphrase is empty
+    ssh-keygen -q -t rsa -f $bosco_key -P $PASSPHRASE > /dev/null
+ 
+    if [ $? -ne 0 ]; then
+        echo "Error running keygen" >&2
+        exit 1
+    fi
+fi
+
+
+# Transfer the public key to the remote host
+echo "Enter the password to copy the ssh keys to $remote_host:"
+cat ${bosco_key}.pub | ssh $remote_host "umask 077; test -d ~/.ssh || mkdir ~/.ssh ; cat >> ~/.ssh/authorized_keys"
+if [ $? -ne 0 ]; then
+    echo "Error copying BOSCO key.  Please make sure you password is correct."
+    exit 1
+fi
+
+start_ssh
+
+# Quickly test the ssh
+qmgr_out=`ssh -o "PasswordAuthentication=no" $remote_host "pwd" 2>/dev/null`
+if [ $? -ne 0 ]; then
+    echo "Password-less ssh to $remote_host did NOT work, even after adding the ssh-keys."
+    echo "Does the remote resource allow password-less ssh?"
+    exit 1
+fi
+
+# Test reverse connectivity from remote_host
+check_reverse_connectivity $remote_host
+if [ $? -eq 0 ]; then
+    reverse_conn=1
+else
+    reverse_conn=0
+fi
+
+if [ "$cluster_type" == "pbs" ]; then
+    # Get the queue information
+    echo -n "Detecting PBS cluster configuration..."
+    qmgr_out=`ssh -o ControlMaster=auto -o ControlPath=$ssh_control_path $remote_host /bin/bash -c -i "'qmgr -c \"print server\"'" 2>/dev/null `
+
+    # Get the default queue
+    default_queue=`expr "$qmgr_out" : '.*set server default_queue = \([a-zA-Z0-9_]*\)'`
+
+    # Get the max queued for the queue default_queue
+    max_queued=`expr "$qmgr_out" : ".*set queue $default_queue max_user_queuable = \([0-9]*\).*"`
+
+    echo "Done!"
+fi
+
+if [ "x$max_queued" == "x" ]; then
+    max_queued=-1
+fi
+
+
+# BOSCO is downloaded for the appropriate platform, not copied from the installation, this is not needed
+## First, find the blahp
+#glite_location=`condor_config_val GLITE_LOCATION`
+#release_dir=`condor_config_val RELEASE_DIR`
+#
+#if [ "x$glite_location" == "x" -o "x$release_dir" == "x" ]; then
+#    echo "Unable to determine condor locations using condor_config_val."
+#    echo "There could be a problem in one of your condor config files."
+#    echo "Exiting..."
+#    exit 1
+#fi
+
+
+# Find remote platform
+# TODO: add the possibility to force a specific platform for the remote system (./bosco_findplatform --force=RH5)
+findplatform_path="`which bosco_findplatform`"
+if [ $? -ne 0 ]; then
+    echo "Unable to find the bosco_findplatform script."
+    echo "Is BOSCO installed and setup correctly?"
+    exit 1
+fi
+
+if [ "x$TMP_INSTALL" == "x" ]; then
+    TMP_INSTALL="DEFAULT"
+fi
+
+if [ -z "${platform_force}" ]; then
+    url=`ssh_upload_and_run $remote_host $TMP_INSTALL $findplatform_path --url`
+else
+    url=`ssh_upload_and_run $remote_host $TMP_INSTALL $findplatform_path --url --force ${platform_force}`
+fi
+
+if [ "x$url" == "x" ]; then
+    # Attempt in a different way
+    url=`ssh_find_remote $remote_host $findplatform_path`
+    if [ "x$url" == "x" ]; then
+        echo "BOSCO does not support the remote host's OS."
+        echo "Aborting installation to $remote_host."
+        exit 1
+    fi
+fi    
+
+
+# Create a tmp dir, download the files and rsync them to the remote system
+# A download to the remote system would be faster but we cannot count on ports different form the SSH one
+# OS X mktemp requires a template
+tmp_dir=`mktemp -d /tmp/tmp.XXXXXXXX`
+show_progress "Downloading for $remote_host" curl -s -o $tmp_dir/bosco-download.tar.gz $url 
+show_progress "Unpacking" tar xzf $tmp_dir/bosco-download.tar.gz -C $tmp_dir
+archive_dir=`ls -d $tmp_dir/condor*`
+if [ $? -ne 0 ]; then
+    echo "Unable to download and prepare BOSCO for remote installation."
+    echo "Download URL: $url"
+    echo "Aborting installation to $remote_host."
+    rm -r $tmp_dir
+    exit 1
+fi
+
+
+# Remote directories
+#TODO: do we need a separate sandbox for each cluster?
+remote_base_dir_root="bosco/cluster"
+remote_base_dir_default="$remote_base_dir_root/default"
+remote_base_dir_host="bosco"
+tmp_install_dir=`mktemp -d /tmp/tmp.XXXXXXXX`
+mkdir -p $tmp_install_dir/$remote_base_dir_host
+local_install_dir=$tmp_install_dir/$remote_base_dir_host
+remote_sandbox_dir=$remote_base_dir_host/sandbox
+
+# TODO: uncomment to enable subdirs
+#remote_base_dir_host="$remote_base_dir_root/$remote_host"
+remote_glite_dir="$local_install_dir/glite"
+mkdir -p $remote_glite_dir
+local_sandbox_dir="$local_install_dir/sandbox"
+mkdir -p $local_sandbox_dir
+
+#ssh $remote_host "mkdir -p bosco/glite/lib; mkdir -p bosco/glite/log; mkdir -p bosco/sandbox"
+# Make the necessary remote directories
+mkdir -p $remote_glite_dir/lib; mkdir -p $remote_glite_dir/log; mkdir -p $local_sandbox_dir
+# TODO: uncomment to enable subdirs
+#ssh $remote_host "ln -sfn $remote_base_dir_host $remote_base_dir_default"
+
+
+# Copy over blahp
+rsync -aq $archive_dir/libexec/glite/[^l]* $remote_glite_dir/
+if [ -d $archive_dir/lib64 ] ; then
+    libdir=lib64
+else
+    libdir=lib
+fi
+rsync -aq  $archive_dir/$libdir/libclassad.so* $remote_glite_dir/lib/ 2>/dev/null
+rsync -aq  $archive_dir/$libdir/libcondor_utils* $remote_glite_dir/lib/ 2>/dev/null
+show_progress "Sending libraries to $remote_host" rsync -aq  $archive_dir/$libdir/condor $remote_glite_dir/lib/ 2>/dev/null
+rsync -aq  $archive_dir/sbin/condor_ft-gahp $remote_glite_dir/bin 2>/dev/null
+
+# create the glidein
+if [ -n "$PRIVATE_ON_MU" ]; then
+    echo "You are not running as the factory user. BOSCO Glideins disabled."
+else
+    export PYTHONPATH=`condor_config_val LIBEXEC`/campus_factory/python-lib
+    export _campusfactory_GLIDEIN_DIRECTORY=`condor_config_val LIBEXEC`/campus_factory/share/glidein_jobs
+    show_progress "Creating BOSCO for the WN's" glidein_creation $remote_host $archive_dir --outputtar=$tmp_dir/glideinExec.tar.gz
+    rsync -aq  $tmp_dir/glideinExec.tar.gz $local_install_dir/campus_factory/ 2>/dev/null
+fi
+
+cat >$remote_glite_dir/etc/condor_config.ft-gahp 2>/dev/null <<EOF
+BOSCO_SANDBOX_DIR=\$ENV(HOME)/$remote_sandbox_dir
+LOG=\$ENV(HOME)/$remote_base_dir_host/glite/log
+FT_GAHP_LOG=\$(LOG)/FTGahpLog
+SEC_CLIENT_AUTHENTICATION_METHODS = FS, PASSWORD
+SEC_PASSWORD_FILE = \$ENV(HOME)/$remote_base_dir_host/glite/etc/passwdfile
+USE_SHARED_PORT = False
+ENABLE_URL_TRANSFERS = False
+EOF
+
+# A regular user cannot write on system files
+# and will not need the password for grid universe jobs
+if [ ! -n "$PRIVATE_ON_MU" ]; then
+    # Generate the password file, if it doesn't already exist 
+    bosco_passwd_file=`condor_config_val SEC_PASSWORD_FILE` 
+    if [ "x$bosco_passwd_file" == "x" ]; then
+        echo "The BOSCO password file is not defined."
+        echo "Aborting installation to $remote_host."
+        rm -r $tmp_dir
+        exit 1
+    fi
+
+    if [ ! -e $bosco_passwd_file ]; then  
+        random_string=`echo $RANDOM | $MD5SUM | awk '{print $1}'` 
+        condor_store_cred -p $random_string -f $bosco_passwd_file 
+    fi
+
+    if [ ! -r  $bosco_passwd_file ]; then  
+        echo "Cannot read the BOSCO password file, check permissions of $bosco_passwd_file."
+        echo "Aborting installation to $remote_host."
+        rm -r $tmp_dir
+        exit 1
+    fi 
+    rsync -aq $bosco_passwd_file $local_install_dir/campus_factory/share/glidein_jobs 2>/dev/null
+    rsync -aq $bosco_passwd_file $remote_glite_dir/etc 2>/dev/null
+fi
+
+# Do the actual rsync
+show_progress "Installing on cluster $remote_host" rsync -aqK -e "ssh -o ControlMaster=auto -o ControlPath=$ssh_control_path" $local_install_dir $remote_host:
+exit_code=$?
+
+rm -rf $tmp_install_dir
+# Removing temporary directory
+rm -rf $tmp_dir 2>/dev/null
+
+stop_ssh
+
+# Detect an improper rsync exit code
+if [ "$exit_code" -ne "0" ]; then
+    echo "Unable to install on remote cluster..."
+    echo "Exiting"
+    exit 1
+fi
+
+
+# Add the cluster to the cluster list
+add_cluster_to_list $remote_host $max_queued $cluster_type
+
+echo "Installation complete"
+
+
+
+# Configure condor
+# Not if private user on BOSCO MU
+if [ ! -n "$PRIVATE_ON_MU" ]; then
+    min_queue_size=`get_min_queue`
+    tmpfile=`mktemp -t tmpconfigfile.XXXXXX`
+    condor_config_file=`condor_config_val LOCAL_CONFIG_FILE`
+    sed "/GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE.*/d" $condor_config_file > $tmpfile
+    echo "GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=$min_queue_size" >> $tmpfile
+    mv $tmpfile $condor_config_file
+    chmod 644 $condor_config_file
+    condor_reconfig 2>/dev/null 1>&2
+fi
+
+# Submission instructions
+cat << EOM
+The cluster $remote_host has been added to BOSCO
+It is available to run jobs submitted with the following values:
+> universe = grid
+> grid_resource = batch $cluster_type $remote_host
+EOM
+
+if [ "$reverse_conn" -eq "1" ]; then
+    cat << EOM
+OR to run load balanced job on all available clusters with:
+> universe = vanilla
+EOM
+
+
+fi
+

@@ -32,7 +32,7 @@ from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.models import User
-from cloud_copasi.web_interface.email import email_tools
+from web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 
