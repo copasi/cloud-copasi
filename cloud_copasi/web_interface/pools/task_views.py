@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 
 
 class NewTaskView(RestrictedFormView):
-    template_name = 'tasks/task_new.html'
+    template_name = 'tasks/task_newN.html'
     page_title = 'New task'
 
     def __init__(self, *args, **kwargs):

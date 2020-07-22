@@ -275,3 +275,120 @@ th.required, span.required{
   margin-bottom: 0.5em;
   font-size: 90%;
 }
+
+
+/* **************** */
+/* Tables */
+/*  */
+/* div.smalltablelist td, div.smalltablelist tr, div.smalltablelist th {
+    border-style: solid;
+    border-width: 1px;
+    margin: 5px 5px 5px 5px;
+    padding: 0.3em;
+}
+div.smalltablelist th{
+    font-weight: bold;
+} */
+
+.smalltable{
+  /* border-width: 5px; */
+  width: 25em;
+  margin-bottom: 1em;
+}
+
+.smalltable td,tr, th {
+  /* border-style: solid; */
+  border-width: 1px;
+  /* border-color: black; */
+}
+
+
+header.major {
+    border-bottom: solid 1px #dbdbdb;
+    margin: 0 0 1em 0;
+}
+
+header.major:after {
+    content: '';
+    display: block;
+    border-top: solid 1px #dbdbdb;
+    height: 8px;
+}
+
+header.major h2, header.major h3 {
+    margin: 0 0 0.5em 0;
+}
+
+header.major .byline {
+    margin: 0 0 0.5em 0;
+    position: relative;
+    top: -1em;
+}
+/*********************************************************************************/
+/* Warning bar                                                                        */
+/*********************************************************************************/
+
+#status-bar{
+    font-weight: bold;
+    height: 24px;
+    position: relative;
+    background-color: white;
+    border-bottom: solid 1px #dbdbdb;
+    text-align: center;
+    font-weight: bold;
+
+}
+#checking-text{
+    display:none;
+}
+#response-bar{
+    display:none;
+    position:absolute;
+    width: 100%;
+    text-align: center;
+}
+
+.warning-bar{
+    margin-top: 5em;
+    background: #ffe5e5;
+    color: #b40000;
+}
+.warning-text a{
+    background-image: url('/static/alert_16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+    color: #b40000;
+    font-weight: bold;
+
+}
+.healthy-bar{
+    background: #CEFFBD;
+    color: rgb(71, 71, 71);
+}
+
+.plain-bar{
+    background: white;
+    color: rgb(71,71,71);
+}
+
+.healthy-text, .plain-text{
+    background-image: url('/static/green-check-16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 23px;
+
+}
+.error-bar{
+    background: #ffffa5;
+    color: rgb(71,71,71);
+}
+.error-text{
+    background-image: url('/static/warning-16.png');
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 20px;
+    color: rgb(71,71,71);
+    font-weight: bold;
+
+}

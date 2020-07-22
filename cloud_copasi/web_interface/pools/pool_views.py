@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 class PoolListView(RestrictedView):
     """View to display active compute pools
     """
-    template_name = 'pool/pool_list.html'
+    template_name = 'pool/pool_listN.html'
     page_title = 'Compute pools'
 
     @method_decorator(login_required)
