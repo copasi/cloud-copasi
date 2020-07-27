@@ -700,7 +700,7 @@ class BoscoPoolAddView(RestrictedFormView):
 
     page_title = 'Add existing compute pool'
     form_class = AddBoscoPoolForm
-    template_name = 'pool/bosco_pool_add.html'
+    template_name = 'pool/bosco_pool_addN.html'
     success_url = reverse_lazy('pool_list')
 
     @method_decorator(login_required)

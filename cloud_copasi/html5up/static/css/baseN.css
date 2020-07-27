@@ -215,9 +215,10 @@ input[type="text"], input[type="password"], textarea, select {
 
 
 textarea {
-    width: 400px;
+    width: 350px;
     max-width: 400px;
-    height: 150px;
+    height: 100px;
+    max-height: 100px;
     line-height: 150%;
 }
 input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
@@ -228,7 +229,8 @@ input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[ty
     color: #999999;
 }
 .fieldlabel {
-    padding-right: 10px;
+    padding-right: 5em;
+    margin-right: 5em;
 }
 td.topline {
     border-top: 1px dotted #999999;
@@ -249,6 +251,7 @@ td.bottomline {
 
 th.required, span.required{
     font-weight: bold;
+    margin-right: 1em;
 }
 .hidden-submit {
     border: 0 none;
@@ -261,19 +264,25 @@ th.required, span.required{
 
 .btn.btn-primary.btn-lg{
   color: white;
-  margin-bottom: 1em;
+  margin-top: 1em;
+  margin-bottom: 0.1em;
   font-size: 100%;
 
 }
 
 .jumbotron p{
   margin-top: -3em;
+  margin-left: 0em;
 }
 
 .jumbotron{
-  height:  52em;
-  margin-bottom: 0.5em;
-  font-size: 90%;
+  /* height:  56em; */
+  height:  auto;
+  /* width: 60em; */
+  width: auto;
+  /* margin-bottom: 0.5em; */
+  margin-left: -1em;
+  font-size: 80%;
 }
 
 
