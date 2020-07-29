@@ -1,7 +1,9 @@
 from django.urls import path, re_path
 from web_interface import views
 from web_interface.account import account_viewsN
+from web_interface.aws import resource_views
 from web_interface.pools import pool_views, task_views
+from web_interface.client_api import api_views
 
 
 # app_name = 'web_interface'
@@ -31,8 +33,12 @@ urlpatterns = [
     {'template_name':'help/poolsN.html', 'page_title':'Help - Compute Pools'},
     name='help_pools'),
 
-    path('help/terms/', views.DefaultView.as_view(),
-    {'template_name':'help/termsN.html','page_title':'Help - Terms and Conditions'},
+    # path('help/terms/', views.DefaultView.as_view(),
+    # {'template_name':'help/termsN.html','page_title':'Help - Terms and Conditions'},
+    # name="help_terms"),
+
+    path('help/terms/',
+    views.DefaultView.as_view(template_name='help/termsN.html',page_title='Terms and Conditions'),
     name="help_terms"),
 
     # registrations
@@ -62,6 +68,10 @@ urlpatterns = [
     path('my_account/pools/add_ec2/', pool_views.EC2PoolAddView.as_view(), name='ec2_pool_add'),
     path('my_account/pools/add_existing/', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
 
+    path('my_account/resource_overview/', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
+    re_path(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/confirmed/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': True}, name='resource_terminate_confirmed'),
+    re_path(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': False}, name='resource_terminate'),
+
     #Task views
     path('my_account/tasks/new/', task_views.NewTaskView.as_view(), name='task_new'),
 
@@ -83,4 +93,8 @@ urlpatterns = [
 
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete_confirmed'),
+
+
+    #API views for updating condor job status_message
+    path('api/check_resource/', api_views.CheckResourceView.as_view(), name='api_check_resource'),
 ]

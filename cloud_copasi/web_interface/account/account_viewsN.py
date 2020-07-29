@@ -6,11 +6,11 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-# from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseServerError
 from django.views.generic import TemplateView, RedirectView, View, FormView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-# from django.views.generic.edit import FormMixin, ProcessFormView
+from django.views.generic.edit import FormMixin, ProcessFormView
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
@@ -21,23 +21,23 @@ from web_interface.models import AWSAccessKey, Task, EC2Instance,\
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
-# import sys
+import sys
 from django.contrib.auth.forms import PasswordChangeForm
 from web_interface.aws import vpc_tools, aws_tools, ec2_tools
 from web_interface import models, form_tools
-# from django.views.decorators.cache import never_cache
-# from boto.exception import EC2ResponseError, BotoServerError
-# import boto.exception
+from django.views.decorators.cache import never_cache
+from boto.exception import EC2ResponseError, BotoServerError
+import boto.exception
 from web_interface.models import VPC, CondorPool
-# from django.forms.forms import NON_FIELD_ERRORS
+from django.forms.forms import NON_FIELD_ERRORS
 import logging
-# from django.forms.utils import ErrorList
+from django.forms.utils import ErrorList
 # from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 from web_interface.account import user_countries
 from cloud_copasi import settings
-# from django.views.generic.base import ContextMixin
-# from cloud_copasi.web_interface.pools import condor_tools
-# import tempfile
+from django.views.generic.base import ContextMixin
+from web_interface.pools import condor_tools
+import tempfile
 import re
 import os
 
@@ -475,8 +475,7 @@ class AccountRegisterForm(UserCreationForm):
 
     terms = forms.BooleanField(required=True,
                                label='Agree to terms and conditions?',
-                               help_text = 'You must agree to the terms and conditions in order to register. \
-                               Click <a href="%s" target="new">here</a> for further details',
+                               help_text = 'You must agree to the terms and conditions in order to register. Click <a href="%s" target="new">here</a> for further details',
                                )
 
 
@@ -496,7 +495,7 @@ class AccountRegisterView(FormView):
     template_name = 'account/registerN.html'
     form_class = AccountRegisterForm
     success_url = reverse_lazy('my_account')
-
+    
 
     def get_context_data(self, **kwargs):
         context = FormView.get_context_data(self, **kwargs)
@@ -508,7 +507,7 @@ class AccountRegisterView(FormView):
 
         #Only display if the user is not logged in
         if request.user.is_authenticated:
-            return HttpResponseRedirect(reverse_lazy('my_account'))
+            return HttpResponseRedirect(self.success_url)
 
         return super(AccountRegisterView, self).dispatch(request, *args, **kwargs)
 
