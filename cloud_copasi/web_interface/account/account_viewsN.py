@@ -57,7 +57,7 @@ class MyAccountView(RestrictedView):
 class KeysView(MyAccountView):
     """View to display keys
     """
-    template_name = 'account/key_view.html'
+    template_name = 'account/key_viewN.html'
     page_title = 'Keys'
 
 class AddKeyForm(forms.Form):
@@ -94,7 +94,7 @@ class AddKeyForm(forms.Form):
 
 
 class KeysAddView(RestrictedFormView):
-    template_name = 'account/key_add.html'
+    template_name = 'account/key_addN.html'
     page_title = 'Add key'
     success_url = reverse_lazy('my_account_keys')
     form_class = AddKeyForm
@@ -333,7 +333,7 @@ class KeysRenameView(RestrictedFormView):
 
 
 class PasswordChangeView(RestrictedFormView):
-    template_name = 'account/password_change.html'
+    template_name = 'account/password_changeN.html'
     page_title = 'Change password'
     form_class = PasswordChangeForm
     success_url = reverse_lazy('my_account')
@@ -446,7 +446,7 @@ class KeysDeleteView(MyAccountView):
 
 
 class VPCConfigView(MyAccountView):
-    template_name = 'account/vpc_config.html'
+    template_name = 'account/vpc_configN.html'
     page_title ='VPC configuration'
 
     @method_decorator(login_required)
@@ -495,7 +495,7 @@ class AccountRegisterView(FormView):
     template_name = 'account/registerN.html'
     form_class = AccountRegisterForm
     success_url = reverse_lazy('my_account')
-    
+
 
     def get_context_data(self, **kwargs):
         context = FormView.get_context_data(self, **kwargs)

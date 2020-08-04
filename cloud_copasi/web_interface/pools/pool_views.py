@@ -160,7 +160,7 @@ class AddEC2PoolForm(forms.Form):
 
 
 class EC2PoolAddView(RestrictedFormView):
-    template_name = 'pool/ec2_pool_add.html'
+    template_name = 'pool/ec2_pool_addN.html'
     page_title = 'Add EC2 pool'
     success_url = reverse_lazy('pool_list')
     form_class = AddEC2PoolForm
@@ -279,7 +279,7 @@ class EC2PoolTerminationSettingsView(RestrictedFormView):
 
 
 class PoolDetailsView(RestrictedView):
-    template_name='pool/pool_details.html'
+    template_name='pool/pool_detailsN.html'
     page_title = 'Pool details'
 
     @method_decorator(login_required)

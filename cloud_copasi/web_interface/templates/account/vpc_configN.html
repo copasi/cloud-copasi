@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        {% include "account/sidebarN.html" %}
+
+      </div>
+
+      <div class="col-9">
+        <div class="information">
+          <article>
+              <header class="major">
+                  <h2>VPC Configuration</h2>
+                  <span class="byline">Manage VPC configuration for <span style="font-weight:bolder">{{key.name}}</span></span>
+              </header>
+
+              <p>All keys must have an available Virtual Private Cloud (VPC) before compute pools can be launched. At present a single VPC is associated with each key.</p>
+
+              {% if key.vpc == "NULL" %}
+              <p style="font-weight: bold">This key currently has no associated VPC.</p>
+
+              <p><a class="btn btn-primary btn-lg" href="{% url 'vpc_add' key_id=key.id %}">Add VPC</a></p>
+
+              {% else %}
+              <p>VPC status: <span style="font-weight: bold">{{ key.vpc.get_status }}</span>. </p>
+
+              <p>If you are experiencing problems, try removing the AWS key and adding it again. Note that this will result in any compute pools associated with the key being terminated, along with any running tasks.</p>
+
+
+              <p><a class="button button-icon" href="{% url 'my_account_keys_delete' key_id=key.id %}">Remove Key</a></p>
+
+              <p />
+              <p><a href="{% url 'my_account_keys' %}">Return to key overview</a></p>
+              {% endif %}
+
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+  {% endblock %}

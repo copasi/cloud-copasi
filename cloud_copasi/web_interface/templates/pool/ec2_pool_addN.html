@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 {% extends "baseN.html" %}
 {% load static %}
-{% block extra_scripts %}
-<script>
-{% include "tasks/task_new_scripts.js" %}
-</script>
-{% endblock %}
 
 {% comment %}
 Cloud-COPASI
@@ -26,16 +21,22 @@ http://www.gnu.org/licenses/gpl.html
     <div class="row">
       <div class="col-3">
         {% include "account/sidebarN.html" %}
+
       </div>
 
       <div class="col-9">
         <div class="information">
           <article>
               <header class="major">
-                  <h2>Submit task</h2>
-                  <span class="byline">Submit a new task</span>
+                  <h2>Launch pool</h2>
+                  <span class="byline">Launch a new compute pool</span>
               </header>
-              {% include 'formN.html' with submit_text="Submit task" multipart=True api_url_name='api_extra_tag_fields' %}
+              {% if access_keys.count == 0 %}
+              <h4>You must add an AWS access key to continue</h4>
+              {% endif %}
+
+              {% include 'form.html' with submit_text="Launch pool"%}
+
           </article>
 
         </div>

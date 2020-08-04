@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 {% extends "baseN.html" %}
 {% load static %}
-{% block extra_scripts %}
-<script>
-{% include "tasks/task_new_scripts.js" %}
-</script>
-{% endblock %}
 
 {% comment %}
 Cloud-COPASI
@@ -26,16 +21,19 @@ http://www.gnu.org/licenses/gpl.html
     <div class="row">
       <div class="col-3">
         {% include "account/sidebarN.html" %}
+
       </div>
 
       <div class="col-9">
         <div class="information">
           <article>
               <header class="major">
-                  <h2>Submit task</h2>
-                  <span class="byline">Submit a new task</span>
+                  <h2>Task results</h2>
+                  <span class="byline">Results for task {{ task.name }}</span>
               </header>
-              {% include 'formN.html' with submit_text="Submit task" multipart=True api_url_name='api_extra_tag_fields' %}
+              <p><a href="{% url 'task_details' task_id=task.id %}">Back to task overview</a></p>
+
+              {% include results_view_template_name %}
           </article>
 
         </div>

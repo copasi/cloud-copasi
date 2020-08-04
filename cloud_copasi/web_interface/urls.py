@@ -63,14 +63,23 @@ urlpatterns = [
 
     path('my_account/change_password/', account_viewsN.PasswordChangeView.as_view() , name='my_account_password_change'),
 
+
+    #VPC
+    re_path(r'^my_account/vpc_status/(?P<key_id>\d+)/configure/$', account_viewsN.VPCConfigView.as_view(), name='vpc_config'),
+    # re_path(r'^my_account/vpc_status/(?P<key_id>\d+)/add/$', account_views.VPCAddView.as_view(), name='vpc_add'),
+
     #pools
     path('my_account/pools/', pool_views.PoolListView.as_view(), name = 'pool_list'),
     path('my_account/pools/add_ec2/', pool_views.EC2PoolAddView.as_view(), name='ec2_pool_add'),
     path('my_account/pools/add_existing/', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
 
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/details/$', pool_views.PoolDetailsView.as_view(), name='pool_details'),
+
+
     path('my_account/resource_overview/', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
     re_path(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/confirmed/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': True}, name='resource_terminate_confirmed'),
     re_path(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': False}, name='resource_terminate'),
+
 
     #Task views
     path('my_account/tasks/new/', task_views.NewTaskView.as_view(), name='task_new'),
@@ -87,9 +96,6 @@ urlpatterns = [
     re_path('^my_account/tasks/(?P<task_id>\d+)/results/$', task_views.TaskResultView.as_view(), name='task_results'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/results/download/$', task_views.TaskResultDownloadView.as_view(), name='task_results_download'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/results/zip/download/$', task_views.TaskDirectoryDownloadView.as_view(), name='task_results_zip_download'),
-
-
-
 
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete_confirmed'),

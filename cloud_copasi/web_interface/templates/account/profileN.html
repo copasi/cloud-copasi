@@ -18,15 +18,30 @@ http://www.gnu.org/licenses/gpl.html
 {% endblock %}
 
 {% block main_content %}
-<article>
-    <header class="major">
-        <h2>Update your profile</h2>
-    </header>
+<div class="container">
+  <div class="row">
+    <div class="col-3">
+      {% include "account/sidebarN.html" %}
+    </div>
 
-    {% include 'form.html' with submit_text="Update"%}
-    <p></p>
-    <p><a href="{% url 'my_account' %}">Back to my account</a>
+    <div class="col-9">
+      <div class="information">
+
+        <article>
+            <header class="major">
+                <h2>Update your profile</h2>
+            </header>
+
+            {% include 'formN.html' with submit_text="Update"%}
+            <p></p>
+            <p><a href="{% url 'my_account' %}">Back to my account</a>
+        </article>
+
+      </div>
+    </div>
+
+  </div>
 
 
-</article>
+</div>
 {% endblock %}

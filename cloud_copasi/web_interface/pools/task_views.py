@@ -289,7 +289,7 @@ class NewTaskView(RestrictedFormView):
 
 class TaskListView(RestrictedView):
 
-    template_name = 'tasks/task_list.html'
+    template_name = 'tasks/task_listN.html'
     page_title = '...tasks'
 
     @method_decorator(login_required)
@@ -323,7 +323,7 @@ class TaskListView(RestrictedView):
 
 class TaskDetailsView(RestrictedView):
 
-    template_name = 'tasks/task_details.html'
+    template_name = 'tasks/task_detailsN.html'
     page_title = 'Task status'
 
     @method_decorator(login_required)
@@ -363,7 +363,7 @@ class TaskDetailsView(RestrictedView):
 
 class SubtaskDetailsView(RestrictedView):
 
-    template_name = 'tasks/subtask_details.html'
+    template_name = 'tasks/subtask_detailsN.html'
     page_title = 'Subtask details'
 
     @method_decorator(login_required)
@@ -385,7 +385,7 @@ class SubtaskDetailsView(RestrictedView):
 
 class TaskDeleteView(RestrictedView):
 
-    template_name = 'tasks/task_delete.html'
+    template_name = 'tasks/task_deleteN.html'
     page_title = 'Delete task'
 
     @method_decorator(login_required)
@@ -418,7 +418,7 @@ class TaskDeleteView(RestrictedView):
 
 class TaskResultView(RestrictedView):
     page_title = 'Results'
-    template_name = 'tasks/result_view.html'
+    template_name = 'tasks/result_viewN.html'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

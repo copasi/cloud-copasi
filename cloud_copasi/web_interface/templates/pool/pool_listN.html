@@ -64,7 +64,7 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{{ec2_pool.vpc.access_key.name }}</td>
                           <td >{{ec2_pool.get_count}}</td>
                           <td> {{ ec2_pool.get_health }}</td>
-                          <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=ec2_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=ec2_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>
@@ -107,7 +107,7 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{% if bosco_pool.status_page != '' %}<a href="{{bosco_pool.status_page}}" target="new">Status</a>{% endif %}</td>
                           <td>{{bosco_pool.address }}</td>
                           <td >{{bosco_pool.get_pool_type_display}}</td>
-                          <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>
@@ -144,7 +144,7 @@ http://www.gnu.org/licenses/gpl.html
                           {% if pool.get_type == 'bosco' %}<td>{{shared_pool.address }}</td>{% endif %}
                           <td >{{shared_pool.get_pool_type_display_true}}</td>
                           <td>{{shared_pool.copy_of.user.username}}</td>
-                          <td><a class="button button-narrow button-icon button-icon-info" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>

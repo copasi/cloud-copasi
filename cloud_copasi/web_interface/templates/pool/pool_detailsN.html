@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        {% include "account/sidebarN.html" %}
+
+      </div>
+
+      <div class="col-9">
+        <div class="information">
+          <article>
+              <header class="major">
+                  <h2>Compute pool details</h2>
+                  <span class="byline">Compute pool details for <span style="font-weight:bolder">{{pool.name}}</span></span>
+              </header>
+               <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
+              <h4>Compute pool information</h4>
+              {% if pool_type == 'ec2' or shared_pool_type == 'ec2' %}
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          {%if pool.copy_of %}<th>Shared by</th>{% endif %}
+                          <th>Active nodes*</th>
+                          <th>CPU hours used</th>
+                          <th>Pool health</th>
+                          <th>Spot requests (fulfilled)</th>
+                      </tr>
+                      <tr>
+                          <td>{{pool.name}}</td>
+                          <td>{{pool.get_pool_type_display_true}}</td>
+                          {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
+                          <td>{{active_instances.count}}</td>
+                          <td>Not implemented</td>
+                          <td>{% if pool_type == 'shared' %}{{ original_pool.get_health }}{% else %}{{ pool.get_health }}{% endif %}</td>
+                          <td>{{ spot_requests.count }} ({{ fulfilled_spot_requests.count }})</td>
+                      </tr>
+                  </table>
+                  <p>*Includes Master node</p>
+              </div>
+
+              {%else%}
+
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Status</th>
+                          {%if pool.copy_of %}<th>Shared by</th>{% endif %}
+                          <th>Address</th>
+                          <th>CPU hours used</th>
+                      </tr>
+                      <tr>
+                          <td>{{pool.name}}</td>
+                          <td>{{pool.get_pool_type_display}}</td>
+                          <td>{% if pool.status_page != '' %}<a href="{{pool.status_page}}" target="new">Status</a>{% endif %}</td>
+                          {% if pool.copy_of %}<td>{{pool.copy_of.user.username}}</td>{% endif %}
+                          <td>{{pool.address}}</td>
+                          <td>Not implemented</td>
+                      </tr>
+                  </table>
+              </div>
+              {% endif %}
+              <p>
+                  <div class="tablelist">
+                      <table>
+                          <th class="fieldlabel required">Pool actions</th>
+                          {% for key, button in buttons.items %}
+                              <tr><td><a href="{{ button.url }}" class="{% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
+                          {% endfor %}
+                      </table>
+                  </div>
+              </p>
+              {% if pool_type == 'ec2' or shared_pool_type == 'ec2'%}
+              <h4>Master node status:</h4>
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Instance ID</th>
+                          <th>Type</th>
+                          <th>State</th>
+                          <th>Uptime</th>
+                          <th>Status</th>
+                      </tr>
+                      {% if original_pool.master %}
+                      <tr>
+                          <td>{{ original_pool.master.instance_id }}</td>
+                          <td>{{ original_pool.master.instance_type }}</td>
+                          <td>{{ original_pool.master.get_state }}</td>
+                          <td>Not implemented</td>
+                          <td>{{ original_pool.master.get_health }}</td>
+                      </tr>
+                      {% endif %}
+                  </table>
+              </div>
+
+              {% if spot_requests.count > 0 %}
+              <h4>Spot requests (total {{spot_requests.count}}):</h4>
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Request ID</th>
+                          <th>Type</th>
+                          <th>Bid</th>
+                          <th>State</th>
+                          <th>Status</th>
+                          <th>Instance ID</th>
+                      </tr>
+                      {% for request in spot_requests %}
+                      <tr id="{{request.request_id}}">
+                          <td>{{ request.request_id }}</td>
+                          <td>{{ request.instance_type }}</td>
+                          <td>${{ request.price }}</td>
+                          <td>{{ request.state }}</td>
+                          <td><span title="{{request.status_message}}" style="border-bottom: 1px dotted #ba0000;">{{ request.status_code }}</span></td>
+                          <td>
+                              {% if request.ec2_instance %}
+                                  <a href="#{{request.ec2_instance.instance_id}}">{{request.ec2_instance.instance_id}}</a>
+                              {% else %}
+                                  None
+                              {% endif %}
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </table>
+              </div>
+
+
+              {% endif %}
+
+              <h4>Compute nodes (total {{compute_instances.count}}, active {{active_instances.count|add:"-1"}}):</h4>
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Instance ID</th>
+                          <th>Type</th>
+                          <th>State</th>
+                          <th>Uptime</th>
+                          <th>Status</th>
+                          <th>Spot request</th>
+                      </tr>
+                      {% for instance in not_terminated_instances %}
+                      <tr id="{{instance.instance_id}}">
+                          <td>{{ instance.instance_id }}</td>
+                          <td>{{ instance.instance_type }}</td>
+                          <td>{{ instance.get_state }}</td>
+                          <td>Not implemented</td>
+                          <td>{{ instance.get_health }}</td>
+                          <td>
+                              {% if instance.has_spot_request %}
+                                  <a href="#{{instance.spotrequest.request_id}}">{{instance.spotrequest.request_id}}</a>
+                              {% else %}
+                                  No
+                              {% endif %}
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </table>
+                  <p>{{terminated_instances.count}} instances terminated.</p>
+              </div>
+
+
+              {% endif %}
+
+              {% if tasks %}
+              <h4>The following tasks are associated with this pool:</h4>
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Status</th>
+                      </tr>
+                      {% for task in tasks %}
+                      <tr>
+                          <td><a href="{% url 'task_details' task_id=task.id %}">{{task.name}}</a></td>
+                          <td>{{task.get_task_type_name}}</td>
+                          <td>{{task.get_status_display}}
+                      </tr>
+                      {% endfor %}
+                  </table>
+              </div>
+              {% endif %}
+              <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
+
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+  {% endblock %}
