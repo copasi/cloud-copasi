@@ -207,7 +207,7 @@ class ShareKeyForm(forms.Form):
 
 class KeysShareView(RestrictedFormView):
     form_class = ShareKeyForm
-    template_name = 'account/key_share.html'
+    template_name = 'account/key_shareN.html'
     page_title = 'Share key'
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -301,7 +301,7 @@ class KeyRenameForm(forms.Form):
 
 class KeysRenameView(RestrictedFormView):
     page_title='Rename pool'
-    template_name = 'account/key_rename.html'
+    template_name = 'account/key_renameN.html'
     form_class = KeyRenameForm
 
     @method_decorator(login_required)
@@ -349,7 +349,7 @@ class PasswordChangeView(RestrictedFormView):
         return super(PasswordChangeView, self).form_valid(*args, **kwargs)
 
 class KeysDeleteView(MyAccountView):
-    template_name = 'account/key_delete_confirm.html'
+    template_name = 'account/key_delete_confirmN.html'
     page_title = 'Confirm key delete'
 
     @method_decorator(login_required)

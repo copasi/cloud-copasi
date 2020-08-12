@@ -21,13 +21,13 @@ http://www.gnu.org/licenses/gpl.html
         <h2>AWS Resource Overview</h2>
         <span class="byline">A summary of all resources running on your AWS accounts</span>
     </header>
-    
+
     <p>Resources that were launched by cloud-copasi are refered to as recognized resources.
         Unrecognized resources can include resources that failed to terminate properly. You may be charged if these resources contuinue to run!</p>
     <div>
     <p><a href="{% url 'resource_terminate' key_id='all' %}" class="button button-icon button-icon-check">Terminate all unrecognized resources</a></p>
     </div>
-    
+
     {% for key, recognized, unrecognized in overview %}
     <h4>AWS Key: {{key.name}}{% if key.copy_of %} (shared with {{key.user.username}} by {{key.copy_of.user.username}}){% endif %}</h4>
     <div class="tablelist">
@@ -37,7 +37,7 @@ http://www.gnu.org/licenses/gpl.html
                 <th></th>
                 <th>EC2 instances (compute nodes)</th>
                 <th>Elastic IPs</th>
-            </tr>
+            </tr> 
             <tr>
                 <th>Recognized</th>
                 <td>{{ recognized.ec2_instances | length }}</td>
@@ -54,6 +54,6 @@ http://www.gnu.org/licenses/gpl.html
     </div>
     {% endfor %}
 
-    
+
 </article>
 {% endblock %}

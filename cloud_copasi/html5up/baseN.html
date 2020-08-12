@@ -10,14 +10,20 @@
     <!--  Bootstrap 4.5.0 -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    <script>
-      {% include 'scripts.js' %}
-    </script>
+
+    <!-- Scripts from previous version -->
+    <script src="{% static 'css/5grid/init.js' %}?use=mobile,desktop,1000px&amp;mobileUI=1&amp;mobileUI.theme=none"></script>
+    <script src="{% static 'js/init.js' %}"></script>
+    <script> {% include 'scripts.js' %} </script>
+    <script src="{% static 'js/popup_box.js' %}"></script>
     <!-- Customized styling -->
-    <link rel="stylesheet" href="{% static '/css/baseN.css' %}" />
+    <link rel="stylesheet" href="{% static '/css/baseN.css' %}"
+
 
   </head>
-  <body>
+  <body class="{% block bodyclass %}{% endblock %}" {% if errors %}onload="popup('{% filter escapejs %}{% include 'errorbox.html' %}{% endfilter %}')" {% endif %}>
+
+
 
     <!-- Navigation Bar -->
     <!-- ********************************************************************* -->
@@ -49,11 +55,11 @@
               <a class="nav-link" href="#">Help</a>
             </li> -->
             {% if user.is_authenticated %}
-                <li><a href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
                 {% if user.is_superuser %}
-                  <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                  <li class="nav-item"> <a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
                 {% endif %}
-                <li><a href="{% url 'sign_out' %}">Sign out</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'sign_out' %}">Sign out</a></li>
             {% else %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'my_account_register' %}">Register</a> </li>
                 <li class="nav-item"> <a class="nav-link" href="{% url 'sign_in' %}">Sign In</a> </li>
@@ -70,12 +76,14 @@
 
 <!--Warning bar -->
 {% if show_status_bar %}
-<div id="status-bar">
+<div class="container">
+  <div id="status-bar">
     <span id="checking-text">Checking AWS status...</span>
 
     <div id="response-bar">
-                <span id="response-text"> </span>
+      <span id="response-text"> </span>
     </div>
+  </div>
 </div>
 {% endif %}
 

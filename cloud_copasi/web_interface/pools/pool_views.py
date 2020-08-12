@@ -670,7 +670,7 @@ class AddBoscoPoolForm(forms.Form):
 
     ssh_key = forms.CharField(max_length = 10000,
                               label = 'SSH private key',
-                              help_text = 'A working SSH private key for the pool submit node. This key will used only once, and will not be stored. See the documentation for full details on how to generate this.',
+                              help_text = 'A working SSH private key for the pool submit node. This key will be used only once, and will not be stored. See the documentation for full details on how to generate this.',
                               widget=forms.Textarea)
 
     status_page_link = forms.CharField(max_length=1000,

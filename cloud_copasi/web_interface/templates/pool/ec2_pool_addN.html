@@ -16,6 +16,12 @@ http://www.gnu.org/licenses/gpl.html
 {% block header_content %}
 {% endblock %}
 
+{% block extra_scripts %}
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">{% include 'pool/pool_launch.js' %}</script>
+
+{% endblock %}
+
 {% block main_content %}
   <div class="container">
     <div class="row">
@@ -35,7 +41,7 @@ http://www.gnu.org/licenses/gpl.html
               <h4>You must add an AWS access key to continue</h4>
               {% endif %}
 
-              {% include 'form.html' with submit_text="Launch pool"%}
+              {% include 'formN.html' with submit_text="Launch pool"%}
 
           </article>
 

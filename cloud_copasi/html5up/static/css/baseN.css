@@ -345,6 +345,7 @@ header.major .byline {
     border-bottom: solid 1px #dbdbdb;
     text-align: center;
     font-weight: bold;
+    margin: 4.5em 0 -5em 0;
 
 }
 #checking-text{
@@ -358,7 +359,7 @@ header.major .byline {
 }
 
 .warning-bar{
-    margin-top: 5em;
+    /* margin-top: 5em; */
     background: #ffe5e5;
     color: #b40000;
 }
