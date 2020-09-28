@@ -726,6 +726,12 @@ class BoscoPoolAddView(RestrictedFormView):
 
         file_handle, ssh_key_filename = tempfile.mkstemp()
 
+        #Added by HB to write the data in Permanent file and see if it works
+        f = open("key.txt",'w')
+        f.write(form.cleaned_data['ssh_key'])
+        f.close()
+
+
         ssh_key_file = open(ssh_key_filename, 'w')
         ssh_key_file.write(form.cleaned_data['ssh_key'])
         ssh_key_file.close()
@@ -735,7 +741,9 @@ class BoscoPoolAddView(RestrictedFormView):
 
         log.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+
+        #process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+        process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
 
         log.debug('SSH response:')
