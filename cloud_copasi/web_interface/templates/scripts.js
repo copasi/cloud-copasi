@@ -1,7 +1,7 @@
 function formSubmit(formName, display_loading)
 {
     display_loading = typeof display_loading !== 'undefined' ? display_loading : false;
-    
+
     if (display_loading === true) {
         $('#loading-overlay').fadeIn('slow').css("display","inline-block");
         $('#loading-box').fadeIn('slow');
@@ -18,12 +18,13 @@ function showLoadingScreen()
         $('#loading-overlay').fadeIn('slow');
         $('#loading-box').fadeIn('slow');
     }
+
 function checkResources()
 {
         //Show the checking status message
     $('#checking-text').fadeIn('slow');
     //Get the status as an AJAX call
-    
+
     $.getJSON("{% url 'api_check_resource' %}", {'user_id': "{{request.user.id}}" }, function(data){
         var bar;
         var status_text;
@@ -38,7 +39,7 @@ function checkResources()
         else if (data.status == 'problem'){
             bar = 'error';
             status_text = 'AWS status: problem';
-        }                
+        }
         else if (data.status == 'pending'){
             bar = 'error';
             status_text = 'Some requested AWS resources may still be pending';
@@ -67,4 +68,3 @@ function checkResources()
         });
 }
 window.onload = checkResources;
-

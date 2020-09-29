@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-
+<!DOCTYPE html>
+{% extends 'base1.html' %}
 
 {% comment %}
 Cloud-COPASI
@@ -14,19 +14,20 @@ http://www.gnu.org/licenses/gpl.html
 
 {% block bodyclass %}homepage{% endblock %}
 
-{% block extra_scripts %}
+{% comment %} {% block extra_scripts %}
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">{% include 'pool/spotprice_history_home.js' %}</script>
-    
-{% endblock %}
+
+{% endblock %} {% endcomment %}
 
 {% block header_content %}
 <!-- Banner -->
 <div id="banner">
-    <h2><strong>Cloud COPASI:</strong> 
-    Biochemical simulation and analysis using cloud computing</h2>
-    <p>Find out more and sign up for a free account today</p>
-    <a href="{% url 'help' %}" class="button button-big button-icon button-icon-check">Learn more</a>
+    <h2><strong>Cloud COPASI</strong><br></h2>
+    <p class="description"> Biochemical simulation and analysis using <br> cloud computing</p>
+    {# <p> Find out more and sign up for a free account today </p> #}
+    {% comment %} <a href="{% url 'help' %}" class="button button-big button-icon button-icon-check">Learn more</a> {% endcomment %}
+    <a href="#" class="button button-big button-icon button-icon-check">Learn more</a>
 </div>
 {% endblock %}
 
@@ -35,13 +36,13 @@ http://www.gnu.org/licenses/gpl.html
 <div id="main-wrapper">
     <div class="main-wrapper-style1">
         <div class="inner">
-    
+
             <!-- Feature 1 -->
                 <section class="5grid-layout box-feature1">
                     <div class="row">
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/AWS_Logo_PoweredBy_384px.png' %}" alt=""/></span>
+                                {# <span class="image image-full"><img src="{% static 'images/AWS_Logo_PoweredBy_384px.png' %}" alt=""/></span> #}
                                 <header class="second second-gear">
                                     <h3>Powered by AWS</h3>
                                     <span class="byline">Launch a cloud-based compute pool</span>
@@ -50,7 +51,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/HTCondor_red_blk_384px.png' %}" alt="" /></span>
+                                {# <span class="image image-full"><img src="{% static 'images/HTCondor_red_blk_384px.png' %}" alt="" /></span> #}
                                 <header class="second second-gear">
                                     <h3>Parallel computation</h3>
                                     <span class="byline">Connect existing computational resources</span>
@@ -59,7 +60,7 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
                         <div class="4u">
                             <section>
-                                <span class="image image-full"><img src="{% static 'images/COPASI_384px.png' %}" alt="" /></span>
+                                {# <span class="image image-full"><img src="{% static 'images/COPASI_384px.png' %}" alt="" /></span> #}
                                 <header class="second second-chart">
                                     <h3>COPASI simulation backend</h3>
                                     <span class="byline">Includes SBML import and export</span>
@@ -73,18 +74,26 @@ http://www.gnu.org/licenses/gpl.html
 
                             <p>Cloud-COPASI is a web-based tool for running <span class="bold">computationally intensive</span> simulation and analysis
                                 tasks in parallel on a high-throughput computing pool. Cloud-COPASI can
-                                <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>, or provides a simple interface for
-                                <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the
+                                {% comment %} <a href="{% url 'help_pools' %}#existing">connect to existing computing pools</a>,  {% endcomment %}
+                                <a href="#">connect to existing computing pools</a>, or provides a simple interface for
+                                {% comment %} <a href="{% url 'help_pools' %}#ec2_launch">launching a new computing pool</a> using the {% endcomment %}
+                                <a href="#">launching a new computing pool</a> using the
                                 <a href="http://aws.amazon.com">Amazon Elastic Compute Cloud (EC2)</a>.
                             </p>
 
                             <p>
-                                Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including
-                                <a href="{% url 'help_tasks' %}#sensitivity_optimization"> global sensitivity analyses
-                                </a>, <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>,
-                                <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>,
-                                <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and
-                                <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically split
+                                {% comment %} Cloud-COPASI can run <a href="{% url 'help_tasks' %}">a number of simulation and analysis tasks</a>, including {% endcomment %}
+                                Cloud-COPASI can run <a href="#">a number of simulation and analysis tasks</a>, including
+                                {% comment %} <a href="{% url 'help_tasks' %}#sensitivity_optimization"> global sensitivity analyses {% endcomment %}
+                                <a href="#"> global sensitivity analyses</a>,
+                                {% comment %} <a href="{% url 'help_tasks' %}#stochastic">stochastic simulations</a>, {% endcomment %}
+                                <a href="#">stochastic simulations</a>,
+                                {% comment %} <a href="{% url 'help_tasks' %}#parallel_scan">parameter scans</a>, {% endcomment %}
+                                <a href="#">parameter scans</a>,
+                                {% comment %} <a href="{% url 'help_tasks' %}#optimization_repeat">optimizations</a>, and {% endcomment %}
+                                <a href="#">optimizations</a>, and
+                                {% comment %} <a href="{% url 'help_tasks' %}#parameter_estimation">parameter fitting</a>. Each task is automatically split {% endcomment %}
+                                <a href="#">parameter fitting</a>. Each task is automatically split
                                 into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
                             </p>
 
@@ -106,10 +115,11 @@ http://www.gnu.org/licenses/gpl.html
                 </section>
         </div>
     </div>
-    
+
+    {% comment %}
     <div class="main-wrapper-style2">
         <div class="inner">
-                
+
             <section class="5grid-layout">
                 <div class="row">
                     <div class="8u">
@@ -134,7 +144,8 @@ http://www.gnu.org/licenses/gpl.html
                         </div>
 
                         <footer>
-                            <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a>
+                            {# <a href="{% url 'spotprice_history' %}" class="button button-medium button-icon button-icon-info">Learn more</a> #}
+                            <a href="#" class="button button-medium button-icon button-icon-info">Learn more</a>
                         </footer>
 
                     </div>
@@ -161,6 +172,6 @@ http://www.gnu.org/licenses/gpl.html
         </div>
 
     </div>
-
+    {% endcomment %}
 </div>
 {% endblock %}

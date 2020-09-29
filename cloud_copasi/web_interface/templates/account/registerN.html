@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+{# {% block sidebar %} #}
+{# {% include 'password_sidebar.html' %} #}
+{# {% endblock %} #}
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+<div class="container">
+  <div id="registration" class="row">
+    <article>
+
+      <section>
+        <header class="major">
+          <h2>Register for a new account</h2>
+        </header>
+        {% if allow_new_registrations == True %}
+          {% include "formN.html" with submit_text="Register" %}
+        {%else%}
+          <p>Sorry, new registrations are not currently being accepted. If you have any questions, feel free to <a href="{% url 'contact' %}">contact us</a>.</p>
+        {% endif %}
+      </section>
+
+    </article>
+
+  </div>
+
+</div>
+{% endblock %}

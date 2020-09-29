@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
+
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+
+
+{% block header_content %}
+{% endblock %}
+
+{% block main_content %}
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        {% include "account/sidebarN.html" %}
+
+      </div>
+
+      <div class="col-9">
+        <div class="information">
+          <article>
+              <header class="major">
+                  <h2>AWS Keys</h2>
+                  <span class="byline">Your AWS keypairs</span>
+              </header>
+
+              <p>You must have at least 1 AWS access key associated with your account in order to launch EC2 pools. A Virtual Private Cloud (VPC) must be available for each access key in order to run jobs.</p>
+
+              <p><a class="btn btn-primary btn-lg" href="{% url 'my_account_keys_add' %}">Add new key</a></p>
+
+              <h3>Your AWS access keys</h3>
+              <p>Keys that have you added to your account.</p>
+
+              {% if owned_keys.count > 0 %}
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Key name</th>
+                          <th>Access key ID</th>
+                          <th>Secret access key</th>
+                          <th>Actions</th>
+                          <th>VPC Status</th>
+                      </tr>
+                  {% for key in owned_keys %}
+                      <tr>
+                          <td>{{ key.name }}</td>
+                          <td>{{ key.access_key_id}}</td>
+                          <td style="font-style:italic;">**Hidden**</td>
+                          <td>
+                              <p><a class="btn btn-primary btn-lg" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></p>
+                              <p><a class="btn btn-primary btn-lg" href="{% url 'my_account_keys_share' key_id=key.id %}">Share</a></p>
+                              <p><a class="btn btn-primary btn-lg" href="{% url 'my_account_keys_rename' key_id=key.id %}">Rename</a></p>
+                          </td>
+                          <td><a href="{% url 'vpc_config' key_id=key.id %}">{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</a></td>
+                      </tr>
+                  {% endfor %}
+                  </table>
+              </div>
+              {% else %}
+              <p><span class="bold">You have not added any AWS keys to your account.</span></p>
+              {% endif %}
+
+              <h3>Shared keys</h3>
+              <p>Keys that have been shared with you by another user.</p>
+              {% if shared_keys.count > 0 %}
+              <div class="tablelist">
+                  <table>
+                      <tr>
+                          <th>Key name</th>
+                          <th>Shared by</th>
+                          <th>Access key ID</th>
+                          <th>Secret access key</th>
+                          <th>Actions</th>
+                          <th>Status</th>
+                      </tr>
+                  {% for key in shared_keys %}
+                      <tr>
+                          <td>{{ key.name }}</td>
+                          <td>{{ key.copy_of.user.username }}</td>
+                          <td>{{ key.access_key_id}}</td>
+                          <td style="font-style:italic;">**Hidden**</td>
+                          <td>
+                              <p><a class="button button-narrow button-alt" href="{% url 'my_account_keys_delete' key_id=key.id %}">Delete</a></p>
+                              <p><a class="button button-narrow" href="{% url 'my_account_keys_rename' key_id=key.id %}">Rename</a></p>
+                          </td>
+                          <td>{% if key.vpc != "NULL" %}{{key.vpc.get_status}}{% else %}No VPC configured{% endif %}</td>
+                      </tr>
+                  {% endfor %}
+                  </table>
+              </div>
+              {% else %}
+              <p><span class="bold">You do not have any AWS access keys shared with your account.</span></p>
+              {% endif %}
+          </article>
+
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+  {% endblock %}

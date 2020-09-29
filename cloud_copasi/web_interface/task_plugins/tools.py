@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 import os, glob, sys, importlib
-from cloud_copasi.web_interface.task_plugins import plugins as task_plugins
+from web_interface.task_plugins import plugins as task_plugins
 import logging
 
 log = logging.getLogger(__name__)
@@ -54,4 +54,3 @@ def get_form_class(task_type):
     module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
     plugin = getattr(module, 'TaskForm')
     return plugin
-

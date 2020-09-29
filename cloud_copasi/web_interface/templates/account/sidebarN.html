@@ -1,0 +1,40 @@
+{% comment %}
+Cloud-COPASI
+Copyright (c) 2020 Mendes Research Group.
+Developers: Edward Kent, Hasan Baig.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the GNU Public License v3.0
+which accompanies this distribution, and is available at
+http://www.gnu.org/licenses/gpl.html
+{% endcomment %}
+{% load static %}
+
+<div id="left-sidebar" class="leftside-container">
+    <h3>Account</h3>
+    <a class="btn active" href="{% url 'my_account' %}">Account Summary</a>
+
+
+    <hr>
+    <h4>COPASI Tasks</h4>
+        <a class="btn" href="{% url 'task_new' %}">Submit new task</a>
+        <a class="btn" href="{% url 'running_task_list' %}">Running tasks ({{running_tasks.count}})</a>
+        <a class="btn" href="{% url 'finished_task_list' %}">Finished tasks ({{finished_tasks.count}})</a>
+        <a class="btn" href="{% url 'error_task_list' %}">Task errors ({{task_errors.count}})</a>
+
+    <hr>
+    <h4>Compute Pools</h4>
+        <a class="btn" href="{% url 'pool_list' %}">Compute pool overview</a>
+        <a class="btn" href="{% url 'bosco_pool_add' %}">Connect to existing pool</a>
+        {% if access_keys.count > 0 %}
+          <a href="{% url 'ec2_pool_add' %}"> Launch new pool</a>
+          <a href="{% url 'spotprice_history' %}"> Spot price history</a>
+        {% endif %}
+
+    <hr>
+    <h4>Account Options</h4>
+        <a href="{% url 'my_account_keys' %}">Manage AWS keys</a>
+        <a href="{% url 'my_account_keys_add' %}">Add new AWS key</a>
+        <a href="{% url 'my_account_password_change' %}">Change your password</a>
+        <a href="{% url 'my_account_profile' %}">Update your profile</a>
+
+</div>
