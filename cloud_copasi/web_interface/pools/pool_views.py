@@ -727,23 +727,23 @@ class BoscoPoolAddView(RestrictedFormView):
         file_handle, ssh_key_filename = tempfile.mkstemp()
 
         #Added by HB to write the data in Permanent file and see if it works
-        f = open("key.txt",'w')
-        f.write(form.cleaned_data['ssh_key'])
-        f.close()
+        #f = open("key.txt",'w')
+        #f.write(form.cleaned_data['ssh_key'])
+        #f.close()
 
 
         ssh_key_file = open(ssh_key_filename, 'w')
         ssh_key_file.write(form.cleaned_data['ssh_key'])
         ssh_key_file.close()
-
+ 
         username = form.cleaned_data['username']
         address = form.cleaned_data['address']
 
         log.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
 
-        #process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
-        process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+        #process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
 
         log.debug('SSH response:')
@@ -796,7 +796,7 @@ class BoscoPoolAddView(RestrictedFormView):
 
 class PoolTestView(RestrictedView):
     page_title = 'Pool added'
-    template_name = 'pool/pool_test.html'
+    template_name = 'pool/pool_testN.html'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -812,7 +812,7 @@ class PoolTestView(RestrictedView):
 class PoolTestResultView(RestrictedView):
 
     page_title = 'Pool test result'
-    template_name = 'pool/pool_test_result.html'
+    template_name = 'pool/pool_test_resultN.html'
 
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):

@@ -73,7 +73,11 @@ urlpatterns = [
     path('my_account/pools/add_ec2/', pool_views.EC2PoolAddView.as_view(), name='ec2_pool_add'),
     path('my_account/pools/add_existing/', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
 
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/test/$', pool_views.PoolTestView.as_view(), name='pool_test'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/test/result', pool_views.PoolTestResultView.as_view(), name='pool_test_result'),
+
     re_path(r'^my_account/pools/(?P<pool_id>\d+)/details/$', pool_views.PoolDetailsView.as_view(), name='pool_details'),
+
 
 
     path('my_account/resource_overview/', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
