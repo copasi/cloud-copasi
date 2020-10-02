@@ -71,7 +71,7 @@ class PoolRenameForm(forms.Form):
 
 class PoolRenameView(RestrictedFormView):
     page_title='Rename pool'
-    template_name = 'pool/pool_rename.html'
+    template_name = 'pool/pool_renameN.html'
     form_class = PoolRenameForm
 
     @method_decorator(login_required)
@@ -238,7 +238,7 @@ class EC2PoolTerminationSettingsForm(forms.Form):
 
 class EC2PoolTerminationSettingsView(RestrictedFormView):
     page_title='Rename pool'
-    template_name = 'pool/pool_termination.html'
+    template_name = 'pool/pool_terminationN.html'
     form_class = EC2PoolTerminationSettingsForm
 
     @method_decorator(login_required)
@@ -462,7 +462,7 @@ class EC2PoolScaleUpForm(forms.Form):
         return price
 
 class EC2PoolScaleUpView(RestrictedFormView):
-    template_name = 'pool/ec2_pool_scale_up.html'
+    template_name = 'pool/ec2_pool_scale_upN.html'
     page_title = 'Scale up EC2 pool'
     success_url = reverse_lazy('pool_list')
     form_class = EC2PoolScaleUpForm
@@ -559,7 +559,7 @@ class EC2PoolScaleDownForm(forms.Form):
         return price
 
 class EC2PoolScaleDownView(RestrictedFormView):
-    template_name = 'pool/ec2_pool_scale_down.html'
+    template_name = 'pool/ec2_pool_scale_downN.html'
     page_title = 'Scale up EC2 pool'
     success_url = reverse_lazy('pool_list')
     form_class = EC2PoolScaleDownForm
@@ -617,7 +617,7 @@ class BoscoPoolStatusPageForm(forms.Form):
 
 class BoscoPoolStatusPageView(RestrictedFormView):
     page_title='Edit status page link'
-    template_name = 'pool/pool_status_edit.html'
+    template_name = 'pool/pool_status_editN.html'
     form_class = BoscoPoolStatusPageForm
 
     @method_decorator(login_required)
@@ -735,7 +735,7 @@ class BoscoPoolAddView(RestrictedFormView):
         ssh_key_file = open(ssh_key_filename, 'w')
         ssh_key_file.write(form.cleaned_data['ssh_key'])
         ssh_key_file.close()
- 
+
         username = form.cleaned_data['username']
         address = form.cleaned_data['address']
 
@@ -837,7 +837,7 @@ class PoolTestResultView(RestrictedView):
         return super(PoolTestResultView, self).dispatch(request, *args, **kwargs)
 
 class PoolRemoveView(RestrictedView):
-    template_name='pool/pool_remove.html'
+    template_name='pool/pool_removeN.html'
     page_title='Confirm pool removal'
 
     @method_decorator(login_required)
@@ -964,7 +964,7 @@ class SharePoolForm(forms.Form):
 
 class SharePoolView(RestrictedFormView):
     form_class = SharePoolForm
-    template_name = 'pool/pool_share.html'
+    template_name = 'pool/pool_shareN.html'
     page_title = 'Share pool'
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
@@ -1068,7 +1068,7 @@ class SpotPriceHistoryForm(forms.Form):
                                       initial='m1.medium')
 
 class SpotPriceHistoryView(RestrictedView):
-    template_name = 'pool/spotprice_history.html'
+    template_name = 'pool/spotprice_historyN.html'
     page_title = 'Spot price history'
     def dispatch(self, request, *args, **kwargs):
         kwargs['form'] = SpotPriceHistoryForm()

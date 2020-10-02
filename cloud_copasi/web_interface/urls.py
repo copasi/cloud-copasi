@@ -46,11 +46,12 @@ urlpatterns = [
     name='my_account_register'),
 
 
-    #login Logout
+    #----- login Logout
     path('sign_in/', views.LoginView.as_view(), name='sign_in'),
     path('sign_out/', views.LogoutView.as_view(), name='sign_out'),
+    #-----
 
-    #account views
+    #----- account views
     path('my_account/', account_viewsN.MyAccountView.as_view(), name='my_account'),
     path('my_account/profile/', account_viewsN.AccountProfileView.as_view(), name='my_account_profile'),
     path('my_account/keys/', account_viewsN.KeysView.as_view() , name='my_account_keys'),
@@ -62,22 +63,36 @@ urlpatterns = [
     re_path(r'^my_account/keys/(?P<key_id>\d+)/rename/$', account_viewsN.KeysRenameView.as_view(), name='my_account_keys_rename'),
 
     path('my_account/change_password/', account_viewsN.PasswordChangeView.as_view() , name='my_account_password_change'),
+    #-----
 
-
-    #VPC
+    #----- VPC
     re_path(r'^my_account/vpc_status/(?P<key_id>\d+)/configure/$', account_viewsN.VPCConfigView.as_view(), name='vpc_config'),
     # re_path(r'^my_account/vpc_status/(?P<key_id>\d+)/add/$', account_views.VPCAddView.as_view(), name='vpc_add'),
+    #-----
 
-    #pools
+    #-----  pools
     path('my_account/pools/', pool_views.PoolListView.as_view(), name = 'pool_list'),
     path('my_account/pools/add_ec2/', pool_views.EC2PoolAddView.as_view(), name='ec2_pool_add'),
     path('my_account/pools/add_existing/', pool_views.BoscoPoolAddView.as_view(), name='bosco_pool_add'),
+
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_up/$', pool_views.EC2PoolScaleUpView.as_view(), name='ec2_pool_scale_up'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/ec2/scale_down/$', pool_views.EC2PoolScaleDownView.as_view(), name='ec2_pool_scale_down'),
 
     re_path(r'^my_account/pools/(?P<pool_id>\d+)/test/$', pool_views.PoolTestView.as_view(), name='pool_test'),
     re_path(r'^my_account/pools/(?P<pool_id>\d+)/test/result', pool_views.PoolTestResultView.as_view(), name='pool_test_result'),
 
     re_path(r'^my_account/pools/(?P<pool_id>\d+)/details/$', pool_views.PoolDetailsView.as_view(), name='pool_details'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/remove/$', pool_views.PoolRemoveView.as_view(),{'confirmed':False}, name='pool_remove'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/remove/comfirm/$', pool_views.PoolRemoveView.as_view(), {'confirmed':True}, name='pool_remove_confirmed'),
 
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/share/$', pool_views.SharePoolView.as_view(), {'remove':False}, name='pool_share'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/unshare/(?P<user_id>\d+)/$', pool_views.SharePoolView.as_view(), {'remove':True}, name='pool_unshare'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/rename/$', pool_views.PoolRenameView.as_view(), name='pool_rename'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/ec2/termination_settings/$', pool_views.EC2PoolTerminationSettingsView.as_view(), name='pool_termination_settings'),
+    re_path(r'^my_account/pools/(?P<pool_id>\d+)/change_link/$', pool_views.BoscoPoolStatusPageView.as_view(), name='pool_link_change'),
+
+    re_path(r'^my_account/pools/spotprice_history/$', pool_views.SpotPriceHistoryView.as_view(), name='spotprice_history'),
+    #-----
 
 
     path('my_account/resource_overview/', resource_views.ResourceOverviewView.as_view(), name='resource_overview'),
@@ -85,7 +100,7 @@ urlpatterns = [
     re_path(r'^my_account/resource_overview/terminate/(?P<key_id>.+)/$', resource_views.ResourceTerminateView.as_view(), {'confirmed': False}, name='resource_terminate'),
 
 
-    #Task views
+    #----- Task views
     path('my_account/tasks/new/', task_views.NewTaskView.as_view(), name='task_new'),
 
     path('my_account/tasks/running/', task_views.TaskListView.as_view(), {'status': 'running'}, name='running_task_list'),
@@ -103,7 +118,7 @@ urlpatterns = [
 
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete_confirmed'),
-
+    #----- 
 
     #API views for updating condor job status_message
     path('api/check_resource/', api_views.CheckResourceView.as_view(), name='api_check_resource'),
