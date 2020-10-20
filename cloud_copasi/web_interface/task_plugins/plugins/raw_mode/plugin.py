@@ -7,20 +7,20 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.web_interface.task_plugins.base import BaseTask, BaseTaskForm
-from cloud_copasi.web_interface.models import Task, CondorJob, CondorPool
-from cloud_copasi.web_interface.models import Subtask
+from web_interface.task_plugins.base import BaseTask, BaseTaskForm
+from web_interface.models import Task, CondorJob, CondorPool
+from web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel
+from copasi.model import CopasiModel
+from web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from cloud_copasi.condor import condor_spec
-from cloud_copasi.web_interface.task_plugins import load_balancing
+from condor import condor_spec
+from web_interface.task_plugins import load_balancing
 from string import Template
 import re
 import datetime
@@ -43,23 +43,23 @@ class TaskForm(BaseTaskForm):
     raw_mode_args = forms.RegexField(max_length=128, regex=re.compile(r'.*(\-\-save \$new_filename).*(\$filename).*$'), label='COPASI arguments', help_text='Arguments to add when running COPASI. Must contain <b>$filename</b> and <b>--save $new_filename</b> as arguments', widget=forms.TextInput(attrs={'size':'40'}), required=True, initial='--nologo --home . --save $new_filename $filename') #TODO: update this regex so that it won't match certain characters, e.g. ';','|', '&' etc (though perhaps this isn't necessary)
 
 class TaskPlugin(BaseTask):
-    
+
     subtasks = 3
 
     def __init__(self, task):
 
-        self.repeats = task.get_custom_field('repeats') 
+        self.repeats = task.get_custom_field('repeats')
         self.data_files = task.get_custom_field('data_files')
         if self.data_files is None:
            self.data_files = []
         self.raw_mode_args = task.get_custom_field('raw_mode_args')
-        
 
-        
+
+
         super(TaskPlugin, self).__init__(task)
         self.copasi_model = RWCopasiModel(os.path.join(self.task.directory, self.task.original_model))
 
-        
+
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         return self.copasi_model.is_valid('RW')
@@ -70,79 +70,79 @@ class TaskPlugin(BaseTask):
         self.create_new_subtask('main')
         #And a subtask to process any results
         self.create_new_subtask('process', local=True)
-        
+
         self.task.result_view = False
         self.task.result_download = False
         self.task.save()
-        
+
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
-        
+
         if index == 1:
             return self.process_main_subtask()
-           
+
         elif index == 2:
             return self.process_results_subtask()
         else:
             raise Exception('No subtasks remaining')
 
 
-    
-        
-    def process_main_subtask(self):
-        
 
-        
+
+    def process_main_subtask(self):
+
+
+
         subtask = self.get_subtask(1)
-        
-        
-        
+
+
+
         #If no load balancing step required:
         model_files, output_files = self.copasi_model.prepare_rw_jobs(self.repeats)
-        
+
         self.task.set_custom_field('output_files', output_files)
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
 
         self.task.save()
-        
+
         condor_pool = self.task.condor_pool
-        
+
         condor_job_file = self.copasi_model.prepare_rw_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), self.raw_mode_args, self.data_files, output_files, rank='0')
-        
+
         log.debug('Prepared copasi files %s'%model_files)
         log.debug('Prepared condor job %s' %condor_job_file)
-        
-        
-        
+
+
+
         subtask.spec_file = condor_job_file
         subtask.status = 'ready'
         subtask.set_custom_field('job_output', '') # Job output is potentially >1 file. Currently can't check for this, so leave blank
         subtask.save()
-        
+
         return subtask
-        
-        
+
+
     def process_results_subtask(self):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
-        
+
         subtask.start_time = now()
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
-                
-        directory = self.task.directory        
-        
-        
+
+        directory = self.task.directory
+
+
         output_files = self.task.get_custom_field('output_files')
         model_count = self.task.get_custom_field('model_count')
-        
+
         collated_output_files = []
         #Collate the output files back into their original name
         for output_filename in output_files:
             try:
                 output_file = open(os.path.join(directory, output_filename), 'w')
-                
+
                 for partial_output in ['%d_%s' % (i, output_filename) for i in range(model_count)]:
                     partial_output_file = open(os.path.join(directory, partial_output), 'r')
                     for line in partial_output_file:
@@ -153,56 +153,56 @@ class TaskPlugin(BaseTask):
             except Exception as e:
                 raise e
                 pass
-            
+
         self.task.set_custom_field('collated_output_files', collated_output_files)
         if len(collated_output_files) > 0:
             self.task.result_view=True
         self.task.save()
-        
+
         subtask.status = 'finished'
         subtask.finish_time = now()
         subtask.set_run_time(time_delta=subtask.finish_time-subtask.start_time)
         subtask.save()
-        
 
-        
+
+
         return subtask
-    
-    
-    
+
+
+
     #===========================================================================
     # Results download code. No results view page for this task
     #===========================================================================
-    
+
     def get_results_view_template_name(self, request):
         """Return a string with the HTML code to be used in the task results view page
         """
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
-        
+
         if page_name == 'main':
             return self.get_template_name('results_view')
 
-    
+
     def get_results_view_data(self, request):
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
         if page_name == 'main':
             collated_output_files = self.task.get_custom_field('collated_output_files')
             output = {'output_files': collated_output_files}
-            
+
             return output
 
     def get_results_download_data(self, request):
         filename = request.GET.get('name')
-        
-        
+
+
         if not filename in self.task.get_custom_field('collated_output_files'):
             raise Exception('Output file not recognized')
             request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
             return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
 
-        
+
 
         full_filename = os.path.join(self.task.directory, filename)
         if not os.path.isfile(full_filename):
@@ -212,6 +212,5 @@ class TaskPlugin(BaseTask):
         response = HttpResponse(result_file, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename=%s' % (filename.replace(' ', '_'))
         response['Content-Length'] = os.path.getsize(full_filename)
-   
+
         return response
-            

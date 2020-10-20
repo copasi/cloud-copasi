@@ -15,8 +15,8 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.copasi import model
+from copasi.model import CopasiModel
+from copasi import model
 from cloud_copasi import settings
 from lxml import etree
 import os, time, math
@@ -24,33 +24,33 @@ import os, time, math
 xmlns = model.xmlns
 
 class PSCopasiModel(CopasiModel):
-    
+
     def prepare_ps_load_balancing(self, repeats=None):
         """Prepare copasi model files that can be used for the benchmarking step
 
         First sets up the scan task with a repeat. Write 3 files with 1, 10 and 100 repeats respectively
-        """ 
+        """
 
         if not repeats:
             repeats = [1, 10, 100, 1000]
 
-        
-        
+
+
         #First, read in the task
         scanTask = self._getTask('scan')
         self._clear_tasks()
         scanTask.attrib['scheduled'] = 'true'
         problem = scanTask.find(xmlns+'Problem')
         scanTasks = problem.find(xmlns + 'ParameterGroup')
-        
+
         #Find the report for the scan task and store as a variable the node containing it's output
         report = scanTask.find(xmlns+'Report')
         assert report != None
-        
-        
+
+
         #Get the first scan in the list
         firstScan = scanTasks[0]
-        
+
         parameters = {} #Dict to store the parameters that we're interested in reading/changing
         for parameter in firstScan:
             if parameter.attrib['name'] == 'Number of steps':
@@ -63,7 +63,7 @@ class PSCopasiModel(CopasiModel):
                 parameters['min'] = parameter
             if parameter.attrib['name'] == 'log':
                 parameters['log'] = parameter
-                    
+
         #Read the values of these parameters before we go about changing them
         no_of_steps = int(parameters['no_of_steps'].attrib['value'])
         assert no_of_steps > 0
@@ -76,7 +76,7 @@ class PSCopasiModel(CopasiModel):
             else:
                 log = True
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
-        
+
         ############
         #Benchmarking
         ############
@@ -85,18 +85,18 @@ class PSCopasiModel(CopasiModel):
 
         import tempfile
         #Set the number of steps as 1, 10, 100, 1000, and write files
-        
+
         for repeat in repeats:
             filename=os.path.join(self.path, 'load_balancing_%d.cps' % repeat)
 
             parameters['no_of_steps'].attrib['value'] = '%d'%repeat
-            
+
             self.write(filename)
-            
-            
+
+
         #############################
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]
-    
+
     def get_number_of_intervals(self):
         """Get the number of intervals set for the top level scan task
         """
@@ -104,10 +104,10 @@ class PSCopasiModel(CopasiModel):
         scanTask = self._getTask('scan')
         problem = scanTask.find(xmlns+'Problem')
         scanTasks = problem.find(xmlns + 'ParameterGroup')
-        
+
         #Get the first scan in the list
         firstScan = scanTasks[0]
-        
+
         parameters = {} #Dict to store the parameters that we're interested in reading/changing
         for parameter in firstScan:
             if parameter.attrib['name'] == 'Number of steps':
@@ -120,8 +120,8 @@ class PSCopasiModel(CopasiModel):
                 parameters['min'] = parameter
             if parameter.attrib['name'] == 'log':
                 parameters['log'] = parameter
-                    
+
         #Read the values of these parameters before we go about changing them
         no_of_steps = int(parameters['no_of_steps'].attrib['value'])
-        
+
         return no_of_steps
