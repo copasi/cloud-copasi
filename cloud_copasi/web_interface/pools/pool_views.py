@@ -742,12 +742,14 @@ class BoscoPoolAddView(RestrictedFormView):
         log.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
 
+
         process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         #process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
 
         log.debug('SSH response:')
         log.debug(output)
+
 
         if process.returncode != 0:
             os.remove(ssh_key_filename)
