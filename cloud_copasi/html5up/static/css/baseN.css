@@ -289,6 +289,19 @@ th.required, span.required{
 /* **************** */
 /* Tables */
 /*  */
+
+
+table td, tr, th {
+    border-style: solid;
+    border-color: black;
+    border-width: 1px;
+    margin: 5px 5px 5px 5px;
+    padding: 0.8em;
+}
+th{
+    font-weight: bold;
+}
+
 /* div.smalltablelist td, div.smalltablelist tr, div.smalltablelist th {
     border-style: solid;
     border-width: 1px;
@@ -310,6 +323,7 @@ div.smalltablelist th{
   border-width: 1px;
   /* border-color: black; */
 }
+
 
 
 header.major {
