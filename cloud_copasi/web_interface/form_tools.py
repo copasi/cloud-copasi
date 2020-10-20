@@ -23,10 +23,10 @@ class PoolChoiceField(forms.ModelChoiceField):
         if hasattr(obj, 'ec2pool'):
             pool_type = 'EC2'
         elif hasattr(obj, 'boscopool'):
-            pool_type = unicode(obj.boscopool.get_pool_type_display())
+            pool_type = str(obj.boscopool.get_pool_type_display())
         else:
             pool_type = 'Unknown'
-            
+
         if obj.copy_of != None:
             return "%s (%s) (Shared)" % (obj.name, pool_type)
         else:
@@ -39,4 +39,3 @@ def handle_uploaded_file(f,destination):
     for chunk in f.chunks():
         destination.write(chunk)
     destination.close()
-
