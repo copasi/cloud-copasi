@@ -9,3 +9,5 @@ cloud_copasi/cloud_copasi/settings.py
 cloud_copasi/cloud_copasi_db
 copasi/
 log/cloud-copasi.log
+log/
+.bosco/
