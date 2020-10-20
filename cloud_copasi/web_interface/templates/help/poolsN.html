@@ -52,8 +52,14 @@ http://www.gnu.org/licenses/gpl.html
               <p>
                   Before you can connect a computing pool to Cloud-COPASI, you must first configure SSH access to the submit node so that you can
                   authenticate with a public/private keypair (i.e. without using a password). A comprehensive guide on setting up SSH keys is
-                  <a href="http://www.eng.cam.ac.uk/help/jpmg/ssh/authorized_keys_howto.html">available here</a>. Note that you should not use a
-                  passphrase to protect the key.
+                  <a href="https://www.ssh.com/ssh/keygen/">available here</a>.
+
+                  <p>
+                    <b>Important Notes:</b>
+                    <li>  You should not use a passphrase to protect the key </li>
+                    <li> Copy the contents of <i>id_rsa.pub</i> file into <i>authorized_keys</i> file located under "~/.ssh/ directory" on your pools server </li>
+
+                  </p>
               </p>
               <p>
                   Once you have configured SSH authentication using a public/private keypair, then you can connect the submit node to Cloud-COPASI.
@@ -62,7 +68,7 @@ http://www.gnu.org/licenses/gpl.html
               </p>
               <p>
                   Note that this keypair is used only once when connecting to the pool, and is not stored on the server. Bosco will create a second
-                  public/private keypair combination, and this keypair will be used for all future connections;
+                  public/private keypair combination, and this keypair will be used for all future connections.
               </p>
 
               <header class="major" id="ec2_launch"><h3>Launching EC2 pools</h3></header>
