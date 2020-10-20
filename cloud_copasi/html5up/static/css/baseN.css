@@ -299,6 +299,16 @@ div.smalltablelist th{
     font-weight: bold;
 } */
 
+div.tablelist td, div.tablelist tr, div.tablelist th {
+    border-style: solid;
+    border-width: 1px;
+    margin: 5px 5px 5px 5px;
+    padding: 0.8em;
+}
+div.tablelist th{
+    font-weight: bold;
+}
+
 .smalltable{
   /* border-width: 5px; */
   width: 25em;
@@ -310,6 +320,7 @@ div.smalltablelist th{
   border-width: 1px;
   /* border-color: black; */
 }
+
 
 
 header.major {
