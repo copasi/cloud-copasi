@@ -291,7 +291,7 @@ th.required, span.required{
 /*  */
 
 
-table td, tr, th {
+.tablelist td, tr, th {
     border-style: solid;
     border-color: black;
     border-width: 1px;
@@ -299,7 +299,7 @@ table td, tr, th {
     padding: 0.8em;
 }
 
-th{
+.tablelist th{
     font-weight: bold;
 }
 

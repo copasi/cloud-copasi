@@ -33,7 +33,7 @@ http://www.gnu.org/licenses/gpl.html
 
             <p>The {{pool.get_pool_type_display_true}} pool <span class="bold">{{pool.name }}</span> was successfully added to your account. To ensure everything is working correctly, we recommend that you run a test job on the pool. To do so, click the button below:</p>
             <p>
-            <a href="{% url 'pool_test_result' pool_id=pool_id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">Test pool</a>
+            <a href="{% url 'pool_test_result' pool_id=pool_id %}" class="button button-narrow button-icon button-icon-info" onclick="showLoadingScreen()">Test pool</a>
             </p>
             <p />
             <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
