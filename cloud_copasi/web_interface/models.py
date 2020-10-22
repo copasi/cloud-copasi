@@ -22,7 +22,7 @@ from web_interface.fields import UUIDField
 import json
 import datetime
 import shutil
-# from web_interface.task_plugins import tools
+from web_interface.task_plugins import tools
 
 import logging
 
