@@ -115,6 +115,7 @@ def add_ec2_pool(ec2_pool):
 def remove_ec2_pool(ec2_pool):
     address = str(ec2_pool.address)
     return remove_bosco_pool(address)
+
 def condor_submit(condor_file):
     """Submit the .job file condor_file to the condor system using the condor_submit command"""
     #condor_file must be an absolute path to the condor job filename
@@ -131,6 +132,9 @@ def condor_submit(condor_file):
     try:
         assert exit_status == 0
         r=re.compile(r'^(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
+        #added by HB
+        process_output = process_output.decode('utf-8')
+
         number_of_jobs = int(r.match(process_output).group('n'))
         cluster_id = int(r.match(process_output).group('cluster'))
 
