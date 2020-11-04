@@ -273,8 +273,8 @@ def read_condor_q():
 
 
     condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
-
-    assert exit_status == 0
+    #following line is commented out by HB
+    #assert exit_status == 0
 
     #Process the output using regexps. Example line is as follows:
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD

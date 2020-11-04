@@ -19,8 +19,8 @@ import logging
 
 
 
-from cloud_copasi.web_interface.pools import condor_tools, task_tools
-from cloud_copasi.background_daemon.tools import pool_tools
+from web_interface.pools import condor_tools, task_tools
+from background_daemon.tools import pool_tools
 
 if __name__ == '__main__':
     log = logging.getLogger('cloud_copasi.background_daemon.tools.background_script')
@@ -28,22 +28,22 @@ else:
     log = logging.getLogger(__name__)
 
 
-        
+
 def run():
     try:
         pool_tools.refresh_all_ec2_pools()
     except Exception as e:
         log.exception(e)
-        
+
     condor_tools.process_condor_q()
-    
+
     task_tools.update_tasks()
-    
+
     try:
         pool_tools.terminate_idle_pools()
     except Exception as e:
         log.exception(e)
-    
+
     log.debug('Finished background script')
 if __name__ == '__main__':
     run()

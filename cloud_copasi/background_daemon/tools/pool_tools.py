@@ -7,12 +7,12 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.web_interface.models import EC2Pool, Task
-from cloud_copasi.web_interface.aws import ec2_tools
+from web_interface.models import EC2Pool, Task
+from web_interface.aws import ec2_tools
 
 from logging import getLogger
-from cloud_copasi.web_interface.pools import condor_tools
-from cloud_copasi.web_interface.email import email_tools
+from web_interface.pools import condor_tools
+from web_interface.email import email_tools
 log = getLogger(__name__)
 
 def refresh_all_ec2_pools():
@@ -20,7 +20,7 @@ def refresh_all_ec2_pools():
     """
     log.debug('Refreshing all EC2 pools')
     pools = EC2Pool.objects.all() #Get all pools indiscriminately
-    
+
     for ec2_pool in pools:
         try:
             ec2_tools.refresh_pool(ec2_pool)
@@ -30,7 +30,7 @@ def refresh_all_ec2_pools():
 def terminate_idle_pools():
     """Terminate any pool that doesn't have any more tasks running on it
     """
-    
+
     ec2_pools = EC2Pool.objects.filter(auto_terminate=True)
     for ec2_pool in ec2_pools:
         try:
@@ -47,7 +47,7 @@ def terminate_idle_pools():
                     task.condor_pool = None
                     task.set_custom_field('condor_pool_name', pool_name)
                     task.save()
-                    
+
                 if ec2_pool.get_pool_type() == 'ec2' and ec2_pool.copy_of == None:
                     error_list = []
                     #Remove the copied pools first
