@@ -1,5 +1,5 @@
 #!/usr/bin/env python
- 
+
 #Script adapted from example by Sander Marechal, released into public domain
 #Taken from http://www.jejik.com/articles/2007/02/a_simple_unix_linux_daemon_in_python/
 
@@ -26,21 +26,21 @@ import logging
 log=logging.getLogger(__name__)
 
 class MyDaemon(Daemon):
-    
+
     #Set the level we wish to log at. Logs are sent back to the central server
     #Choices are all, debug, info, error, none
-    
-    
+
+
 
     def __init__(self, *args, **kwargs):
-        
+
 
         return super(MyDaemon, self).__init__(*args, **kwargs)
-    
+
     def stop(self, *args, **kwargs):
-        
+
         return super(MyDaemon, self).stop(*args, **kwargs)
-    
+
     def run(self):
         log.debug('Daemon running')
 
@@ -49,23 +49,23 @@ class MyDaemon(Daemon):
             start_time = time.time()
 
             try:
-                
+
                 tools.background_script.run()
 
                 log.debug('Background script finished')
-            
+
             except Exception as e:
                 log.exception(e)
-                
-            
-            
+
+
+
             finish_time = time.time()
             difference = finish_time - start_time
-            
+
             if difference < min_repeat_time:
                 time.sleep(min_repeat_time - difference)
 
- 
+
 
 if __name__ == "__main__":
     daemon = MyDaemon('/tmp/Cloud-COPASI.pid')
