@@ -5,6 +5,7 @@
 .DS_Store
 .idea/
 ccEnv/
+venv/
 cloud_copasi/cloud_copasi/settings.py
 cloud_copasi/cloud_copasi_db
 copasi/
