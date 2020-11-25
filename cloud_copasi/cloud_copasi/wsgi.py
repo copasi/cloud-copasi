@@ -26,8 +26,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 #following two lines are added by HB
-sys.path.append('home/cloudcopasi/cloud-copasi-new/cloud_copasi')
-sys.path.append('/home/cloudcopasi/cloud-copasi-new/ccEnv/lib/python3.6/site-packages')
+sys.path.append('home/cloudcopasi/cloud-copasi/cloud_copasi')
+sys.path.append('/home/cloudcopasi/cloud-copasi/ccEnv/lib64/python3.6/site-packages')
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cloud_copasi.settings")
 

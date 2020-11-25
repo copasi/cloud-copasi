@@ -124,6 +124,7 @@ def condor_submit(condor_file):
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
     log.debug('Submitting to condor. Output: ')
     log.debug(output)
+    log.info(output)
     #Get condor_process number...
 #    process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
