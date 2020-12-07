@@ -140,10 +140,16 @@ def condor_submit(condor_file):
         r=re.compile(r'^(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
         log.debug('r= ',r)
 	#added by HB
-        process_output = process_output.decode('utf-8')
+        #process_output = process_output.decode('utf-8')
+        log.debug('process output: ')
+        log.debug(process_output)
 
-        number_of_jobs = int(r.match(process_output).group('n'))
-        #The following line is added by HB
+        try:
+            number_of_jobs = int(r.match(process_output).group('n'))
+        except AttributeError:
+            number_of_jobs = int(r.match(process_output))
+
+	#The following line is added by HB
         #number_of_jobs = number_of_jobs.decode('utf-8')
 
         cluster_id = int(r.match(process_output).group('cluster'))
