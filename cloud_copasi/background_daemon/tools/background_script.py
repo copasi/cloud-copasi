@@ -13,7 +13,7 @@ import sys, json
 #import response
 from .response import *
 
-from cloud_copasi.cloud_copasi import settings
+from cloud_copasi import settings
 
 import logging
 

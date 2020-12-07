@@ -4,8 +4,9 @@
 # PYTHONHOME below.
 
 export PYTHONPATH=$PYTHONPATH:/home/cloudcopasi/cloud-copasi
+export PYTHONPATH=/home/cloudcopasi/cloud-copasi/cloud_copasi
 export PYTHONHOME=/home/cloudcopasi/cloud-copasi/venv
-export DJANGO_SETTINGS_MODULE=cloud_copasi.cloud_copasi.settings
+export DJANGO_SETTINGS_MODULE=cloud_copasi.settings
 
 # First start bosco
 source /home/cloudcopasi/bosco/bosco_setenv
