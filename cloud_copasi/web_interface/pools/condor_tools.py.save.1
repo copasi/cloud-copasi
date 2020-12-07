@@ -121,37 +121,23 @@ def condor_submit(condor_file):
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
 
-    log.debug("filename: ", filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
     log.debug('Submitting to condor. Output: ')
     log.debug(output)
     log.info(output)
     #Get condor_process number...
-    #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
+#    process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
     process_output = output[-1] #We're only interested in the last line
 
-	#added by HB
-	#log.debug("exit status: ")
-	#log.debug(exit_status)
-	
     try:
-        #assert exit_status == 0
+	#log.debug('Checking here by HB')
+        assert exit_status == 0
         r=re.compile(r'^(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
-        log.debug('r= ',r)
-	#added by HB
-        #process_output = process_output.decode('utf-8')
-        log.debug('process output: ')
-        log.debug(process_output)
+        #added by HB
+        process_output = process_output.decode('utf-8')
 
-        try:
-            number_of_jobs = int(r.match(process_output).group('n'))
-        except AttributeError:
-            number_of_jobs = int(r.match(process_output))
-
-	#The following line is added by HB
-        #number_of_jobs = number_of_jobs.decode('utf-8')
-
+        number_of_jobs = int(r.match(process_output).group('n'))
         cluster_id = int(r.match(process_output).group('cluster'))
 
     except Exception as e:
@@ -176,8 +162,7 @@ def submit_task(subtask):
     assert subtask.spec_file != ''
 
     spec_file_path = os.path.join(subtask.task.directory, subtask.spec_file)
-	#added by HB
-	#log.debug(spec_file_path)
+
     cluster_id, number_of_jobs = condor_submit(spec_file_path)
 
     log.debug('cluster id %d' % cluster_id)
@@ -262,7 +247,7 @@ def remove_task(subtask):
         log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
         try:
             output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
-            #assert exit_status == 0
+            assert exit_status == 0
             return output, error, exit_status
 
         except:
