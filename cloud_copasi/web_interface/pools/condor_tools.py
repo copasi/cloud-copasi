@@ -141,11 +141,11 @@ def condor_submit(condor_file):
 	#added by HB
 	#log.debug("exit status: ")
 	#log.debug(exit_status)
-	
+
     try:
         #assert exit_status == 0
         r=re.compile(r'^(?P<n>\d+) job\(s\) submitted to cluster (?P<cluster>\d+).*', re.DOTALL)
-        log.debug('r= ',r)
+        #log.debug('r= ',r)
 	#added by HB
         #process_output = process_output.decode('utf-8')
         log.debug('process output: ')
