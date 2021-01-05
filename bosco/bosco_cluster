@@ -28,7 +28,7 @@ if [ "x$condor_id" == "x" ]; then
     condor_id=`id -u condor 2> /dev/null`
 else
     condor_id=${condor_id%.*}
-fi 
+fi
 if [ ! "x$condor_id" == "x`id -u`" ]; then
     PRIVATE_ON_MU=yes
 fi
@@ -60,7 +60,7 @@ commands:
  -h|--help                  Show this help message
 
 Where host is user@fqdn.example.com
-$0 can manage max 254 clustars
+$0 can manage max 254 clusters
 
 EOM
 }
@@ -148,10 +148,10 @@ set_bosco_routing () {
     fi
     grid_res=$(list grid_resource)
     if [ $? -ne 1 ]; then
-        # No default cluster 
+        # No default cluster
         rm $dest_file 2>/dev/null
     else
-        cat > $dest_file << EOF 
+        cat > $dest_file << EOF
 # Specifying a default grid_resource doesn't work in HTCondor 8.4.7+/8.5.5+
 #grid_resource = $grid_res
 #SUBMIT_EXPRS = grid_resource
@@ -165,7 +165,7 @@ start_ssh () {
     if [ -f $PASSPHRASE_LOCATION ]; then
         PASSPHRASE=`cat $PASSPHRASE_LOCATION`
     fi
-    
+
     # Start the ssh-agent
     eval `ssh-agent -s` > /dev/null
 
@@ -180,7 +180,7 @@ start_ssh () {
         return 1
     fi
 
-}    
+}
 
 ssh_upload_and_run () {
     # upload_and_run remote_host command start_dir
@@ -192,13 +192,13 @@ ssh_upload_and_run () {
     start_dir=$2
     local_script=$3
     shift 3
-    # TODO: suppress banner printout  -o LogLevel=Error  does not work, 
+    # TODO: suppress banner printout  -o LogLevel=Error  does not work,
     # redirect stderr to /dev/null suppresses errors as well
     if [ "x$start_dir" == "xDEFAULT" ]; then
         # OS X mktemp requires a template
-        start_dir=`ssh $remote_host "mktemp -d /tmp/tmp_bosco_probe.XXXXXXXX" 2>/dev/null` 
+        start_dir=`ssh $remote_host "mktemp -d /tmp/tmp_bosco_probe.XXXXXXXX" 2>/dev/null`
     else
-        ssh $remote_host "mkdir -p $start_dir" 
+        ssh $remote_host "mkdir -p $start_dir"
     fi
     scp $local_script $remote_host:$start_dir/bosco_run
     cmd_out=`ssh -o ControlMaster=auto -o "ControlPath=$ssh_control_path" $remote_host "cd $start_dir; chmod +x bosco_run; ./bosco_run $@"  2>/dev/null`
@@ -209,8 +209,8 @@ ssh_upload_and_run () {
         echo $cmd_out
     fi
     if [ "x$2" == "xDEFAULT" ]; then
-        ssh $remote_host "rm -r $start_dir" 
-    fi        
+        ssh $remote_host "rm -r $start_dir"
+    fi
     return $cmd_ec
 }
 
@@ -239,12 +239,12 @@ show_progress () {
     dots_pid=$!
 
     # Run the command
-    "$@"  
+    "$@"
     exit_code=$?
     disown $dots_pid
     kill -9 $dots_pid
     echo ""
-    
+
     return $exit_code
 
 }
@@ -268,7 +268,7 @@ ssh_find_remote () {
     cmd_out=`ssh $remote_host "python -c \"import platform; mydist = platform.dist(); print '%s%s' % (mydist[0], mydist[1])\"" 2>/dev/null`
     if [ $? -eq 0 ]; then
         # check for linux
-        case "$cmd_out" in 
+        case "$cmd_out" in
             redhat5*) echo "`$findplatform_path --url --force RH5`"
                        ;;
             redhat6*) echo "`$findplatform_path --url --force RH6`"
@@ -283,7 +283,7 @@ ssh_find_remote () {
                        ;;
             Ubuntu12*) echo "`$findplatform_path --url --force UBUNTU12`"
                        ;;
-            *) ;; 
+            *) ;;
         esac
         return 0
     fi
@@ -325,11 +325,11 @@ check_reverse_connectivity() {
     # Return 1 if the test fails (like most unix tools)
     # $1 = cluster to check for
     remote_host=$1
-    
+
     # Get the COLLECTOR_HOST value, strip out anything after the '?'
     myhost=`condor_config_val COLLECTOR_HOST`
     myhost=`echo $myhost | sed 's/\(.*\)[?|$].*/\1/'`
-    
+
     # Create tmp file for the python script to test connectivity
     tmpfile=`mktemp -t tmpreversetest.XXXXXX`
     cat << EOF > $tmpfile
@@ -339,16 +339,16 @@ import sys,socket
 s = socket.socket()
 s.connect((host,int(port)))
 EOF
-    
+
     testout=`ssh_upload_and_run $remote_host DEFAULT $tmpfile $myhost`
     testexit=$?
-    
+
     if [ "$testexit" -eq "0" ]; then
         return 0
     else
         return 1
     fi
-    
+
 }
 
 
@@ -398,29 +398,29 @@ stop_ssh () {
     if [ "x$ssh_master_connection" != "x" ]; then
         kill $ssh_master_connection
     fi
-    
+
     # Shut down ssh-agent
     eval `ssh-agent -sk` > /dev/null
 }
 
 remove_cluster () {
-    # $1 = cluster to remove 
+    # $1 = cluster to remove
     # If no cluster is provided, remove all clusters
     if [ "x$1" != "x" ]; then
         # $1 could be user@hostname/queue, queue part removed
-        # bash specific, generic no removing queue: remote_host=$1 
- 
+        # bash specific, generic no removing queue: remote_host=$1
+
         remote_host=$1
 
         # First, check if the cluster is in the cluster list, exit if not
         check_cluster_list2 $remote_host "ve"
 
         # Remove the cluster
-        do_remove_cluster $remote_host 
+        do_remove_cluster $remote_host
         return $?
     else
         #list > /dev/null
-        #[ $? = "0" ] && echo "No cluster " 
+        #[ $? = "0" ] && echo "No cluster "
         # This is removing only one cluster because do_remove_cluster creates a new cluster file
         cluster_list_iterator  do_remove_cluster
         retv=$?
@@ -433,9 +433,9 @@ remove_cluster () {
 }
 
 do_remove_cluster () {
-    # $1 = cluster to remove 
+    # $1 = cluster to remove
     # $1 could be user@hostname/queue, queue part removed
-    # bash specific, generic no removing queue: remote_host=$1 
+    # bash specific, generic no removing queue: remote_host=$1
     # $2 and $3 ignored
     remote_host=${1%%/*}
 
@@ -538,7 +538,7 @@ do_test_cluster () {
     else
         echo "Passed!"
     fi
-    
+
     # Test condor submission
     echo -n "Testing bosco submission..."
 
@@ -613,7 +613,7 @@ End_of_Submit
         sleep 1
         counter=$(( $counter - 1 ))
     done
-    
+
     if [ $submit_found -eq 1 ]; then
         echo "Passed!"
     else
@@ -627,7 +627,7 @@ End_of_Submit
         fi
         exit 1
     fi
-    
+
     # Check the remote job state
     # GridJobStatus is not properly implemented for PBS
     #echo "Checking the test job's status to change from idle to running"
@@ -659,7 +659,7 @@ End_of_Submit
     else
         echo "Passed!"
     fi
-    
+
     echo -n "Waiting for job to exit... this could take a while (waiting 60 seconds)..."
     check_condor_q_classad "(ClusterId == $condor_jobid) && (GridJobStatus==\"COMPLETED\") " 60
     if [ $? -eq 0 ]; then
@@ -670,7 +670,7 @@ Maybe condor is waiting longer to poll for job completion?
 Here is the current status of the job:"
 Error_message_end
         condor_q $condor_jobid
-        # returning zero anyway, test considered successful 
+        # returning zero anyway, test considered successful
         exit 0
     else
         echo "Passed!"
@@ -690,7 +690,7 @@ Error_message_end
         sleep 10
         counter=$(( $counter - 1 ))
     done
-    
+
     if [ $complete_found -eq 1 ]; then
         echo "Passed!"
     else
@@ -759,7 +759,7 @@ get_pool_status () {
     # Print queue status
     tmpfile=`mktemp -t queustatustmp.XXXXXX`
     start_ssh
-    
+
     for i in "condor_status -total"
     do
         # Show the result only if successful
@@ -803,7 +803,7 @@ while true; do
         -t|--test) test_cluster $2; exit 0 ;;
         -r|--remove) remove_cluster $2; exit 0;;
         -z|--pool_status) get_pool_status $2; exit 0;;
-        
+
         --) echo "No command found" >&2; usage; exit 1;;
         *) echo "Unknown option: $1" >&2; usage; exit 1;;
     esac
@@ -824,7 +824,7 @@ fi
 if [ "x$1" == "x" ]; then
     echo "Warning: No batch system specified, defaulting to PBS"
     echo "If this is incorrect, rerun the command with the batch system specified"
-    echo 
+    echo
     cluster_type="pbs"
 else
     cluster_type=$(echo $1 | $TR '[:upper:]' '[:lower:]')
@@ -858,10 +858,10 @@ if [ ! -e $bosco_key ]; then
     mkdir -p `dirname $PASSPHRASE_LOCATION`
     echo $PASSPHRASE > $PASSPHRASE_LOCATION
     chmod go-rwx $PASSPHRASE_LOCATION
-    
+
     # Check if the passphrase is empty
     ssh-keygen -q -t rsa -f $bosco_key -P $PASSPHRASE > /dev/null
- 
+
     if [ $? -ne 0 ]; then
         echo "Error running keygen" >&2
         exit 1
@@ -954,14 +954,14 @@ if [ "x$url" == "x" ]; then
         echo "Aborting installation to $remote_host."
         exit 1
     fi
-fi    
+fi
 
 
 # Create a tmp dir, download the files and rsync them to the remote system
 # A download to the remote system would be faster but we cannot count on ports different form the SSH one
 # OS X mktemp requires a template
 tmp_dir=`mktemp -d /tmp/tmp.XXXXXXXX`
-show_progress "Downloading for $remote_host" curl -s -o $tmp_dir/bosco-download.tar.gz $url 
+show_progress "Downloading for $remote_host" curl -s -o $tmp_dir/bosco-download.tar.gz $url
 show_progress "Unpacking" tar xzf $tmp_dir/bosco-download.tar.gz -C $tmp_dir
 archive_dir=`ls -d $tmp_dir/condor*`
 if [ $? -ne 0 ]; then
@@ -1032,8 +1032,8 @@ EOF
 # A regular user cannot write on system files
 # and will not need the password for grid universe jobs
 if [ ! -n "$PRIVATE_ON_MU" ]; then
-    # Generate the password file, if it doesn't already exist 
-    bosco_passwd_file=`condor_config_val SEC_PASSWORD_FILE` 
+    # Generate the password file, if it doesn't already exist
+    bosco_passwd_file=`condor_config_val SEC_PASSWORD_FILE`
     if [ "x$bosco_passwd_file" == "x" ]; then
         echo "The BOSCO password file is not defined."
         echo "Aborting installation to $remote_host."
@@ -1041,17 +1041,17 @@ if [ ! -n "$PRIVATE_ON_MU" ]; then
         exit 1
     fi
 
-    if [ ! -e $bosco_passwd_file ]; then  
-        random_string=`echo $RANDOM | $MD5SUM | awk '{print $1}'` 
-        condor_store_cred -p $random_string -f $bosco_passwd_file 
+    if [ ! -e $bosco_passwd_file ]; then
+        random_string=`echo $RANDOM | $MD5SUM | awk '{print $1}'`
+        condor_store_cred -p $random_string -f $bosco_passwd_file
     fi
 
-    if [ ! -r  $bosco_passwd_file ]; then  
+    if [ ! -r  $bosco_passwd_file ]; then
         echo "Cannot read the BOSCO password file, check permissions of $bosco_passwd_file."
         echo "Aborting installation to $remote_host."
         rm -r $tmp_dir
         exit 1
-    fi 
+    fi
     rsync -aq $bosco_passwd_file $local_install_dir/campus_factory/share/glidein_jobs 2>/dev/null
     rsync -aq $bosco_passwd_file $remote_glite_dir/etc 2>/dev/null
 fi
@@ -1110,4 +1110,3 @@ EOM
 
 
 fi
-

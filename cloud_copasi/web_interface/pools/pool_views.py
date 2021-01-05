@@ -724,6 +724,8 @@ class BoscoPoolAddView(RestrictedFormView):
         #Firstly, check to see if the ssh credentials are valid
         form = kwargs['form']
 
+        ## generating secured temporary file to delete it later manually
+        ## the file is readable/writable only by the user ID creating it. 
         file_handle, ssh_key_filename = tempfile.mkstemp()
 
         #Added by HB to write the data in Permanent file and see if it works
