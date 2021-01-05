@@ -54,10 +54,17 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
 
     command = 'eval `ssh-agent`; ssh-add ' + keypair + '; '
 
-    command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    #command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    #The following line is modified by HB
+    command += './' + BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
 
     command += 'kill $SSH_AGENT_PID;'
 
+    #added by HB
+    print(command)
+    log.debug("command: ")
+    log.debug(command)
+    #####
 
     output = run_bosco_command(command, error=True, shell=True)
 
