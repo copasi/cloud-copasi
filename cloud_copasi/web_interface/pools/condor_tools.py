@@ -16,6 +16,15 @@ import datetime
 from django.utils.timezone import now
 
 log = logging.getLogger(__name__)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/example.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 CONDOR_Q = 'condor_q'
 CONDOR_SUBMIT = 'condor_submit'
@@ -41,6 +50,10 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 
 def run_bosco_command(command, error=False, cwd=None, shell=False):
+    #added by HB for debugging
+    check.debug("in run_bosco_command function")
+    check.debug("command: ")
+    check.debug(command)
 
     process = subprocess.Popen(command, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
 
@@ -54,16 +67,16 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
 
     command = 'eval `ssh-agent`; ssh-add ' + keypair + '; '
 
-    #command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
     #The following line is modified by HB
-    command += './' + BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    #command += './' + BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
 
     command += 'kill $SSH_AGENT_PID;'
 
     #added by HB
-    print(command)
-    log.debug("command: ")
-    log.debug(command)
+    #print(command)
+    check.debug("command: ")
+    check.debug(command)
     #####
 
     output = run_bosco_command(command, error=True, shell=True)

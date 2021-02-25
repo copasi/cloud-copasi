@@ -35,6 +35,8 @@ from django.contrib.auth.models import User
 from web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
+#following line is set by HB
+log.setLevel(logging.DEBUG)
 
 class PoolListView(RestrictedView):
     """View to display active compute pools
