@@ -18,7 +18,7 @@ from django.utils.timezone import now
 log = logging.getLogger(__name__)
 ########### following lines are set by HB for debugging
 logging.basicConfig(
-        filename='/home/cloudcopasi/log/example.log',
+        filename='/home/cloudcopasi/log/debug.log',
         format='%(asctime)s %(levelname)s: %(message)s',
         datefmt='%m/%d/%y %I:%M:%S %p',
         level=logging.DEBUG
@@ -51,13 +51,13 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 def run_bosco_command(command, error=False, cwd=None, shell=False):
     #added by HB for debugging
-    check.debug("in run_bosco_command function")
-    check.debug("command: ")
-    check.debug(command)
+    check.debug("***** Running bosco command now *****")
 
     process = subprocess.Popen(command, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
 
     output = process.communicate()
+    check.debug("output: ")
+    check.debug(output)
 
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
@@ -74,8 +74,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
     command += 'kill $SSH_AGENT_PID;'
 
     #added by HB
-    #print(command)
-    check.debug("command: ")
+    check.debug("Executing the adding bosco pool command: ")
     check.debug(command)
     #####
 

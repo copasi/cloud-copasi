@@ -36,6 +36,16 @@ import urllib
 import datetime
 
 log = logging.getLogger(__name__)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
+
 class APIView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -337,6 +347,8 @@ class RemoteLoggingUpdateView(APIView):
 class CheckResourceView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #Following lines added by HB for debugging
+        check.debug("-------------------------------> Testing logging in api_views.py files")
         user_id = int(float(request.GET['user_id']))
         user = User.objects.get(id=user_id)
         log.debug('Checking status for user %s'%user)

@@ -35,8 +35,9 @@ from django.contrib.auth.models import User
 from web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
+check = logging.getLogger(__name__)
 #following line is set by HB
-log.setLevel(logging.DEBUG)
+#log.setLevel(logging.DEBUG)
 
 class PoolListView(RestrictedView):
     """View to display active compute pools
@@ -696,8 +697,6 @@ class AddBoscoPoolForm(forms.Form):
         return cleaned_data
 
 
-
-
 class BoscoPoolAddView(RestrictedFormView):
 
     page_title = 'Add existing compute pool'
@@ -743,7 +742,7 @@ class BoscoPoolAddView(RestrictedFormView):
         username = form.cleaned_data['username']
         address = form.cleaned_data['address']
 
-        log.debug('Testing SSH credentials')
+        check.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
 
 
@@ -751,8 +750,8 @@ class BoscoPoolAddView(RestrictedFormView):
         #process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
 
-        log.debug('SSH response:')
-        log.debug(output)
+        check.debug('SSH response:')
+        check.debug(output)
 
 
         if process.returncode != 0:
@@ -765,7 +764,13 @@ class BoscoPoolAddView(RestrictedFormView):
         #Next, we try to add the pool using bosco_cluster --add
 
         ##Only do this if no other pools exist with the same address!
+        ## Following lines of code are added by HB for debugging
+        check.debug('********** Reached here **********')
+        count= BoscoPool.objects.filter(address = username + '@' + address).count()
 
+        check.debug('BoscoPool Object Count: %s', count)
+
+        #############################
         if BoscoPool.objects.filter(address = username + '@' + address).count() == 0:
             output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
 
@@ -782,7 +787,7 @@ class BoscoPoolAddView(RestrictedFormView):
 
                 return self.form_invalid(self, *args, **kwargs)
         else:
-            log.debug('Adding new bosco pool %s to db, skipping bosco_cluster --add because it already exists ' % (username + '@' + address))
+            check.debug('Adding new bosco pool %s to db, skipping bosco_cluster --add because it already exists ' % (username + '@' + address))
 
         #Assume everything went well
         os.remove(ssh_key_filename)
