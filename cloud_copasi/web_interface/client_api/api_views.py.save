@@ -347,10 +347,12 @@ class RemoteLoggingUpdateView(APIView):
 class CheckResourceView(APIView):
 
     def get(self, request, *args, **kwargs):
+        #Following lines added by HB for debugging
         
+        check.debug("-------------------------------> Testing logging in api_views.py files")
         user_id = int(float(request.GET['user_id']))
         user = User.objects.get(id=user_id)
-        check.debug('Checking status for user %s'%user)
+        log.debug('Checking status for user %s'%user)
 
         try:
             if not resource_management_tools.get_unrecognized_resources(user).is_empty():

@@ -51,13 +51,12 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 def run_bosco_command(command, error=False, cwd=None, shell=False):
     #added by HB for debugging
-    check.debug("***** Running bosco command now *****")
-
+    check.debug("***** Running following bosco command now *****")
+    check.debug(command)
+    
     process = subprocess.Popen(command, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
 
     output = process.communicate()
-    check.debug("output: ")
-    check.debug(output)
 
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
@@ -99,18 +98,25 @@ def remove_bosco_pool(address):
     return output
 
 def test_bosco_pool(address):
-    log.debug('Testing bosco cluster %s' % address)
+    check.debug('Testing bosco cluster %s' % address)
 
-    command = [BOSCO_CLUSTER, '--test', address]
+    #command = [BOSCO_CLUSTER, '--test', address]
+    
+    #added by HB
+    command = BOSCO_CLUSTER + ' --test %s;' %address
 
-    output =  run_bosco_command(command, error=True)
+    #added by HB for debugging
+    check.debug('bosco test command: %s' %command)
 
-    log.debug('Test response:')
-    log.debug(output[0])
-    log.debug('Errors:')
-    log.debug(output[1])
-    log.debug('Exit status')
-    log.debug(output[2])
+    output =  run_bosco_command(command, error=True, shell=True)
+
+    check.debug('Test response:')
+    check.debug(output)
+    #check.debug(output[0])
+    #check.debug('Errors:')
+    #check.debug(output[1])
+    #check.debug('Exit status')
+    #check.debug(output[2])
 
     return output
 
