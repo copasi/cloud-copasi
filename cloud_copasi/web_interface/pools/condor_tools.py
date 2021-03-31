@@ -36,7 +36,7 @@ os_env = os.environ.copy()
 
 env={}
 bosco_path = os.path.join(settings.BOSCO_DIR, 'bin') + ':' + os.path.join(settings.BOSCO_DIR, 'sbin')
-env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
+env['PATH'] = bosco_path + ':' + os_env.get('PATH', '') 
 env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
 env['HOME'] = settings.HOME_DIR
 

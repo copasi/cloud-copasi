@@ -8,18 +8,29 @@
 
 # CopasiSE binary location
 copasise=$HOME/copasi/bin/CopasiSE
+#added by HB
+#copasise=/home/cloudcopasi/copasi/bin/CopasiSE
+#copasise=/home/cloudcopasi/copasi/COPASI-4.29.228-AllSE/Linux64/CopasiSE
 
 # Copasi test model location
 copasi_test_model_path=$HOME/copasi/brusselator_scan_test.cps
+#added by HB
+#copasi_test_model_path=/home/cloudcopasi/copasi/brusselator_scan_test.cps
 
 # Bosco key location
 bosco_key=$HOME/.ssh/bosco_key.rsa
+#added by HB
+#bosco_key=/home/cloudcopasi/.ssh/bosco_key.rsa
 
 # Bosco password location
 PASSPHRASE_LOCATION=$HOME/.bosco/.pass
+#added by HB
+#PASSPHRASE_LOCATION=/home/cloudcopasi/.bosco/.pass
 
 # Bosco cluster list location
 CLUSTERLIST_LOCATION=$HOME/.bosco/.clusterlist
+#added by HB
+#CLUSTERLIST_LOCATION=/home/cloudcopasi/.bosco/.clusterlist
 
 # Check if invoked by a regular user on a BOSCO Multi User installation
 # if PRIVATE_ON_MU is defined will be unable to use glideins and to set the system rouitng
@@ -200,7 +211,12 @@ ssh_upload_and_run () {
     else
         ssh $remote_host "mkdir -p $start_dir"
     fi
+
     scp $local_script $remote_host:$start_dir/bosco_run
+
+    #added by HB 
+    #rsync $local_script $remote_host:$start_dir/bosco_run
+
     cmd_out=`ssh -o ControlMaster=auto -o "ControlPath=$ssh_control_path" $remote_host "cd $start_dir; chmod +x bosco_run; ./bosco_run $@"  2>/dev/null`
     #cmd_out=`ssh $remote_host "cd $start_dir; chmod +x bosco_run; ./bosco_run $4 $5 $6"`
     cmd_ec=$?
@@ -467,10 +483,15 @@ check_condor_q_classad () {
     # Returns 0 if not found, 1 if found
     classad=$1
     counter=$2
-
+    
+    echo "CLASSAD: $classad" >> check.txt
+    
     while [ $counter -gt 0 ]
     do
         cmd_out=`condor_q -const "$classad" -format '%s' ClusterId `
+        #added by HB
+        echo "CMD_OUT: $cmd_out" >> check.txt
+   
         if [ ! "x$cmd_out" == "x" ]; then
             return 1
         fi
@@ -486,6 +507,7 @@ test_cluster () {
 
         # First, check if the cluster is in the cluster list, exit if not
         check_cluster_list2 $remote_host "ve"
+
 
         # Get the cluster type
         cluster_out=`grep "$remote_host" $CLUSTERLIST_LOCATION`
@@ -510,6 +532,8 @@ do_test_cluster () {
     # $1 remote_host (user@fqdn)
     # $2 cluster_type (pbs, condor, ...)
     # other parameters are ignored
+
+ 
     if [ "x$1" != "x" ]; then
         remote_host=$1
     else
@@ -545,6 +569,11 @@ do_test_cluster () {
     # Get the bosco (condor) local dir
     local_dir=`condor_config_val LOCAL_DIR`
     root_submit_dir=$local_dir/bosco-test
+    
+    #added by HB
+    echo "ROOT_SUBMIT_DIR: $root_submit_dir" >> check.txt
+ 
+
     mkdir -p $root_submit_dir
     if [ $? -ne 0 ]; then
         echo "Unable to create directory $root_submit_dir"
@@ -553,6 +582,11 @@ do_test_cluster () {
     fi
     submit_dir=`mktemp -d $root_submit_dir/boscotest.XXXXXX`
     submit_file=$submit_dir/condor.submit
+    
+    #added by HB
+    echo "SUBMIT_DIR: $submit_dir" >> check.txt
+    echo "SUBMIT_FILE: $submit_file" >> check.txt
+
     log_file=$submit_dir/logfile
     test_stdout=$submit_dir/test.stdout
     test_stderr=$submit_dir/test.stderr
@@ -576,7 +610,14 @@ queue
 End_of_Submit
 
     submit_out=`condor_submit $submit_file 2>&1 `
-    if [ $? -ne 0 ]; then
+    value="$?"    #added by HB
+    echo "VALUE: $value" >> check.txt  #added by HB
+    echo "submit_out: $submit_out" >> check.txt
+    echo $PATH >> check.txt
+
+    #if [ $? -ne 0 ]; then
+    #following line is added by HB to replace the above line
+    if [ $value -ne 0 ]; then
         echo "Failed"
         echo $submit_out
         exit 1
@@ -587,6 +628,9 @@ End_of_Submit
 
     # Get the condor job id using the bosco_test_id
     condor_jobid=`condor_q -const "bosco_test_id =?= \"$test_id\"" -format '%i' ClusterId`
+
+    # added by HB
+    echo "CONDOR_JOBID: $condor_jobid" >> check.txt
 
     # Check if the jobmanager picked up the job
     echo -n "Waiting for jobmanager to accept job..."
@@ -601,6 +645,7 @@ End_of_Submit
 
     # Check if there is anything in the user log
     echo -n "Checking for submission to remote $cluster_type cluster (could take ~30 seconds)..."
+
     counter=50
     submit_found=0
     while [ $counter -gt 0 ]
