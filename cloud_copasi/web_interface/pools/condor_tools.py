@@ -40,6 +40,8 @@ env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
 env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
 env['HOME'] = settings.HOME_DIR
 
+#added by HB
+#env['CONDOR_SUBMIT'] = os.path.join(settings.BOSCO_DIR, 'bin/condor_submit')
 
 ###Custom env options
 if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
@@ -51,6 +53,7 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 def run_bosco_command(command, error=False, cwd=None, shell=False):
     #added by HB for debugging
+    check.debug('bosco_path: %s' %bosco_path)
     check.debug("***** Running following bosco command now *****")
     check.debug(command)
     
@@ -146,11 +149,11 @@ def condor_submit(condor_file):
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
 
-    log.debug("filename: ", filename)
+    check.debug("filename: ", filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
-    log.debug('Submitting to condor. Output: ')
-    log.debug(output)
-    log.info(output)
+    check.debug('Submitting to condor. Output: ')
+    check.debug(output)
+    check.info(output)
     #Get condor_process number...
     #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
@@ -174,7 +177,7 @@ def condor_submit(condor_file):
         except AttributeError:
             number_of_jobs = int(r.match(process_output))
 
-	#The following line is added by HB
+	#added by HB
         #number_of_jobs = number_of_jobs.decode('utf-8')
 
         cluster_id = int(r.match(process_output).group('cluster'))
