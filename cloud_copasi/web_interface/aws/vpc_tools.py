@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from web_interface import models
+from cloud_copasi.web_interface import models
 import boto.exception
 import sys, os
 import time

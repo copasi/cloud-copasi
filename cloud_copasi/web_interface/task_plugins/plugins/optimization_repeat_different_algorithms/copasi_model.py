@@ -7,12 +7,12 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from copasi.model import CopasiModel
-from copasi import model
+from cloud_copasi.copasi.model import CopasiModel
+from cloud_copasi.copasi import model
 from cloud_copasi import settings
 from lxml import etree
 import os, time, math
-from condor import condor_spec
+from cloud_copasi.condor import condor_spec
 from string import Template
 import re
 

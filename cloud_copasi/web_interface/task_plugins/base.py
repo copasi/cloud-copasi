@@ -6,11 +6,11 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from web_interface.models import CondorJob, Subtask, BoscoPool,EC2Pool
+from cloud_copasi.web_interface.models import CondorJob, Subtask, BoscoPool,EC2Pool
 from django import forms
-from web_interface import form_tools
+from cloud_copasi.web_interface import form_tools
 #from cloud_copasi.web_interface.task_plugins import tools
-from web_interface.models import CondorPool
+from cloud_copasi.web_interface.models import CondorPool
 import itertools
 import logging
 

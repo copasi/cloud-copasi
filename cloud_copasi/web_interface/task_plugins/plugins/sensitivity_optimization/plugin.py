@@ -7,13 +7,13 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from web_interface.task_plugins.base import BaseTask, BaseTaskForm
-from web_interface.models import Task, CondorJob, CondorPool
-from web_interface.models import Subtask
+from cloud_copasi.web_interface.task_plugins.base import BaseTask, BaseTaskForm
+from cloud_copasi.web_interface.models import Task, CondorJob, CondorPool
+from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from copasi.model import CopasiModel
+from cloud_copasi.copasi.model import CopasiModel
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
