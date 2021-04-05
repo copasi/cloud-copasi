@@ -12,18 +12,18 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django import forms
-from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from web_interface.models import PLATFORM_CHOICES, POOL_TYPE_CHOICES, AWSAccessKey,\
+from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
+from cloud_copasi.web_interface.models import PLATFORM_CHOICES, POOL_TYPE_CHOICES, AWSAccessKey,\
     VPCConnection, CondorPool, EC2Instance, EC2Pool, BoscoPool, Task, SpotRequest
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
 from django.contrib.auth.forms import PasswordChangeForm
-from web_interface.aws import vpc_tools, aws_tools, ec2_tools,ec2_config
-from web_interface.pools import condor_tools
-from web_interface import models
+from cloud_copasi.web_interface.aws import vpc_tools, aws_tools, ec2_tools,ec2_config
+from cloud_copasi.web_interface.pools import condor_tools
+from cloud_copasi.web_interface import models
 from boto.exception import EC2ResponseError, BotoServerError
-from web_interface.models import VPC
+from cloud_copasi.web_interface.models import VPC
 import logging
 import tempfile, subprocess
 from django.core.validators import RegexValidator
@@ -32,7 +32,7 @@ from django.forms.forms import NON_FIELD_ERRORS
 from django.forms.utils import ErrorList
 from django.http.response import HttpResponseRedirect
 from django.contrib.auth.models import User
-from web_interface.email import email_tools
+from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 check = logging.getLogger(__name__)

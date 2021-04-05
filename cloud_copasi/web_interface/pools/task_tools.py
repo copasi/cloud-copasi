@@ -7,16 +7,16 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 import json, os, sys
-from web_interface.models import Task, CondorJob, Subtask
-from web_interface.aws import aws_tools
+from cloud_copasi.web_interface.models import Task, CondorJob, Subtask
+from cloud_copasi.web_interface.aws import aws_tools
 from boto.sqs.message import Message
-from web_interface.task_plugins import tools
+from cloud_copasi.web_interface.task_plugins import tools
 import logging
-from web_interface.pools import condor_tools
+from cloud_copasi.web_interface.pools import condor_tools
 import tarfile
 import datetime
 from django.utils.timezone import now
-from web_interface.email import email_tools
+from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco

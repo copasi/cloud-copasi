@@ -1,0 +1,2 @@
+This folder contains the CCNew files with old project tree structure (which Ed had in his original version)
+

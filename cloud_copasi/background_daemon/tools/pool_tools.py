@@ -7,12 +7,12 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from web_interface.models import EC2Pool, Task
-from web_interface.aws import ec2_tools
+from cloud_copasi.web_interface.models import EC2Pool, Task
+from cloud_copasi.web_interface.aws import ec2_tools
 
 from logging import getLogger
-from web_interface.pools import condor_tools
-from web_interface.email import email_tools
+from cloud_copasi.web_interface.pools import condor_tools
+from cloud_copasi.web_interface.email import email_tools
 log = getLogger(__name__)
 
 def refresh_all_ec2_pools():

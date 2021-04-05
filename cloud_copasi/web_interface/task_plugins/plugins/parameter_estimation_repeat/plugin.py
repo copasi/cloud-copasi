@@ -7,20 +7,20 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from web_interface.task_plugins.base import BaseTask, BaseTaskForm
-from web_interface.models import Task, CondorJob, CondorPool
-from web_interface.models import Subtask
+from cloud_copasi.web_interface.task_plugins.base import BaseTask, BaseTaskForm
+from cloud_copasi.web_interface.models import Task, CondorJob, CondorPool
+from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from web_interface.task_plugins.plugins.parameter_estimation_repeat.copasi_model import PRCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.web_interface.task_plugins.plugins.parameter_estimation_repeat.copasi_model import PRCopasiModel # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from condor import condor_spec
+from cloud_copasi.condor import condor_spec
 from string import Template
-from web_interface.task_plugins import load_balancing
+from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 from django.utils.timezone import now
 log = logging.getLogger(__name__)
