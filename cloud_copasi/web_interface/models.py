@@ -26,6 +26,7 @@ from cloud_copasi.web_interface.task_plugins import tools
 
 import logging
 
+
 log = logging.getLogger(__name__)
 
 PLATFORM_CHOICES = (

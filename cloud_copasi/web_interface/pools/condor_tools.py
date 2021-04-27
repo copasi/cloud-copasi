@@ -53,11 +53,12 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 def run_bosco_command(command, error=False, cwd=None, shell=False):
     #added by HB for debugging
-    check.debug('bosco_path: %s' %bosco_path)
-    check.debug("***** Running following bosco command now *****")
-    check.debug(command)
+    #check.debug('bosco_path: %s' %bosco_path)
+    #check.debug("***** Running following bosco command now *****")
+    #check.debug(command)
     
-    process = subprocess.Popen(command, shell=shell, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+    #check.debug('env: %s' %env)
+    process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
 
     output = process.communicate()
 
@@ -101,25 +102,26 @@ def remove_bosco_pool(address):
     return output
 
 def test_bosco_pool(address):
-    check.debug('Testing bosco cluster %s' % address)
+    check.debug('Testing bosco cluster %s', address)
 
-    #command = [BOSCO_CLUSTER, '--test', address]
+    command = [BOSCO_CLUSTER, '--test', address]
     
     #added by HB
-    command = BOSCO_CLUSTER + ' --test %s;' %address
+    #command = BOSCO_CLUSTER + ' --test %s;' %address
 
     #added by HB for debugging
-    check.debug('bosco test command: %s' %command)
+    check.debug('Bosco Test Command: %s', command)
 
-    output =  run_bosco_command(command, error=True, shell=True)
+    #output =  run_bosco_command(command, error=True, shell=True)
+    output =  run_bosco_command(command, error=True)
 
     check.debug('Test response:')
-    check.debug(output)
-    #check.debug(output[0])
-    #check.debug('Errors:')
-    #check.debug(output[1])
-    #check.debug('Exit status')
-    #check.debug(output[2])
+    #check.debug(output)
+    check.debug(output[0])
+    check.debug('Errors:')
+    check.debug(output[1])
+    check.debug('Exit status')
+    check.debug(output[2])
 
     return output
 
@@ -148,6 +150,9 @@ def condor_submit(condor_file):
     """Submit the .job file condor_file to the condor system using the condor_submit command"""
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
+    
+    #added by HB
+    check.debug("condor_submit function runs")
 
     check.debug("filename: ", filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
