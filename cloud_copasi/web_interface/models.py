@@ -222,12 +222,17 @@ class CondorPool(models.Model):
         else:
             return BoscoPool.objects.get(pk=self.pk)
 
+    #added by HB to display the name of pool in admin interface
+    def __str__(self):
+        return str(self.name)
+
 
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
     """
 
     status_page = models.CharField(max_length=1000, blank=True, null=True, default='')
+   
 
     class Meta:
         app_label = 'web_interface'

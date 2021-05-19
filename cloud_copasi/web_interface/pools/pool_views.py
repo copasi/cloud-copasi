@@ -664,6 +664,9 @@ class AddBoscoPoolForm(forms.Form):
     pool_type = forms.ChoiceField(choices = POOL_TYPE_CHOICES,
                                   initial = POOL_TYPE_CHOICES[0][0],
                                  )
+    #added by HB
+    if pool_type == 'slurm':
+        check.debug("Pool type is Slurm")
 
     platform = forms.ChoiceField(label='Remote platform',
                                  help_text='The platform of the remote submitter we are connecting to. Not sure which to select? See the documentation for full details.',
