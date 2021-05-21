@@ -35,9 +35,17 @@ from django.contrib.auth.models import User
 from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
-check = logging.getLogger(__name__)
 #following line is set by HB
 #log.setLevel(logging.DEBUG)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 class PoolListView(RestrictedView):
     """View to display active compute pools
@@ -665,8 +673,15 @@ class AddBoscoPoolForm(forms.Form):
                                   initial = POOL_TYPE_CHOICES[0][0],
                                  )
     #added by HB
-    if pool_type == 'slurm':
-        check.debug("Pool type is Slurm")
+    slurm_partition = forms.CharField(max_length=20,
+                                      label ='Slurm Partition Name (optional)', 
+				      help_text = '(if other than "general")',
+                                      required=False)
+    #added by HB
+    slurm_qos = forms.CharField(max_length=20,
+                                 label='Slurm Qos Name (optional)',
+                                 help_text='(if other than "general")',
+                                 required=False)
 
     platform = forms.ChoiceField(label='Remote platform',
                                  help_text='The platform of the remote submitter we are connecting to. Not sure which to select? See the documentation for full details.',
@@ -694,6 +709,11 @@ class AddBoscoPoolForm(forms.Form):
 
         address = cleaned_data.get('address')
         username = cleaned_data.get('username')
+
+	#added by HB
+        slurm_partition = cleaned_data.get('slurm_partition')
+        slurm_qos = cleaned_data.get('slurm_qos')
+	
         if BoscoPool.objects.filter(name=name,user=self.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
 
@@ -744,6 +764,12 @@ class BoscoPoolAddView(RestrictedFormView):
 
         username = form.cleaned_data['username']
         address = form.cleaned_data['address']
+
+        #added by HB
+        slurm_partition = form.cleaned_data['slurm_partition']
+        slurm_qos = form.cleaned_data['slurm_qos']
+        check.debug(slurm_partition)
+        check.debug(slurm_qos)
 
         check.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
