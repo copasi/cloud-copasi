@@ -768,8 +768,8 @@ class BoscoPoolAddView(RestrictedFormView):
         #added by HB
         slurm_partition = form.cleaned_data['slurm_partition']
         slurm_qos = form.cleaned_data['slurm_qos']
-        check.debug(slurm_partition)
-        check.debug(slurm_qos)
+        #check.debug(slurm_partition)
+        #check.debug(slurm_qos)
 
         check.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
@@ -801,7 +801,15 @@ class BoscoPoolAddView(RestrictedFormView):
 
         #############################
         if BoscoPool.objects.filter(address = username + '@' + address).count() == 0:
-            output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
+            #following line is duplicated and modified by HB to pass slurm_partition and slurm_qos to condor_tools.py file
+            output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], 
+   								      username+'@'+address, 
+                                                                      ssh_key_filename, 
+                                                                      form.cleaned_data['pool_type'], 
+								      slurm_partition, 
+								      slurm_qos) 	
+            
+            #output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
 
             if exit_status != 0:
                 os.remove(ssh_key_filename)
