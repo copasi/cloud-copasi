@@ -40,8 +40,6 @@ env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
 env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
 env['HOME'] = settings.HOME_DIR
 
-#added by HB
-#env['CONDOR_SUBMIT'] = os.path.join(settings.BOSCO_DIR, 'bin/condor_submit')
 
 ###Custom env options
 if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
@@ -65,8 +63,41 @@ def run_bosco_command(command, error=False, cwd=None, shell=False):
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
 
-def add_bosco_pool(platform, address, keypair, pool_type='condor'):
+#defintion added by HB to overwrite slurm_submit file on a remote server
+def transfer_file(slurm_partition, slurm_qos, address):
+    SCRIPT='./replace.sh'
+    
+    if (slurm_partition == ''):
+        slurm_partition='general'
+    
+    if (slurm_qos == ''):
+        slurm_qos='general'
+    
+    check.debug("============ slurm inputs modified: ")
+    check.debug(slurm_partition)
+    check.debug(slurm_qos)
 
+    check.debug("Address: ")
+    check.debug(address)
+    check.debug("$$$$ Current Working Directory: ")
+    check.debug(os.getcwd()) 
+    cwd_old = os.getcwd()
+    chng_cwd = cwd_old + '/cloud-copasi/cloud_copasi/web_interface/pools'
+    os.chdir(chng_cwd)
+    
+    check.debug("$$$$ Changed Working Directory: ")
+    check.debug(os.getcwd())
+ 
+    command=[SCRIPT, slurm_partition, slurm_qos, address]
+    process=subprocess.Popen(command,stdout=subprocess.PIPE, shell=False)
+    output=process.communicate()
+    os.chdir(cwd_old)
+  
+    check.debug("$$$$ CWD changed back to: ")
+    check.debug(os.getcwd())
+ 
+#the last two arguments in the following function are added by HB
+def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partition=' ', slurm_qos=' '):
 
     command = 'eval `ssh-agent`; ssh-add ' + keypair + '; '
 
@@ -85,6 +116,12 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor'):
 
     log.debug(output)
 
+    #added by HB
+    check.debug("============ slurm inputs received: ")
+    check.debug(slurm_partition)
+    check.debug(slurm_qos)
+    
+    transfer_file(slurm_partition, slurm_qos, address)
     return output
 
 def remove_bosco_pool(address):
