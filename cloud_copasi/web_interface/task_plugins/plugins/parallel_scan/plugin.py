@@ -33,6 +33,16 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
 
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
+
 internal_type = ('parallel_scan', 'Scan in parallel')
 
 class TaskForm(BaseTaskForm):
@@ -61,10 +71,12 @@ class TaskPlugin(BaseTask):
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
+        check.debug("$$$$ validate function runs inn pluging.py") #added by HB
         return self.copasi_model.is_valid('PS')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
+        check.debug("$$$$ initiliace_subtasks function runs inn pluging.py") #added by HB
         if self.use_load_balancing:
             #Create the load balancing module
             self.create_new_subtask('lb')
@@ -76,6 +88,7 @@ class TaskPlugin(BaseTask):
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
+        check.debug("$$$$ prepare_subtask func runs in pluging.py") #added by HB
 
         if index == 1:
             if self.use_load_balancing:

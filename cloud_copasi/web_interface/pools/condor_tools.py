@@ -189,13 +189,14 @@ def condor_submit(condor_file):
     (directory, filename) = os.path.split(condor_file)
     
     #added by HB
-    check.debug("condor_submit function runs")
+    check.debug("@@@@@ condor_submit function runs @@@@@")
 
-    check.debug("filename: ", filename)
+    check.debug("@@@@@ filename:" )
+    check.debug(filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
-    check.debug('Submitting to condor. Output: ')
-    check.debug(output)
-    check.info(output)
+    check.debug('@@@@@ Submitting to condor. Output: ')
+    
+    check.info(output) 
     #Get condor_process number...
     #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
@@ -211,18 +212,28 @@ def condor_submit(condor_file):
         #log.debug('r= ',r)
 	#added by HB
         #process_output = process_output.decode('utf-8')
-        log.debug('process output: ')
-        log.debug(process_output)
+        check.debug('@@@@@ process output: ')
+        check.debug(process_output)
+
+        PO_to_string = process_output.decode('utf-8')
 
         try:
-            number_of_jobs = int(r.match(process_output).group('n'))
+            #number_of_jobs = int(r.match(process_output).group('n'))
+            
+            #added by HB
+            #number_of_jobs = int(re.match(r'(^[0-9]*)', PO_to_string).group(1))
+            number_of_jobs = int(r.match(PO_to_string).group('n'))
+
         except AttributeError:
-            number_of_jobs = int(r.match(process_output))
+            #number_of_jobs = int(r.match(process_output)) 
+            #added by HB
+            #number_of_jobs = int(re.match(r'(^[0-9]*)', PO_to_string))
+            number_of_jobs = int(r.match(PO_to_string)) 
 
+        #cluster_id = int(r.match(process_output).group('cluster'))
 	#added by HB
-        #number_of_jobs = number_of_jobs.decode('utf-8')
-
-        cluster_id = int(r.match(process_output).group('cluster'))
+        #cluster_id = int(re.search(r'([0-9]*)\.$' ,PO_to_string).group(1))
+        cluster_id = int(r.match(PO_to_string).group('cluster'))
 
     except Exception as e:
         log.exception('Failed to submit job')
@@ -246,12 +257,15 @@ def submit_task(subtask):
     assert subtask.spec_file != ''
 
     spec_file_path = os.path.join(subtask.task.directory, subtask.spec_file)
-	#added by HB
-	#log.debug(spec_file_path)
+    #added by HB
+    check.debug("@@@@@ condor_tools.submit_task function runs @@@@@@@")
+    check.debug("@@@@@ spec file path")
+    check.debug(spec_file_path)
+
     cluster_id, number_of_jobs = condor_submit(spec_file_path)
 
-    log.debug('cluster id %d' % cluster_id)
-    log.debug('number_of_jobs %d' % number_of_jobs)
+    check.debug('cluster id %d' % cluster_id)
+    check.debug('number_of_jobs %d' % number_of_jobs)
 
 
     #Check to see if std_output_file, std_err_file, log_file or job_output were specified by the subtask
@@ -323,13 +337,15 @@ def submit_task(subtask):
     subtask.status='running'
     subtask.start_time = now()
     subtask.save()
+    #added by HB
+    check.debug("@@@@@ finished submit_task")
 
 def remove_task(subtask):
     """Call condor_rm on the condor jobs belonging to a subtask
     """
     assert isinstance(subtask, Subtask)
     if subtask.status == 'running' or subtask.status == 'error':
-        log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
+        #log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
         try:
             output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
             #assert exit_status == 0
@@ -356,18 +372,28 @@ def read_condor_q():
     Returns a list of tuples of the form (cluster_id, process_id, status)
     where status is a single lettter, e.g. I, R, H, X
     """
+    #added by HB
+    check.debug("*********Entered in read_condor_q definition ***********")
+
+    #condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
+    #above line is modified by HB as follows:
+    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q - nobatch], error=True)
+
+    check.debug("@@@@@ condo_q_output:")
+    check.debug(condor_q_output)
 
 
-
-    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
     #following line is commented out by HB
-    #assert exit_status == 0
+    assert exit_status == 0
 
     #Process the output using regexps. Example line is as follows:
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD
     #18756.0   ed              1/7  11:45   0+03:19:53 R  0   22.0 CopasiSE.$$(OpSys)
     condor_q=[]
     no_of_jobs = len(condor_q_output) - 6
+    check.debug("@@@@@ no_of_jobs: ")
+    check.debug(no_of_jobs)
+
     if no_of_jobs > 0:
         job_string = r'\s*(?P<cluster_id>\d+)\.(?P<process_id>\d+)\s+(?P<owner>\S+)\s+(?P<sub_date>\S+)\s+(?P<sub_time>\S+)\s+(?P<run_time>\S+)\s+(?P<status>\w)\s+(?P<pri>\d+)\s+(?P<size>\S+)\s+(?P<cmd>\S+)'
         job_re = re.compile(job_string)
@@ -398,7 +424,9 @@ def process_condor_q(user=None, subtask=None):
 
     Note: this method only updates the status of CondorJob objects. It does not update any upstream subtask or task changes. this is performed in task_tools
     """
-
+    #added by HB
+    check.debug("*********Entered in process_condor_q definition ***********")
+    
     #Next, get a list of all condor jobs we think are still running
     #Status will be 'I', 'R', 'H'
 
@@ -411,11 +439,11 @@ def process_condor_q(user=None, subtask=None):
 
 
     if len(condor_jobs) == 0:
-        #log.debug('No jobs marked as running. Not checking condor_q')
+        check.debug('No jobs marked as running. Not checking condor_q')
         pass
 
     else:
-        #log.debug('Reading condor_q')
+        check.debug('Reading condor_q')
         condor_q = read_condor_q()
 
 
@@ -430,14 +458,14 @@ def process_condor_q(user=None, subtask=None):
             if not in_q:
                 #If not in the queue, then the job must have finished running. Change the status accordingly
                 #TODO: At some point we need to validate the job based on the log file
-                log.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
+                check.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
 
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
                 condor_log = condor_log_tools.Log(log_path)
 
                 if condor_log.has_terminated:
                     if condor_log.termination_status == 0:
-                        log.debug('Log indicates normal termination. Checking output files exist')
+                        check.debug('Log indicates normal termination. Checking output files exist')
 
                         if job.job_output != '' and job.job_output != None:
                             output_filename = os.path.join(job.subtask.task.directory, job.job_output)
