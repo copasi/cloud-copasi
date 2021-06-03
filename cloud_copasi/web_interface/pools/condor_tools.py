@@ -377,10 +377,16 @@ def read_condor_q():
 
     #condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
     #above line is modified by HB as follows:
-    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q - nobatch], error=True)
-
-    check.debug("@@@@@ condo_q_output:")
+    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q, '-nobatch'], error=True)
+     
+    #added by HB
+    #temp_command = CONDOR_Q + ' -nobatch'
+    #condor_q_nobatch = run_bosco_command(temp_command, error=True, shell=True)
+    check.debug("@@@@@ condor_q_output:")
     check.debug(condor_q_output)
+    check.debug(' ')
+    #check.debug("$$$$$ condor_q -nobatch output: $$$$$")
+    #check.debug(condor_q_nobatch)
 
 
     #following line is commented out by HB
@@ -390,10 +396,14 @@ def read_condor_q():
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD
     #18756.0   ed              1/7  11:45   0+03:19:53 R  0   22.0 CopasiSE.$$(OpSys)
     condor_q=[]
-    no_of_jobs = len(condor_q_output) - 6
+    no_of_jobs = len(condor_q_output) - 6    #added by HB. Why -6?
     check.debug("@@@@@ no_of_jobs: ")
     check.debug(no_of_jobs)
-
+    
+    #added by HB
+    #converting the condor_q_output to string format
+    condor_q_output_str = condor_q_output.decode('utf-8')
+   
     if no_of_jobs > 0:
         job_string = r'\s*(?P<cluster_id>\d+)\.(?P<process_id>\d+)\s+(?P<owner>\S+)\s+(?P<sub_date>\S+)\s+(?P<sub_time>\S+)\s+(?P<run_time>\S+)\s+(?P<status>\w)\s+(?P<pri>\d+)\s+(?P<size>\S+)\s+(?P<cmd>\S+)'
         job_re = re.compile(job_string)

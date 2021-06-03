@@ -34,7 +34,8 @@ def run():
         pool_tools.refresh_all_ec2_pools()
     except Exception as e:
         log.exception(e)
-
+    
+    log.debug('@@@@@ running process_condor_q $$$$$$$$$$')
     condor_tools.process_condor_q()
 
     task_tools.update_tasks()

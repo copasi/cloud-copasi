@@ -71,12 +71,12 @@ class TaskPlugin(BaseTask):
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        check.debug("$$$$ validate function runs inn pluging.py") #added by HB
+        check.debug("@@(in plugin.py)@@ validate function runs inn pluging.py") #added by HB
         return self.copasi_model.is_valid('PS')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        check.debug("$$$$ initiliace_subtasks function runs inn pluging.py") #added by HB
+        check.debug("@@(in plugin.py)@@ initiliace_subtasks function runs inn pluging.py") #added by HB
         if self.use_load_balancing:
             #Create the load balancing module
             self.create_new_subtask('lb')
@@ -88,7 +88,7 @@ class TaskPlugin(BaseTask):
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
-        check.debug("$$$$ prepare_subtask func runs in pluging.py") #added by HB
+        check.debug("@@(in plugin.py)@@ prepare_subtask func runs in pluging.py") #added by HB
 
         if index == 1:
             if self.use_load_balancing:
@@ -215,8 +215,8 @@ class TaskPlugin(BaseTask):
 
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
 
-        log.debug('Prepared copasi files %s'%model_files)
-        log.debug('Prepared condor job %s' %condor_job_file)
+        check.debug('@@(in plugin.py)@@ Prepared copasi files %s'%model_files)
+        check.debug('@@(in plugin.py)@@ Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)

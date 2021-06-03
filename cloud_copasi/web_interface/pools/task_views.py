@@ -75,7 +75,7 @@ class NewTaskView(RestrictedFormView):
         task_type = request.POST.get('task_type')
        
         #added by HB
-        check.debug("@$@$@$ task_type:")
+        check.debug("@@ (in task_views.py) @@ task_type:")
         check.debug(task_type)
         if task_type:
             task_form = tools.get_form_class(task_type)
@@ -91,7 +91,8 @@ class NewTaskView(RestrictedFormView):
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Submitting task'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Submitting a task can take several minutes'
- 
+
+        check.debug("Dispatch function is finishing....") ##added by HB
         return super(NewTaskView,self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form,  *args, **kwargs):
@@ -308,7 +309,7 @@ class NewTaskView(RestrictedFormView):
             return self.form_invalid(self, *args, **kwargs)
 
         #added by HB
-        check.debug("@@@@@ finishing NewTaskView class") 
+        check.debug("@@ (in task_views.py) @@ finishing NewTaskView class") 
         return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':task.id}))
 
 class TaskListView(RestrictedView):
