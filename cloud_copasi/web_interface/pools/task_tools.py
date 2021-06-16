@@ -20,6 +20,16 @@ from cloud_copasi.web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
+
 
 
 def update_tasks(user=None, task=None):

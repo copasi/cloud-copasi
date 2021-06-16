@@ -49,14 +49,15 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 
 
-def run_bosco_command(command, error=False, cwd=None, shell=False):
+def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #added by HB: text=None.
     #added by HB for debugging
     #check.debug('bosco_path: %s' %bosco_path)
     #check.debug("***** Running following bosco command now *****")
     #check.debug(command)
     
     #check.debug('env: %s' %env)
-    process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+    #added by HB: text=text.
+    process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
     output = process.communicate()
 
@@ -201,10 +202,6 @@ def condor_submit(condor_file):
     #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
     process_output = output[-1] #We're only interested in the last line
-
-	#added by HB
-	#log.debug("exit status: ")
-	#log.debug(exit_status)
 
     try:
         #assert exit_status == 0
@@ -377,7 +374,7 @@ def read_condor_q():
 
     #condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
     #above line is modified by HB as follows:
-    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q, '-nobatch'], error=True)
+    condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q, '-nobatch'], error=True, text=True)
      
     #added by HB
     #temp_command = CONDOR_Q + ' -nobatch'
@@ -402,11 +399,15 @@ def read_condor_q():
     
     #added by HB
     #converting the condor_q_output to string format
-    condor_q_output_str = condor_q_output.decode('utf-8')
+    #condor_q_output_str = condor_q_output.decode('utf-8')
+    #check.debug('@@@@@ condor_q_output in STRING format: ')
+    #check.debug(condor_q_output_str)
    
     if no_of_jobs > 0:
         job_string = r'\s*(?P<cluster_id>\d+)\.(?P<process_id>\d+)\s+(?P<owner>\S+)\s+(?P<sub_date>\S+)\s+(?P<sub_time>\S+)\s+(?P<run_time>\S+)\s+(?P<status>\w)\s+(?P<pri>\d+)\s+(?P<size>\S+)\s+(?P<cmd>\S+)'
         job_re = re.compile(job_string)
+        #added by HB. following for loop command is modified to process the condor_q_output in string format.
+        #for job_listing in condor_q_output_str:
         for job_listing in condor_q_output:
             match = job_re.match(job_listing)
             if match:
@@ -446,7 +447,10 @@ def process_condor_q(user=None, subtask=None):
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
     if subtask:
         condor_jobs = condor_jobs.filter(subtask=subtask)
-
+    
+    #added by HB
+    check.debug("condor_jobs: ")
+    check.debug(condor_jobs)
 
     if len(condor_jobs) == 0:
         check.debug('No jobs marked as running. Not checking condor_q')
