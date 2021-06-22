@@ -59,7 +59,7 @@ def update_tasks(user=None, task=None):
             errors = jobs.filter(status='E') | jobs.filter(status='H')
             if errors.count() > 0:
                 for job in errors:
-                    log.debug('Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
+                    check.debug('@$@$@$@ Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
                 subtask.status = 'error'
                 task.status = 'error'
                 subtask.finish_time = now()
@@ -73,7 +73,7 @@ def update_tasks(user=None, task=None):
             finished = jobs.filter(status='F')
             if finished.count() == jobs.count():
                 #The subtask has finished!
-                log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
+                check.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                 subtask.status = 'finished'
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
@@ -100,7 +100,7 @@ def update_tasks(user=None, task=None):
                         #We have a new subtask to submit
                         TaskClass = tools.get_task_class(task.task_type)
                         task_instance = TaskClass(task)
-                        log.debug('Preparing new subtask %d' % (subtask.index))
+                        check.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
                         #If this wasn't a local subtask, submit to condor
                         if not subtask.local:
