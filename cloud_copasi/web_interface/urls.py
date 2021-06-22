@@ -5,8 +5,16 @@ from cloud_copasi.web_interface.aws import resource_views
 from cloud_copasi.web_interface.pools import pool_views, task_views
 from cloud_copasi.web_interface.client_api import api_views
 
-
 # app_name = 'web_interface'
+
+#following imports are added on June 22, 2021
+from django.contrib.auth.views import PasswordResetView, PasswordResetCompleteView, PasswordResetDoneView, PasswordResetConfirmView
+from django.views.generic import RedirectView
+from . import settings
+from django.conf.urls.static import static
+# Uncomment the next two lines to enable the admin:
+from django.contrib import admin
+admin.autodiscover()
 
 urlpatterns = [
     # path('', views.index, name='home')
