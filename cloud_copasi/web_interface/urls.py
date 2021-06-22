@@ -118,8 +118,19 @@ urlpatterns = [
 
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/$', task_views.TaskDeleteView.as_view(),{'confirmed': False }, name='task_delete'),
     re_path('^my_account/tasks/(?P<task_id>\d+)/delete/confirm/$', task_views.TaskDeleteView.as_view(), {'confirmed': True },name='task_delete_confirmed'),
-    #----- 
+    #-----
 
     #API views for updating condor job status_message
-    path('api/check_resource/', api_views.CheckResourceView.as_view(), name='api_check_resource'),
+    #path('api/check_resource/', api_views.CheckResourceView.as_view(), name='api_check_resource'),
+    re_path(r'^api/register_job/$', api_views.RegisterJobView.as_view(), name='api_register_job'),
+    re_path(r'^api/update_status/$', api_views.UpdateCondorStatusView.as_view(), name='api_update_status'),
+    re_path(r'^api/register_deleted_jobs/$', api_views.RegisterDeletedJobsView.as_view(), name='api_register_deleted_jobs'),
+    re_path(r'^api/register_transferred_files/$', api_views.RegisterTransferredFilesView.as_view(), name='api_register_transferred_files'),
+    re_path(r'^api/remote_logging_update/$', api_views.RemoteLoggingUpdateView.as_view(), name='api_remote_logging_update'),
+    re_path(r'^api/check_resource/$', api_views.CheckResourceView.as_view(), name='api_check_resource'),
+    re_path(r'^api/extra_task_fields/$', api_views.ExtraTaskFieldsView.as_view(), name='api_extra_task_fields'),
+    re_path(r'^api/terminate_instance_alarm/$', api_views.TerminateInstanceAlarm.as_view(), name='api_terminate_instance_alarm'),
+    re_path(r'^api/spot_price/$', api_views.CurrentSpotInstancePrice.as_view(), name='api_spot_price'),
+
+
 ]
