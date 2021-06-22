@@ -232,7 +232,7 @@ class BoscoPool(CondorPool):
     """
 
     status_page = models.CharField(max_length=1000, blank=True, null=True, default='')
-   
+
 
     class Meta:
         app_label = 'web_interface'
@@ -622,6 +622,9 @@ class Task(models.Model):
 
         self.save()
 
+    #added by HB to display the name of task in admin interface
+    def __str__(self):
+        return str(self.name)
 
 class Subtask(models.Model):
 
