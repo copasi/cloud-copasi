@@ -89,6 +89,8 @@ class TaskPlugin(BaseTask):
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
         check.debug("@@(in plugin.py)@@ prepare_subtask func runs in pluging.py") #added by HB
+        check.debug("@$@$@ subtask index value: ")
+        check.debug(index)
 
         if index == 1:
             if self.use_load_balancing:
