@@ -13,7 +13,9 @@ from cloud_copasi.web_interface.aws import ec2_tools
 from logging import getLogger
 from cloud_copasi.web_interface.pools import condor_tools
 from cloud_copasi.web_interface.email import email_tools
-log = getLogger(__name__)
+import logging
+
+#log = getLogger(__name__)
 log = logging.getLogger(__name__)
 ########### following lines are set by HB for debugging
 logging.basicConfig(
