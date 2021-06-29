@@ -393,7 +393,8 @@ def read_condor_q():
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD
     #18756.0   ed              1/7  11:45   0+03:19:53 R  0   22.0 CopasiSE.$$(OpSys)
     condor_q=[]
-    no_of_jobs = len(condor_q_output) - 6    #added by HB. Why -6?
+    #no_of_jobs = len(condor_q_output) - 6    #added by HB. Why -6?
+    no_of_jobs = len(condor_q_output) - 8    #value modified by HB to discard unnecessary lines
     check.debug("@@@@@ no_of_jobs: ")
     check.debug(no_of_jobs)
     
@@ -426,7 +427,10 @@ def read_condor_q():
                 condor_q.append((cluster_id, process_id,status))
 
 
-
+    #added by HB
+    check.debug("$@$@$@ condor_q: ")
+    check.debug(condor_q)
+    
     return condor_q
 
 def process_condor_q(user=None, subtask=None):
