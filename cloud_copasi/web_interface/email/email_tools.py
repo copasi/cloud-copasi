@@ -15,8 +15,19 @@ from django.urls import reverse_lazy
 from cloud_copasi import settings
 from cloud_copasi.web_interface.models import EC2Pool, Task
 from logging import getLogger
+import logging
 
-log = getLogger(__name__)
+#log = getLogger(__name__)
+log = logging.getLogger(__name__)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 message_header = """Dear %s,
 
