@@ -483,7 +483,19 @@ def process_condor_q(user=None, subtask=None):
                 check.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
 
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
+                #added by HB
+                check.debug("@$@$@$@ log_path: ")
+                check.debug(log_path)
+                
                 condor_log = condor_log_tools.Log(log_path)
+
+                #added by HB
+                check.debug("@$@$@$@ condor_log: ")
+                check.debug(condor_log)
+
+                #added by HB
+                check.debug("@$@$@$@ Job.Status: ")
+                check.debug(job.status)
 
                 if condor_log.has_terminated:
                     if condor_log.termination_status == 0:
