@@ -441,6 +441,10 @@ def process_condor_q(user=None, subtask=None):
     #Next, get a list of all condor jobs we think are still running
     #Status will be 'I', 'R', 'H'
 
+    #added by HB
+    check.debug("subtask: ")
+    check.debug(subtask)
+
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
 
     if user:
