@@ -233,15 +233,24 @@ class TaskPlugin(BaseTask):
 
     def process_results_subtask(self):
         subtask=self.get_subtask(2)
+        #added by HB
+        check.debug("@$@$@ subtask retrieved: ")
+        check.debug(subtask)
+
         assert isinstance(subtask, Subtask)
 
         subtask.start_time = now()
+        #added by HB
+        check.debug("@$@$@ Results subtask start time: ")
+        check.debug(subtask.start_time = now())
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
-
+        #added by HB
+        check.debug("@$@$@$@ Task directory: ")
+        check.debug(directory)
 
         if self.use_load_balancing:
             main_subtask = self.get_subtask(2)
@@ -258,7 +267,17 @@ class TaskPlugin(BaseTask):
 
         subtask.status = 'finished'
         subtask.finish_time = now()
+
+        #added by HB
+        check.debug("@$@$@ Results subtask finish time: ")
+        check.debug(subtask.finish_time = now())
+
         subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+
+        #added by HB
+        check.debug("@$@$@ Results subtask delta time: ")
+        check.debug(subtask.time_delta)
+
         subtask.save()
 
         self.task.results_view=False

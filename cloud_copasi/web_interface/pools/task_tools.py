@@ -103,6 +103,12 @@ def update_tasks(user=None, task=None):
                         check.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
                         #If this wasn't a local subtask, submit to condor
+
+                        #added by HB
+                        check.debug("@$@$@ update_tasks in task_tools.py")
+                        check.debug("@$@$@ Prepared Subtask: ")
+                        check.debug(prepared_subtask)
+
                         if not subtask.local:
                             condor_tools.submit_task(prepared_subtask)
             except Exception as e:
@@ -123,11 +129,14 @@ def update_tasks(user=None, task=None):
 
         #Get the list of subtasks again
         task_subtasks = Subtask.objects.filter(task=task)
+        #added by HB
+        check.debug("@@@@ (in task_tools.py) The list of subtasks again: ")
+        check.debug(task_subtasks)
         finished = task_subtasks.filter(status='finished').order_by('index')
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
             task.finish_time = now()
-            log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
+            check.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
             task.set_run_time()
             task.set_job_count()
             #task.trim_condor_jobs() Don't do this, it breaks plugin functionality

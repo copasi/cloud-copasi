@@ -13,7 +13,7 @@
 from django.core.mail import send_mail
 from django.urls import reverse_lazy
 from cloud_copasi import settings
-from cloud_copasi.web_interface.models import EC2Pool, Task 
+from cloud_copasi.web_interface.models import EC2Pool, Task
 from logging import getLogger
 
 log = getLogger(__name__)
@@ -39,7 +39,7 @@ def send_message(user, notify_type, subject, message_body):
     #And check we have an email address set for the user
     if user.email == None or user.email == '':
         return
-    log.debug('Sending email')
+    check.debug('Sending email')
     if user.first_name:
         name = user.first_name
     else:
