@@ -242,8 +242,8 @@ class TaskPlugin(BaseTask):
         subtask.start_time = now()
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")
-        start_time = subtask.start_time = now()
-        check.debug(start_time)
+        #start_time = subtask.start_time = now()
+        check.debug(subtask.start_time)
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
@@ -271,10 +271,15 @@ class TaskPlugin(BaseTask):
 
         #added by HB
         check.debug("@$@$@ Results subtask finish time: ")
-        finish_time = subtask.finish_time = now()
-        check.debug(finish_time)
+        #finish_time = subtask.finish_time = now()
+        check.debug(subtask.finish_time)
 
-        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #above line is modified by HB as follows
+        time_delta=subtask.finish_time - subtask.start_time
+        check.debug("@$@$@ Time Delta: ")
+        check.debug(time_delta)
+        subtask.set_run_time(time_delta)
 
         #added by HB
         check.debug("@$@$@ Results subtask delta time: ")
