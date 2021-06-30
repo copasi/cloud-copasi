@@ -134,9 +134,9 @@ def update_tasks(user=None, task=None):
 
                 #added by HB
                 check.debug("@$@$@ set_job_count: ")
-                check.debug(set_job_count)
+                check.debug(task.set_job_count)
                 check.debug("@$@$@ set_run_time: ")
-                check.debug(set_run_time)
+                check.debug(task.set_run_time)
                 check.debug("@$@$@ task.finish_time: ")
                 check.debug(task.finish_time)
 
