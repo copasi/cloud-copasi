@@ -39,7 +39,7 @@ def update_tasks(user=None, task=None):
 
 
     #Step 1: Get a list of running tasks
-    #log.debug('Checking running tasks')
+    check.debug('@$@$@ (update_tasks) Checking running tasks')
     tasks = Task.objects.filter(status='running')
     if user:
         tasks = tasks.filter(user = user)
@@ -51,7 +51,7 @@ def update_tasks(user=None, task=None):
         subtasks = Subtask.objects.filter(task=task).filter(status='running')
         log.debug(subtasks)
         for subtask in subtasks:
-            #log.debug('Checking subtask status: %s'%subtask.status)
+            check.debug('Checking subtask status: %s'%subtask.status)
             jobs = CondorJob.objects.filter(subtask=subtask)
 
 
@@ -91,6 +91,9 @@ def update_tasks(user=None, task=None):
         subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
         for subtask in subtasks:
             try:
+                #added by HB
+                check.debug("@$@$@ subtask.index:")
+                check.debug(subtask.index)
                 if subtask.index > 1:
                     previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
                     all_previous_subtasks_finished = True
