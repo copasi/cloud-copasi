@@ -111,7 +111,13 @@ def update_tasks(user=None, task=None):
 
                         if not subtask.local:
                             condor_tools.submit_task(prepared_subtask)
+
+                    #added by HB
+                    check.debug("@$@$@ task_tools TRY block executed. ")
             except Exception as e:
+                #added by HB
+                check.debug("@$@$@ task_tools EXCEPT block executed. ")
+
                 subtask.status = 'error'
                 subtask.set_job_count()
                 subtask.set_run_time()
@@ -125,6 +131,15 @@ def update_tasks(user=None, task=None):
                 task.set_custom_field('error', str(e))
                 task.finish_time = now()
                 task.save()
+
+                #added by HB
+                check.debug("@$@$@ set_job_count: ")
+                check.debug(set_job_count)
+                check.debug("@$@$@ set_run_time: ")
+                check.debug(set_run_time)
+                check.debug("@$@$@ task.finish_time: ")
+                check.debug(task.finish_time)
+
                 email_tools.send_task_completion_email(task)
 
         #Get the list of subtasks again
