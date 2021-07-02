@@ -37,7 +37,6 @@ def update_tasks(user=None, task=None):
     If requested, can filter by a specific user or subtask
     """
 
-
     #Step 1: Get a list of running tasks
     check.debug('@$@$@ (update_tasks) Checking running tasks')
     tasks = Task.objects.filter(status='running')
@@ -49,7 +48,7 @@ def update_tasks(user=None, task=None):
     for task in tasks:
         #Next, get the corresponding running subtasks
         subtasks = Subtask.objects.filter(task=task).filter(status='running')
-        log.debug(subtasks)
+        check.debug(subtasks)
         for subtask in subtasks:
             check.debug('Checking subtask status: %s'%subtask.status)
             jobs = CondorJob.objects.filter(subtask=subtask)
@@ -94,6 +93,7 @@ def update_tasks(user=None, task=None):
                 #added by HB
                 check.debug("@$@$@ subtask.index:")
                 check.debug(subtask.index)
+
                 if subtask.index > 1:
                     previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
                     all_previous_subtasks_finished = True
