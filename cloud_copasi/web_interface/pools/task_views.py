@@ -41,6 +41,7 @@ from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
 import zipfile
 import json
 
+
 log = logging.getLogger(__name__)
 ########### following lines are set by HB for debugging
 logging.basicConfig(
@@ -492,9 +493,18 @@ class TaskDirectoryDownloadView(RestrictedView):
         
         check.debug("@$@$@ filename in task_views.py: %s" %filename)
 
-        result_file = open(filename, 'r')
+        #result_file = open(filename, 'r')
+        #the above line is modified by HB as follows
+        result_file = open(filename, 'r', encoding="utf-8")
+        check.debug("@$@$@ result_file: %s" %result_file) #added by HB
+
         response = HttpResponse(result_file, content_type='application/x-bzip2')
+        #above line is modified by HB  as follows
+        #response = HttpResponse(result_file, content_type='application/zip')
+
         response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.tar.bz2'
+        #above line is modified by HB as follows
+        #response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.zip'
         response['Content-Length'] = os.path.getsize(filename)
 
         return response

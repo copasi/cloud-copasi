@@ -171,7 +171,6 @@ def zip_up_task(task):
     """Zip up the task directory and return the filename
     """
     
-    check.debug("@$@$@ task.name: %s" %task.name) #added by HB
     
     name = str(task.name).replace(' ', '_')
     #added by HB
@@ -179,11 +178,14 @@ def zip_up_task(task):
     check.debug("@$@$@ Directory: %s" %task.directory)
 
     filename = os.path.join(task.directory, name + '.tar.bz2')
+    #the above line is modified by HB as follows
+    #filename = os.path.join(task.directory, name + '.zip')
+    
     check.debug("@$@$@ filename: %s" %filename) #added by HB
 
     if not os.path.isfile(filename):
         #added by HB
-        check.debug("@$@$@ File doesn't exist!")
+        check.debug("@$@$@ Creating New tar file!")
 
         tar = tarfile.open(name=filename, mode='w:bz2')
         tar.add(task.directory, name)
