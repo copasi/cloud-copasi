@@ -170,11 +170,16 @@ def delete_task(task):
 def zip_up_task(task):
     """Zip up the task directory and return the filename
     """
+    
+    check.debug("@$@$@ task.name: %s" %task.name) #added by HB
+    
     name = str(task.name).replace(' ', '_')
     #added by HB
+    check.debug("@$@$@ name: %s" %name)
     check.debug("@$@$@ Directory: %s" %task.directory)
 
     filename = os.path.join(task.directory, name + '.tar.bz2')
+    check.debug("@$@$@ filename: %s" %filename) #added by HB
 
     if not os.path.isfile(filename):
         #added by HB
@@ -183,5 +188,6 @@ def zip_up_task(task):
         tar = tarfile.open(name=filename, mode='w:bz2')
         tar.add(task.directory, name)
         tar.close()
-
+    
+    check.debug("----------------- returning file name") #added by HB
     return filename

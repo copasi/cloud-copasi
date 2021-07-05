@@ -489,6 +489,8 @@ class TaskDirectoryDownloadView(RestrictedView):
             return HttpResponseRedirect(reverse_lazy('task_details'), kwargs={'task_id': kwargs['task_id']})
 
         filename = task_tools.zip_up_task(task)
+        
+        check.debug("@$@$@ filename in task_views.py: %s" %filename)
 
         result_file = open(filename, 'r')
         response = HttpResponse(result_file, content_type='application/x-bzip2')
