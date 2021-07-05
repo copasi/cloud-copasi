@@ -306,10 +306,21 @@ class TaskPlugin(BaseTask):
         if page_name == 'main':
             #Return the file results.txt
             filename = os.path.join(self.task.directory, 'results.txt')
+
+            #added by HB
+            check.debug("Directory: %s" %self.task.directory)
+
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
+                
+                #added by HB
+                check.debug("@$@$@ File doesn't exist!")
+                  
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
+
             result_file = open(filename, 'r')
+            #added by HB
+            check.debug("@$@$@ file exist")
             response = HttpResponse(result_file, content_type='text/tab-separated-values')
             response['Content-Disposition'] = 'attachment; filename=%s_results.txt' % (self.task.name.replace(' ', '_'))
             response['Content-Length'] = os.path.getsize(filename)

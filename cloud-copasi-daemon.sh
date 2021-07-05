@@ -19,4 +19,4 @@ source /home/cloudcopasi/cloud-copasi/venv/bin/activate
 #python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"
 
 #modified above line as follows by HB
-python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py
+python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"
