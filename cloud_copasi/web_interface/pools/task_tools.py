@@ -171,9 +171,17 @@ def zip_up_task(task):
     """Zip up the task directory and return the filename
     """
     name = str(task.name).replace(' ', '_')
+    #added by HB
+    check.debug("@$@$@ Directory: %s" %task.directory)
+
     filename = os.path.join(task.directory, name + '.tar.bz2')
+
     if not os.path.isfile(filename):
+        #added by HB
+        check.debug("@$@$@ File doesn't exist!")
+
         tar = tarfile.open(name=filename, mode='w:bz2')
         tar.add(task.directory, name)
         tar.close()
+
     return filename
