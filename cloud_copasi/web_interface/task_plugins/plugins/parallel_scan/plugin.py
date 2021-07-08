@@ -23,8 +23,8 @@ from cloud_copasi.condor import condor_spec
 from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
 import re
-from django.utils.timezone import now
-import datetime #added by HB
+#from django.utils.timezone import now
+from django.utils import timezone #added by HB
 
 
 
@@ -245,8 +245,8 @@ class TaskPlugin(BaseTask):
 
         #subtask.start_time = now()
         #above line is modified by HB as follows
-        subtask.start_time = datetime.datetime.now()
- 
+        subtask.start_time = timezone.locatime()
+
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")
         check.debug(subtask.start_time)
@@ -275,11 +275,10 @@ class TaskPlugin(BaseTask):
         subtask.status = 'finished'
         #subtask.finish_time = now()
         #above line is modified by HB as follows
-        subtask.finish_time = datetime.datetime.now()
+        subtask.finish_time = timezone.locatime()
 
         #added by HB
         check.debug("@$@$@ Results subtask finish time: ")
-        #finish_time = subtask.finish_time = now()
         check.debug(subtask.finish_time)
 
         #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
@@ -320,10 +319,10 @@ class TaskPlugin(BaseTask):
 
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
-                
+
                 #added by HB
                 check.debug("@$@$@ File doesn't exist!")
-                  
+
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
 
             result_file = open(filename, 'r')

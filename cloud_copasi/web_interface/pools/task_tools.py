@@ -15,6 +15,7 @@ import logging
 from cloud_copasi.web_interface.pools import condor_tools
 import tarfile
 import datetime
+from django.utils import timezone   #added by HB
 from django.utils.timezone import now
 from cloud_copasi.web_interface.email import email_tools
 
@@ -63,8 +64,8 @@ def update_tasks(user=None, task=None):
                 task.status = 'error'
                 #subtask.finish_time = now()
                 #above line is modified by HB as follows:
-                subtask.finish_time = datetime.datetime.now()
-                 
+                subtask.finish_time = timezone.localtime()
+
                 subtask.save()
                 task.save()
                 break
@@ -80,8 +81,8 @@ def update_tasks(user=None, task=None):
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
                 #subtask.finish_time = now()
-                #above line is modified by HB as follows: 
-                subtask.finish_time = datetime.datetime.now() 
+                #above line is modified by HB as follows:
+                subtask.finish_time = timezone.localtime()
                 subtask.save()
 
             else:
@@ -131,8 +132,8 @@ def update_tasks(user=None, task=None):
                 subtask.set_run_time()
                 #subtask.finish_time=  now()
                 #the above line is modified by HB as follows:
-                subtask.finish_time = datetime.datetime.now()
- 
+                subtask.finish_time = timezone.localtime()
+
                 subtask.save()
 
                 task.status = 'error'
@@ -142,7 +143,7 @@ def update_tasks(user=None, task=None):
                 task.set_custom_field('error', str(e))
                 #task.finish_time = now()
                 #the above line is modified by HB as follows:
-                task.finish_time = datetime.datetime.now()
+                task.finish_time = timezone.localtime()
                 task.save()
 
                 #added by HB
@@ -164,9 +165,9 @@ def update_tasks(user=None, task=None):
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
             #task.finish_time = now()
-            #the above line is modified by HB as follows:  
-            task.finish_time = datetime.datetime.now()            
- 
+            #the above line is modified by HB as follows:
+            task.finish_time = timezone.localtime()
+
             check.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
             task.set_run_time()
             task.set_job_count()
@@ -177,7 +178,7 @@ def update_tasks(user=None, task=None):
 
         #task.last_update_time=now()
         #the above line is modified by HB as follows:
-        task.last_update_time = datetime.datetime.now()
+        task.last_update_time = timezone.localtime()
 
         task.save()
 
@@ -186,7 +187,7 @@ def delete_task(task):
 def zip_up_task(task):
     """Zip up the task directory and return the filename
     """
-            
+
     name = str(task.name).replace(' ', '_')
 
     filename = os.path.join(task.directory, name + '.tar.bz2')
@@ -195,5 +196,5 @@ def zip_up_task(task):
         tar = tarfile.open(name=filename, mode='w:bz2')
         tar.add(task.directory, name)
         tar.close()
-    
+
     return filename

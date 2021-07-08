@@ -13,7 +13,8 @@ import logging
 from cloud_copasi.web_interface.models import EC2Pool, Subtask, CondorJob
 from cloud_copasi.web_interface.pools import condor_log_tools
 import datetime
-from django.utils.timezone import now
+#from django.utils.timezone import now
+from django.utils import timezone   #added by HB
 
 log = logging.getLogger(__name__)
 ########### following lines are set by HB for debugging
@@ -36,7 +37,7 @@ os_env = os.environ.copy()
 
 env={}
 bosco_path = os.path.join(settings.BOSCO_DIR, 'bin') + ':' + os.path.join(settings.BOSCO_DIR, 'sbin')
-env['PATH'] = bosco_path + ':' + os_env.get('PATH', '') 
+env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
 env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
 env['HOME'] = settings.HOME_DIR
 
@@ -54,7 +55,7 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
     #check.debug('bosco_path: %s' %bosco_path)
     #check.debug("***** Running following bosco command now *****")
     #check.debug(command)
-    
+
     #check.debug('env: %s' %env)
     #added by HB: text=text.
     process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
@@ -67,13 +68,13 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
 #defintion added by HB to overwrite slurm_submit file on a remote server
 def transfer_file(slurm_partition, slurm_qos, address):
     SCRIPT='./replace.sh'
-    
+
     if (slurm_partition == ''):
         slurm_partition='general'
-    
+
     if (slurm_qos == ''):
         slurm_qos='general'
-    
+
     check.debug("============ slurm inputs modified: ")
     check.debug(slurm_partition)
     check.debug(slurm_qos)
@@ -81,22 +82,22 @@ def transfer_file(slurm_partition, slurm_qos, address):
     check.debug("Address: ")
     check.debug(address)
     check.debug("$$$$ Current Working Directory: ")
-    check.debug(os.getcwd()) 
+    check.debug(os.getcwd())
     cwd_old = os.getcwd()
     chng_cwd = cwd_old + '/cloud-copasi/cloud_copasi/web_interface/pools'
     os.chdir(chng_cwd)
-    
+
     check.debug("$$$$ Changed Working Directory: ")
     check.debug(os.getcwd())
- 
+
     command=[SCRIPT, slurm_partition, slurm_qos, address]
     process=subprocess.Popen(command,stdout=subprocess.PIPE, shell=False)
     output=process.communicate()
     os.chdir(cwd_old)
-  
+
     check.debug("$$$$ CWD changed back to: ")
     check.debug(os.getcwd())
- 
+
 #the last two arguments in the following function are added by HB
 def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partition=' ', slurm_qos=' '):
 
@@ -121,7 +122,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
     check.debug("============ slurm inputs received: ")
     check.debug(slurm_partition)
     check.debug(slurm_qos)
-    
+
     transfer_file(slurm_partition, slurm_qos, address)
     return output
 
@@ -143,7 +144,7 @@ def test_bosco_pool(address):
     check.debug('Testing bosco cluster %s', address)
 
     command = [BOSCO_CLUSTER, '--test', address]
-    
+
     #added by HB
     #command = BOSCO_CLUSTER + ' --test %s;' %address
 
@@ -188,7 +189,7 @@ def condor_submit(condor_file):
     """Submit the .job file condor_file to the condor system using the condor_submit command"""
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
-    
+
     #added by HB
     check.debug("@@@@@ condor_submit function runs @@@@@")
 
@@ -196,8 +197,8 @@ def condor_submit(condor_file):
     check.debug(filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
     check.debug('@@@@@ Submitting to condor. Output: ')
-    
-    check.info(output) 
+
+    check.info(output)
     #Get condor_process number...
     #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
@@ -216,16 +217,16 @@ def condor_submit(condor_file):
 
         try:
             #number_of_jobs = int(r.match(process_output).group('n'))
-            
+
             #added by HB
             #number_of_jobs = int(re.match(r'(^[0-9]*)', PO_to_string).group(1))
             number_of_jobs = int(r.match(PO_to_string).group('n'))
 
         except AttributeError:
-            #number_of_jobs = int(r.match(process_output)) 
+            #number_of_jobs = int(r.match(process_output))
             #added by HB
             #number_of_jobs = int(re.match(r'(^[0-9]*)', PO_to_string))
-            number_of_jobs = int(r.match(PO_to_string)) 
+            number_of_jobs = int(r.match(PO_to_string))
 
         #cluster_id = int(r.match(process_output).group('cluster'))
 	#added by HB
@@ -332,7 +333,10 @@ def submit_task(subtask):
         job.save()
 
     subtask.status='running'
-    subtask.start_time = now()
+    #subtask.start_time = now()
+    #above line is modified by HB for debugging timing issues
+    subtask.start_time = timezone.localtime()
+
     subtask.save()
     #added by HB
     check.debug("@@@@@ finished submit_task")
@@ -375,7 +379,7 @@ def read_condor_q():
     #condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
     #above line is modified by HB as follows:
     condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q, '-nobatch'], error=True, text=True)
-     
+
     #added by HB
     #temp_command = CONDOR_Q + ' -nobatch'
     #condor_q_nobatch = run_bosco_command(temp_command, error=True, shell=True)
@@ -397,13 +401,13 @@ def read_condor_q():
     no_of_jobs = len(condor_q_output) - 8    #value modified by HB to discard unnecessary lines
     check.debug("@@@@@ no_of_jobs: ")
     check.debug(no_of_jobs)
-    
+
     #added by HB
     #converting the condor_q_output to string format
     #condor_q_output_str = condor_q_output.decode('utf-8')
     #check.debug('@@@@@ condor_q_output in STRING format: ')
     #check.debug(condor_q_output_str)
-   
+
     if no_of_jobs > 0:
         job_string = r'\s*(?P<cluster_id>\d+)\.(?P<process_id>\d+)\s+(?P<owner>\S+)\s+(?P<sub_date>\S+)\s+(?P<sub_time>\S+)\s+(?P<run_time>\S+)\s+(?P<status>\w)\s+(?P<pri>\d+)\s+(?P<size>\S+)\s+(?P<cmd>\S+)'
         job_re = re.compile(job_string)
@@ -430,7 +434,7 @@ def read_condor_q():
     #added by HB
     check.debug("$@$@$@ condor_q: ")
     check.debug(condor_q)
-    
+
     return condor_q
 
 def process_condor_q(user=None, subtask=None):
@@ -441,7 +445,7 @@ def process_condor_q(user=None, subtask=None):
     """
     #added by HB
     check.debug("*********Entered in process_condor_q definition ***********")
-    
+
     #Next, get a list of all condor jobs we think are still running
     #Status will be 'I', 'R', 'H'
 
@@ -455,7 +459,7 @@ def process_condor_q(user=None, subtask=None):
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
     if subtask:
         condor_jobs = condor_jobs.filter(subtask=subtask)
-    
+
     #added by HB
     check.debug("condor_jobs: ")
     check.debug(condor_jobs)
@@ -486,7 +490,7 @@ def process_condor_q(user=None, subtask=None):
                 #added by HB
                 check.debug("@$@$@$@ log_path: ")
                 check.debug(log_path)
-                
+
                 condor_log = condor_log_tools.Log(log_path)
 
                 #added by HB
