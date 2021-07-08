@@ -61,7 +61,10 @@ def update_tasks(user=None, task=None):
                     check.debug('@$@$@$@ Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
                 subtask.status = 'error'
                 task.status = 'error'
-                subtask.finish_time = now()
+                #subtask.finish_time = now()
+                #above line is modified by HB as follows:
+                subtask.finish_time = datetime.datetime.now()
+                 
                 subtask.save()
                 task.save()
                 break
@@ -76,7 +79,9 @@ def update_tasks(user=None, task=None):
                 subtask.status = 'finished'
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
-                subtask.finish_time = now()
+                #subtask.finish_time = now()
+                #above line is modified by HB as follows: 
+                subtask.finish_time = datetime.datetime.now() 
                 subtask.save()
 
             else:
@@ -124,7 +129,10 @@ def update_tasks(user=None, task=None):
                 subtask.status = 'error'
                 subtask.set_job_count()
                 subtask.set_run_time()
-                subtask.finish_time=  now()
+                #subtask.finish_time=  now()
+                #the above line is modified by HB as follows:
+                subtask.finish_time = datetime.datetime.now()
+ 
                 subtask.save()
 
                 task.status = 'error'
@@ -132,7 +140,9 @@ def update_tasks(user=None, task=None):
                 task.set_job_count()
                 task.set_run_time()
                 task.set_custom_field('error', str(e))
-                task.finish_time = now()
+                #task.finish_time = now()
+                #the above line is modified by HB as follows:
+                task.finish_time = datetime.datetime.now()
                 task.save()
 
                 #added by HB
@@ -153,7 +163,10 @@ def update_tasks(user=None, task=None):
         finished = task_subtasks.filter(status='finished').order_by('index')
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
-            task.finish_time = now()
+            #task.finish_time = now()
+            #the above line is modified by HB as follows:  
+            task.finish_time = datetime.datetime.now()            
+ 
             check.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
             task.set_run_time()
             task.set_job_count()
@@ -162,7 +175,10 @@ def update_tasks(user=None, task=None):
             task.save()
             email_tools.send_task_completion_email(task)
 
-        task.last_update_time=now()
+        #task.last_update_time=now()
+        #the above line is modified by HB as follows:
+        task.last_update_time = datetime.datetime.now()
+
         task.save()
 
 def delete_task(task):

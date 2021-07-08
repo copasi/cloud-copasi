@@ -24,6 +24,10 @@ from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
 import re
 from django.utils.timezone import now
+import datetime #added by HB
+
+
+
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -239,10 +243,12 @@ class TaskPlugin(BaseTask):
 
         assert isinstance(subtask, Subtask)
 
-        subtask.start_time = now()
+        #subtask.start_time = now()
+        #above line is modified by HB as follows
+        subtask.start_time = datetime.datetime.now()
+ 
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")
-        #start_time = subtask.start_time = now()
         check.debug(subtask.start_time)
 
         #Go through and collate the results
@@ -267,7 +273,9 @@ class TaskPlugin(BaseTask):
         self.copasi_model.process_ps_results(results_files)
 
         subtask.status = 'finished'
-        subtask.finish_time = now()
+        #subtask.finish_time = now()
+        #above line is modified by HB as follows
+        subtask.finish_time = datetime.datetime.now()
 
         #added by HB
         check.debug("@$@$@ Results subtask finish time: ")
