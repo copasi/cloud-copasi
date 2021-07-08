@@ -33,6 +33,10 @@ def refresh_all_ec2_pools():
     check.debug('Refreshing all EC2 pools')
     pools = EC2Pool.objects.all() #Get all pools indiscriminately
 
+    #added by HB
+    check.debug("@@@@@@@@@@@@@ List of pools (pool_tools.py) : ")
+    check.debug(pools)
+
     for ec2_pool in pools:
         try:
             ec2_tools.refresh_pool(ec2_pool)
