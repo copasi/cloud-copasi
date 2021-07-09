@@ -58,6 +58,7 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
 
     #check.debug('env: %s' %env)
     #added by HB: text=text.
+    check.debug('@ 12. run_bosco() in condor_tools.py -------|')
     process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
     output = process.communicate()
@@ -191,14 +192,14 @@ def condor_submit(condor_file):
     (directory, filename) = os.path.split(condor_file)
 
     #added by HB
-    check.debug("@@@@@ condor_submit function runs @@@@@")
+    check.debug('@ 11. condor_submit() in condor_tools.py -------|')
 
-    check.debug("@@@@@ filename:" )
-    check.debug(filename)
+    check.debug("@ 11a. ---> Condor Job running: %s" %filename)
+    #check.debug(filename)
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
-    check.debug('@@@@@ Submitting to condor. Output: ')
-
+    check.debug('@ 11b. ---> Console output of condor job submission: ')
     check.info(output)
+
     #Get condor_process number...
     #process_id = int(process_output.splitlines()[2].split()[5].strip('.'))
     #use a regular expression to parse the process output
@@ -210,7 +211,7 @@ def condor_submit(condor_file):
         #log.debug('r= ',r)
 	#added by HB
         #process_output = process_output.decode('utf-8')
-        check.debug('@@@@@ process output: ')
+        check.debug('@ 11c. ---> Process output: ')
         check.debug(process_output)
 
         PO_to_string = process_output.decode('utf-8')
@@ -256,14 +257,14 @@ def submit_task(subtask):
 
     spec_file_path = os.path.join(subtask.task.directory, subtask.spec_file)
     #added by HB
-    check.debug("@@@@@ condor_tools.submit_task function runs @@@@@@@")
-    check.debug("@@@@@ spec file path")
-    check.debug(spec_file_path)
+    check.debug('@ 10. submit_task() in condor_tools.py -------|')  #added by HB
+    check.debug("@ 10a. ----> spec file path: %s" %spec_file_path)
+    #check.debug(spec_file_path)
 
     cluster_id, number_of_jobs = condor_submit(spec_file_path)
 
-    check.debug('cluster id %d' % cluster_id)
-    check.debug('number_of_jobs %d' % number_of_jobs)
+    check.debug('@ 10b. ----> Cluster id: %d' % cluster_id)
+    check.debug('@ 10c. ----> Number_of_jobs: %d' % number_of_jobs)
 
 
     #Check to see if std_output_file, std_err_file, log_file or job_output were specified by the subtask
@@ -339,7 +340,6 @@ def submit_task(subtask):
 
     subtask.save()
     #added by HB
-    check.debug("@@@@@ finished submit_task")
 
 def remove_task(subtask):
     """Call condor_rm on the condor jobs belonging to a subtask
@@ -374,7 +374,7 @@ def read_condor_q():
     where status is a single lettter, e.g. I, R, H, X
     """
     #added by HB
-    check.debug("*********Entered in read_condor_q definition ***********")
+    check.debug("**** RUN by Background Script **** read_condor_q() in condor_tools.py -------|")
 
     #condor_q_output, error, exit_status = run_bosco_command([CONDOR_Q], error=True)
     #above line is modified by HB as follows:
@@ -399,8 +399,8 @@ def read_condor_q():
     condor_q=[]
     #no_of_jobs = len(condor_q_output) - 6    #added by HB. Why -6?
     no_of_jobs = len(condor_q_output) - 8    #value modified by HB to discard unnecessary lines
-    check.debug("@@@@@ no_of_jobs: ")
-    check.debug(no_of_jobs)
+    check.debug("@@@@@ no_of_jobs: %d" %no_of_jobs)
+    #check.debug(no_of_jobs)
 
     #added by HB
     #converting the condor_q_output to string format
@@ -513,6 +513,8 @@ def process_condor_q(user=None, subtask=None):
                                     assert os.path.getsize(output_filename) > 0
                                     try:
                                         run_time =  condor_log.running_time_in_days
+                                        check.debug(" -*-*-*- run_time: ")
+                                        check.debug(run_time)
                                         job.run_time = run_time
                                         run_time_minutes = run_time * 24 * 60
                                     except:

@@ -75,12 +75,12 @@ class TaskPlugin(BaseTask):
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        check.debug("@@(in plugin.py)@@ validate function runs in pluging.py") #added by HB
+        check.debug('@ 7. validate() in plugin.py -------|')  #added by HB
         return self.copasi_model.is_valid('PS')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        check.debug("@@(in plugin.py)@@ initiliaze_subtasks function runs in pluging.py") #added by HB
+        check.debug('@ 8. initialize_subtasks() in plugin.py -------|')  #added by HB
         if self.use_load_balancing:
             #Create the load balancing module
             self.create_new_subtask('lb')
@@ -92,9 +92,9 @@ class TaskPlugin(BaseTask):
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
-        check.debug("@@(in plugin.py)@@ prepare_subtask func runs in pluging.py") #added by HB
-        check.debug("@$@$@ subtask index value: ")
-        check.debug(index)
+        check.debug('@ 9. prepare_subtasks() in plugin.py -------|')  #added by HB
+        check.debug("@ 9a. ----> subtask index value: %d" %index)
+        #check.debug(index)
 
         if index == 1:
             if self.use_load_balancing:

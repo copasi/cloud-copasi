@@ -59,14 +59,14 @@ class NewTaskView(RestrictedFormView):
 
     def __init__(self, *args, **kwargs):
         self.form_class = base.BaseTaskForm
-        check.debug("reached in __init_ in task_views.py **********")#added by HB
+        check.debug("@ 1. __init__() in task_views.py -------|")#added by HB
         return super(NewTaskView, self).__init__(*args, **kwargs)
 
     def get_form_kwargs(self):
+        check.debug("@ 4. get_form_kwargs() in task_views.py -------|")
         kwargs = super(NewTaskView, self).get_form_kwargs()
         kwargs['user']=self.request.user
         kwargs['task_types'] = tools.get_task_types()
-        check.debug("reached in get_from_kwargs in task_views.py **********")#added by HB
         return kwargs
 
     @method_decorator(login_required)
@@ -74,10 +74,10 @@ class NewTaskView(RestrictedFormView):
 
         #If task_type has been set, change the form class
         task_type = request.POST.get('task_type')
-       
+
         #added by HB
-        check.debug("@@ (in task_views.py) @@ task_type:")
-        check.debug(task_type)
+        check.debug("@ 2. dispatch() in task_views.py -------|")
+        #check.debug(task_type)
         if task_type:
             task_form = tools.get_form_class(task_type)
             self.form_class = task_form
@@ -93,7 +93,6 @@ class NewTaskView(RestrictedFormView):
         kwargs['loading_title'] = 'Submitting task'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page. Submitting a task can take several minutes'
 
-        check.debug("Dispatch function is finishing....") ##added by HB
         return super(NewTaskView,self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, form,  *args, **kwargs):
@@ -102,10 +101,12 @@ class NewTaskView(RestrictedFormView):
         compute_pool = form.cleaned_data['compute_pool']
         request = self.request
 
+        check.debug('@ 6. form_valid() in task_views.py -------|')
+
         assert isinstance(compute_pool, CondorPool)
         assert compute_pool.user == request.user
 
-        check.debug('Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
+        check.debug('@ 6a. Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
 
         ########################################################################
         #Process the uploaded copasi file (and other files?)
@@ -132,29 +133,17 @@ class NewTaskView(RestrictedFormView):
 
         task.original_model = 'original_model.cps'
 
-        
-        check.debug("@@(in task_views.py)@@ task.name:") #added by HB
-        check.debug(task.name)
-        check.debug("@@(in task_views.py)@@ task.user:") #added by HB
-        check.debug(task.user)
-        check.debug("@@(in task_views.py)@@ task.task_type:") #added by HB
-        check.debug(task.task_type)
-        check.debug("@@(in task_views.py)@@ task.original_model:") #added by HB
-        check.debug(task.original_model)
+        check.debug('@ 6a. ----> task.name: %s' %task.name)
+        check.debug('@ 6b. ----> task.type: %s' %task.task_type)
 
         #Get a list of all fields that are only in the task form, and not in the base
 
-
         extra_fields = []
         base_form = base.BaseTaskForm
-       
+
         for field_name in form.fields:
             if field_name not in base_form.base_fields:
                 extra_fields.append((field_name, form.fields[field_name]))
-
-        check.debug("@@(in task_views.py)@@ extra_fields:") #added by HB
-        check.debug(extra_fields)
-
 
         #We have not yet created the directory to hold the files
         directory_created = False
@@ -247,10 +236,11 @@ class NewTaskView(RestrictedFormView):
 
 
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
-            check.debug("@@(in task_views.py)@@ TaskClass:") #added by HB
-            check.debug(TaskClass) #added by HB
+            #check.debug("@@(in task_views.py)@@ TaskClass:") #added by HB
+            #check.debug(TaskClass) #added by HB
 
             task_instance = TaskClass(task)
+
         except Exception as e:
             log.exception(e)
             error_messages = ['An error occured while preparing the task model file',
@@ -284,11 +274,7 @@ class NewTaskView(RestrictedFormView):
 
         try:
             task_instance.initialize_subtasks()
-
             subtask = task_instance.prepare_subtask(1)
-            check.debug("@@(in task_views.py)@@ subtask:") #added by HB
-            check.debug(subtask)
-
             condor_tools.submit_task(subtask)
 
             task.status = 'running'
@@ -310,7 +296,7 @@ class NewTaskView(RestrictedFormView):
             return self.form_invalid(self, *args, **kwargs)
 
         #added by HB
-        check.debug("@@ (in task_views.py) @@ finishing NewTaskView class") 
+        #check.debug("@@ (in task_views.py) @@ finishing NewTaskView class")
         return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':task.id}))
 
 class TaskListView(RestrictedView):
@@ -490,7 +476,7 @@ class TaskDirectoryDownloadView(RestrictedView):
             return HttpResponseRedirect(reverse_lazy('task_details'), kwargs={'task_id': kwargs['task_id']})
 
         filename = task_tools.zip_up_task(task)
-        
+
         result_file = open(filename, 'rb')
 
         response = HttpResponse(result_file, content_type='application/x-bzip2')

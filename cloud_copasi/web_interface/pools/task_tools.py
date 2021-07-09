@@ -39,7 +39,7 @@ def update_tasks(user=None, task=None):
     """
 
     #Step 1: Get a list of running tasks
-    check.debug('@$@$@ (update_tasks) Checking running tasks')
+    check.debug('**** RUN by Background Script **** update_tasks() in task_tools.py -------|')
     tasks = Task.objects.filter(status='running')
     if user:
         tasks = tasks.filter(user = user)
@@ -158,10 +158,9 @@ def update_tasks(user=None, task=None):
 
         #Get the list of subtasks again
         task_subtasks = Subtask.objects.filter(task=task)
-        #added by HB
-        check.debug("@@@@ (in task_tools.py) The list of subtasks again: ")
-        check.debug(task_subtasks)
+
         finished = task_subtasks.filter(status='finished').order_by('index')
+
         if task_subtasks.count() == finished.count():
             task.status = 'finished'
             #task.finish_time = now()
