@@ -350,6 +350,7 @@ def remove_task(subtask):
         try:
             output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
             #assert exit_status == 0
+            check.debug("subtask removed")    #added by HB
             return output, error, exit_status
 
         except:
@@ -391,7 +392,7 @@ def read_condor_q():
 
 
     #following line is commented out by HB
-    assert exit_status == 0
+    #assert exit_status == 0
 
     #Process the output using regexps. Example line is as follows:
     # ID      OWNER            SUBMITTED     RUN_TIME ST PRI SIZE CMD
