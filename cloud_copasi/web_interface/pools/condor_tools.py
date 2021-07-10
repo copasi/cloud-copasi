@@ -412,22 +412,33 @@ def read_condor_q():
     if no_of_jobs > 0:
         job_string = r'\s*(?P<cluster_id>\d+)\.(?P<process_id>\d+)\s+(?P<owner>\S+)\s+(?P<sub_date>\S+)\s+(?P<sub_time>\S+)\s+(?P<run_time>\S+)\s+(?P<status>\w)\s+(?P<pri>\d+)\s+(?P<size>\S+)\s+(?P<cmd>\S+)'
         job_re = re.compile(job_string)
-        #added by HB. following for loop command is modified to process the condor_q_output in string format.
+        #added by HB. following for-loop command is modified to process the condor_q_output in string format.
         #for job_listing in condor_q_output_str:
         for job_listing in condor_q_output:
             match = job_re.match(job_listing)
             if match:
+                check.debug(" ******* match: %s" %match)    #added by HB
                 cluster_id = int(match.group('cluster_id'))
+                check.debug(" ******* cluster_id: %d" %cluster_id)  #added by HB
                 process_id = int(match.group('process_id'))
+                check.debug(" ******* process_id: %d" %process_id)  #added by HB
 
                 owner = match.group('owner')
+                check.debug(" ******* owner: %s" %owner)  #added by HB
                 sub_date = match.group('sub_date')
+                check.debug(" ******* sub_date: %s" %sub_date)  #added by HB
                 sub_time = match.group('sub_time')
+                check.debug(" ******* sub_time: %s" %sub_time)  #added by HB
                 run_time = match.group('run_time')
+                check.debug(" ******* run_time: %s" %run_time)  #added by HB
                 status = match.group('status')
+                check.debug(" ******* status: %s" %status)  #added by HB
                 pri = match.group('pri')
+                check.debug(" ******* pri: %s" %pri)  #added by HB
                 size=match.group('size')
+                check.debug(" ******* size: %s" %size)  #added by HB
                 cmd=match.group('cmd')
+                check.debug(" ******* cmd: %s" %cmd)  #added by HB
 
                 condor_q.append((cluster_id, process_id,status))
 
