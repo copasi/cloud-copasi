@@ -94,7 +94,7 @@ class TaskPlugin(BaseTask):
         """Prepare the indexed subtask"""
         check.debug('@ 9. prepare_subtasks() in plugin.py -------|')  #added by HB
         check.debug("@ 9a. ----> subtask index value: %d" %index)
-        #check.debug(index)
+        
 
         if index == 1:
             if self.use_load_balancing:
@@ -236,16 +236,19 @@ class TaskPlugin(BaseTask):
 
 
     def process_results_subtask(self):
-        subtask=self.get_subtask(2)
-        #added by HB
         check.debug("@$@$@ running process_results_subtask in plugin.py: ")
+        subtask=self.get_subtask(2)
+        check.debug("Returning back to process_results_subtask and the subtask is: ")
+        check.debug(subtask) 
+        
+        #added by HB
         #check.debug(subtask)
 
         assert isinstance(subtask, Subtask)
 
         #subtask.start_time = now()
         #above line is modified by HB as follows
-        subtask.start_time = timezone.locatime()
+        subtask.start_time = timezone.localtime()
 
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")

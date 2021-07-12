@@ -18,6 +18,7 @@ import datetime
 from django.utils import timezone   #added by HB
 from django.utils.timezone import now
 from cloud_copasi.web_interface.email import email_tools
+import traceback
 
 log = logging.getLogger(__name__)
 #Note: 31/7/2013, rewritten to support only local task submission with Bosco
@@ -126,6 +127,9 @@ def update_tasks(user=None, task=None):
             except Exception as e:
                 #added by HB
                 check.debug("@$@$@ task_tools EXCEPT block executed. ")
+                #traceback_output = traceback.format_exc()
+                check.debug("__________ traceback log: ___________")
+                check.debug(traceback.print_exc())
 
                 subtask.status = 'error'
                 subtask.set_job_count()
