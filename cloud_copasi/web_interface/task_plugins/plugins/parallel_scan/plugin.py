@@ -238,8 +238,8 @@ class TaskPlugin(BaseTask):
     def process_results_subtask(self):
         subtask=self.get_subtask(2)
         #added by HB
-        check.debug("@$@$@ subtask retrieved: ")
-        check.debug(subtask)
+        check.debug("@$@$@ running process_results_subtask in plugin.py: ")
+        #check.debug(subtask)
 
         assert isinstance(subtask, Subtask)
 
