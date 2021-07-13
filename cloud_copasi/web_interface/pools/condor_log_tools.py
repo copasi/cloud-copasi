@@ -101,6 +101,11 @@ class Log:
 
                 usr_time = datetime.timedelta(days=usr_days, hours=usr_hours, minutes=usr_minutes, seconds=usr_seconds)
                 sys_time = datetime.timedelta(days=sys_days, hours=sys_hours, minutes=sys_minutes, seconds=sys_seconds)
+                
+                check.debug("***** usr_time: ")
+                check.debug(usr_time)
+                check.debug("***** sys_time: ")
+                check.debug(sys_time)
 
                 self.remote_usage_time = usr_time + sys_time
 
@@ -130,6 +135,7 @@ class Log:
 
             if termination_status_match:
                 self.termination_status = int(termination_status_match.group('return_value'))
+                check.debug("***** termination_status match: %d" %self.termination_status)
 
             if termination_match:
                 g = termination_match.group
@@ -139,9 +145,17 @@ class Log:
                 minute = int(g('minute'))
                 second = int(g('second'))
 
+                check.debug("**** termination_match: day=%d, month=%d, hour=%d, minute=%d, second=%d" %(day, month, hour, minute, second))
+
                 #Again, guess the year
                 year=datetime.datetime.today().year
+                check.debug("**** guessing the year: ")
+                check.debug(year)
+                 
+                check.debug("**** guessing the termination_time: ")
                 self.termination_time = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
+                check.debug(self.termination_time)
+                  
 
             #For some reason, the remote usage time sometimes appears as zero. In this case, set running time as follows:
             if self.remote_usage_time == datetime.timedelta() and hasattr(self, 'execution_start'):
@@ -149,6 +163,9 @@ class Log:
             else:
                 self.running_time = self.remote_usage_time
             self.running_time_in_days = float(self.running_time.days) + (float(self.running_time.seconds) / 86400.00)
+            
+            check.debug("***** self.running_time_in_days: ")
+            check.debug(self.running_time_in_days) 
 
 
         except:
