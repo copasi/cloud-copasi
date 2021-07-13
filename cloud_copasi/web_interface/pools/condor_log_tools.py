@@ -61,10 +61,9 @@ class Log:
             check.debug(line)
             if termination_confirmation_re.match(line):
                 self.has_terminated = True
-                check.debug("********* (condo_log_tools) Job terminated....exiting. ")
+                check.debug("********* (condo_log_tools) Job terminated....exiting for-loop. ")
                 break
 
-        check.debug("********* (condo_log_tools) Not terminated yet. ")
         if not self.has_terminated:
             return
 
@@ -73,15 +72,19 @@ class Log:
                 if execution_re.match(line):
                     execution_match = execution_re.match(line)
                     check.debug("**** execution_match")
+                    check.debug(execution_match)
                 elif termination_re.match(line):
                     termination_match = termination_re.match(line)
                     check.debug("**** termination_match")
+                    check.debug(termination_match)
                 elif termination_status_re.match(line):
                     termination_status_match = termination_status_re.match(line)
                     check.debug("**** termination_status_match")
+                    check.debug(termination_status_match)
                 elif remote_usage_re.match(line):
                     remote_usage_match = remote_usage_re.match(line)
                     check.debug("**** remote_usage_match")
+                    check.debug(remote_usage_match)
 
 
             if remote_usage_match:
@@ -115,6 +118,8 @@ class Log:
                 #Since log file doesn't store the date, we'll have to guess it
                 #If remote_usage time is stored, take the current date, and subtract the usage time
                 try:
+                    check.debug("***** remote_usage_time: ")
+                    check.debug(remote_usage_time)
                     assert self.remote_usage_time != None
                     year = (datetime.datetime.today() - self.remote_usage_time).year
                 except AssertionError:
