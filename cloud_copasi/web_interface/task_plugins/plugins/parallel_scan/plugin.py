@@ -253,6 +253,10 @@ class TaskPlugin(BaseTask):
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")
         check.debug(subtask.start_time)
+        #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
+        temp_start_time = subtask.start_time
+        check.debug("temp_start_time: ")
+        check.debug(temp_start_time)
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
@@ -279,21 +283,33 @@ class TaskPlugin(BaseTask):
         #subtask.finish_time = now()
         #above line is modified by HB as follows
         subtask.finish_time = timezone.localtime()
-
+        
         #added by HB
         check.debug("@$@$@ Results subtask finish time: ")
         check.debug(subtask.finish_time)
+        temp_finish_time = subtask.finish_time
+        
+        #added by HB
+        #check.debug("@$@$@ Printing subtask start time again: ")
+        #check.debug(subtask.start_time) 
+        #check.debug(" Printing the value of remove_start_time again: ")
+        #check.debug(remove_start_time) 
 
-        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+
+
+        #added by HB
+        time_delta = temp_finish_time - temp_start_time
+
+        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         #above line is modified by HB as follows
         #time_delta = subtask.finish_time - subtask.start_time
         check.debug("@$@$@ Time Delta: ")
         check.debug(time_delta)
-        #subtask.set_run_time(time_delta)
+        subtask.set_run_time(time_delta)
 
         #added by HB
-        check.debug("@$@$@ Results subtask delta time: ")
-        check.debug(subtask.time_delta)
+        #check.debug("@$@$@ Results subtask delta time: ")
+        #check.debug(subtask.time_delta)
 
         subtask.save()
 
