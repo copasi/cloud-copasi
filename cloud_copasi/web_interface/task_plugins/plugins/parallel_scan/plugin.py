@@ -284,12 +284,12 @@ class TaskPlugin(BaseTask):
         check.debug("@$@$@ Results subtask finish time: ")
         check.debug(subtask.finish_time)
 
-        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         #above line is modified by HB as follows
-        time_delta = subtask.finish_time - subtask.start_time
+        #time_delta = subtask.finish_time - subtask.start_time
         check.debug("@$@$@ Time Delta: ")
         check.debug(time_delta)
-        subtask.set_run_time(time_delta)
+        #subtask.set_run_time(time_delta)
 
         #added by HB
         check.debug("@$@$@ Results subtask delta time: ")

@@ -108,6 +108,8 @@ class Log:
                 check.debug(sys_time)
 
                 self.remote_usage_time = usr_time + sys_time
+                check.debug("***** remote_usage_time: ") 
+                check.debug(self.remote_usage_time)
 
             if execution_match:
                 g = execution_match.group
