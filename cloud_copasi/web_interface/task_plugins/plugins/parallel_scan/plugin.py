@@ -290,8 +290,8 @@ class TaskPlugin(BaseTask):
         temp_finish_time = subtask.finish_time
         
         #added by HB
-        #check.debug("@$@$@ Printing subtask start time again: ")
-        #check.debug(subtask.start_time) 
+        check.debug("@$@$@ Printing subtask start time again: ")
+        check.debug(subtask.start_time) 
         #check.debug(" Printing the value of remove_start_time again: ")
         #check.debug(remove_start_time) 
 

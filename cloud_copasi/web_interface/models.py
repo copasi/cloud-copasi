@@ -734,6 +734,8 @@ class Subtask(models.Model):
     run_time = models.FloatField(default=-1.0, help_text = 'The cumulative run time of associated condor jobs in days. Only set after the subtask has finished. Use get_run_time() to access.')
 
     start_time=models.DateTimeField(blank=True, null=True, help_text= 'The time this subtask started running')
+    #Above line is modified by HB. removing null field
+    #start_time=models.DateTimeField(blank=True, help_text= 'The time this subtask started running')
     finish_time = models.DateTimeField(blank=True, null=True, help_text = 'The time the subtask stopped running')
 
 
