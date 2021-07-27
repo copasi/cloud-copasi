@@ -1,4 +1,7 @@
 #!/bin/bash
+
+unset PYTHONHOME
+export PYTHONHOME
 # cloud-copasi customized version of bosco_cluster
 # bosco_add_host: Used to install ssh keys and blahp on remote hosts.
 #
@@ -604,10 +607,24 @@ transfer_executable=true
 executable = $copasise
 arguments = --home . ../$(basename $copasi_test_model_path)
 log = $log_file
-notification = NEVER
+notification = error
+notify_user = hbaig@uchc.edu
 +bosco_test_id = "$test_id"
 queue
 End_of_Submit
+ 
+    #added by HB
+    #echo "Old Path: " >> check.txt
+    #echo $PATH >> check.txt
+    #echo
+    #echo "New Path: "  >> check.txt
+    #export PATH=$PATH:/usr/local/go/bin:/home/cloudcopasi/anaconda3/bin:/bin:/usr/local/go/bin:/home/cloudcopasi/go/bin:/home/cloudcopasi/.local/bin:/home/cloudcopasi/bin:    
+    #echo $PATH >> check.txt
+    #echo
+
+    #added by HB to test Jaime's command
+    command_check=`condor_config_val -config`
+    echo $command_check >> comm.txt
 
     submit_out=`condor_submit $submit_file 2>&1 `
     value="$?"    #added by HB
