@@ -28,6 +28,15 @@ import logging
 
 
 log = logging.getLogger(__name__)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 PLATFORM_CHOICES = (
     ('DEB6', 'Debian 6'),
@@ -712,8 +721,11 @@ class Subtask(models.Model):
     def set_run_time(self, time_delta=None):
         if not time_delta:
             self.run_time = self.get_run_time()
+            check.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")
         else:
             assert isinstance(time_delta, datetime.timedelta)
+            check.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
+            check.debug(time_delta)
             #Calculate run time in days
             self.run_time = time_delta.days +  (float(time_delta.seconds) / 86400.00)
         self.save()
@@ -722,6 +734,8 @@ class Subtask(models.Model):
     run_time = models.FloatField(default=-1.0, help_text = 'The cumulative run time of associated condor jobs in days. Only set after the subtask has finished. Use get_run_time() to access.')
 
     start_time=models.DateTimeField(blank=True, null=True, help_text= 'The time this subtask started running')
+    #Above line is modified by HB. removing null field
+    #start_time=models.DateTimeField(blank=True, help_text= 'The time this subtask started running')
     finish_time = models.DateTimeField(blank=True, null=True, help_text = 'The time the subtask stopped running')
 
 
