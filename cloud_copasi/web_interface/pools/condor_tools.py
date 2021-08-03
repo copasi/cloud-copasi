@@ -36,7 +36,13 @@ BOSCO_CLUSTER = 'bosco_cluster'
 os_env = os.environ.copy()
 
 env={}
-bosco_path = os.path.join(settings.BOSCO_DIR, 'bin') + ':' + os.path.join(settings.BOSCO_DIR, 'sbin')
+#bosco_path = os.path.join(settings.BOSCO_DIR, 'bin') + ':' + os.path.join(settings.BOSCO_DIR, 'sbin')
+#env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
+#env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
+#env['HOME'] = settings.HOME_DIR
+
+#the upper lines of code are commented out by HB to adjust the bosco path for condor v9.1.2 below
+bosco_path = os.path.join(settings.BOSCO_DIR, 'usr/bin') + ':' + os.path.join(settings.BOSCO_DIR, 'usr/sbin')
 env['PATH'] = bosco_path + ':' + os_env.get('PATH', '')
 env['CONDOR_CONFIG'] = os.path.join(settings.BOSCO_DIR, 'etc/condor_config')
 env['HOME'] = settings.HOME_DIR
