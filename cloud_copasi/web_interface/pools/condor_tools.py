@@ -58,9 +58,9 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #added by HB: text=None.
     #added by HB for debugging
-    #check.debug('bosco_path: %s' %bosco_path)
-    #check.debug("***** Running following bosco command now *****")
-    #check.debug(command)
+    check.debug('bosco_path: %s' %bosco_path)
+    check.debug("***** Running following bosco command now *****")
+    check.debug(command)
 
     #check.debug('env: %s' %env)
     #added by HB: text=text.
@@ -68,6 +68,9 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
     process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
     output = process.communicate()
+
+    check.debug("============ OUTPUT: ")
+    check.debug(output)
 
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
