@@ -44,6 +44,7 @@ PLATFORM_CHOICES = (
     ('RH5', 'Red Hat 5'),
     ('RH6', 'Red Hat 6'),
     ('RH7', 'Red Hat 7'),
+    ('CentOS7', 'CentOS 7'),
     ('UBUNTU12', 'Ubuntu 12'),
     ('MACOS', 'MAC OS')
 )
