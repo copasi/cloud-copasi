@@ -113,7 +113,10 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
     command = 'eval `ssh-agent`; ssh-add ' + keypair + '; '
 
-    command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    #command += BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
+    #The above line is modified as follows by HB to remove --platform switch for condor v9.1.2 to download the correct condor version on remote host
+    command += BOSCO_CLUSTER + ' --add %s %s;' % (address, pool_type)
+
     #The following line is modified by HB
     #command += './' + BOSCO_CLUSTER + ' --platform %s --add %s %s;' % (platform, address, pool_type)
 
