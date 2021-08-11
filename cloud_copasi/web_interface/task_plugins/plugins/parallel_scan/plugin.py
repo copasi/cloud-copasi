@@ -23,10 +23,9 @@ from cloud_copasi.condor import condor_spec
 from cloud_copasi.web_interface.task_plugins import load_balancing
 from string import Template
 import re
+import datetime
 #from django.utils.timezone import now
 from django.utils import timezone #added by HB
-
-
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +34,6 @@ import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
-
 
 ########### following lines are set by HB for debugging
 logging.basicConfig(
@@ -283,17 +281,17 @@ class TaskPlugin(BaseTask):
         #subtask.finish_time = now()
         #above line is modified by HB as follows
         subtask.finish_time = timezone.localtime()
-        
+
         #added by HB
         check.debug("@$@$@ Results subtask finish time: ")
         check.debug(subtask.finish_time)
         temp_finish_time = subtask.finish_time
-        
+
         #added by HB
         check.debug("@$@$@ Printing subtask start time again: ")
-        check.debug(subtask.start_time) 
+        check.debug(subtask.start_time)
         #check.debug(" Printing the value of remove_start_time again: ")
-        #check.debug(remove_start_time) 
+        #check.debug(remove_start_time)
 
 
 

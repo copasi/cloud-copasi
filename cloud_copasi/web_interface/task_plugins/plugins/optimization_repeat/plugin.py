@@ -23,7 +23,9 @@ from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
 import datetime
-from django.utils.timezone import now
+#from django.utils.timezone import now
+from django.utils import timezone #added by HB
+
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -32,6 +34,15 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 internal_type = ('optimization_repeat', 'Optimization repeat')
 
@@ -213,8 +224,8 @@ class TaskPlugin(BaseTask):
                                                                   subtask.index,
                                                                   rank='')
 
-        log.debug('Prepared copasi files %s'%model_files)
-        log.debug('Prepared condor job %s' %condor_job_file)
+        check.debug('Prepared copasi files %s'%model_files)
+        check.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -235,9 +246,18 @@ class TaskPlugin(BaseTask):
             main_subtask = self.get_subtask(1)
             subtask = self.get_subtask(2)
 
-        subtask.start_time = now()
+        #subtask.start_time = now()
+        #above line is modified by HB as follows
+        subtask.start_time = timezone.localtime()
         assert isinstance(subtask, Subtask)
 
+        #added by HB
+        check.debug("@$@$@ Results subtask start time: ")
+        check.debug(subtask.start_time)
+        #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
+        temp_start_time = subtask.start_time
+        check.debug("temp_start_time: ")
+        check.debug(temp_start_time)
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
@@ -252,9 +272,30 @@ class TaskPlugin(BaseTask):
 
         self.copasi_model.process_or_results(results_files)
 
-        subtask.finish_time = now()
-        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         subtask.status = 'finished'
+        #subtask.finish_time = now()
+        #above line is modified by HB as follows
+        subtask.finish_time = timezone.localtime()
+
+        #added by HB
+        check.debug("@$@$@ Results subtask finish time: ")
+        check.debug(subtask.finish_time)
+        temp_finish_time = subtask.finish_time
+
+        #added by HB
+        check.debug("@$@$@ Printing subtask start time again: ")
+        check.debug(subtask.start_time)
+
+        #added by HB
+        time_delta = temp_finish_time - temp_start_time
+
+        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #above line is modified by HB as follows
+        #time_delta = subtask.finish_time - subtask.start_time
+        check.debug("@$@$@ Time Delta: ")
+        check.debug(time_delta)
+        subtask.set_run_time(time_delta)
+
         subtask.save()
 
         subtask.task.results_view=False
