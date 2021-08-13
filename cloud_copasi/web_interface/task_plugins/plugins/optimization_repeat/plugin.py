@@ -239,17 +239,12 @@ class TaskPlugin(BaseTask):
 
 
     def process_results_subtask(self):
-        if self.use_load_balancing:
-            main_subtask = self.get_subtask(2)
-            subtask = self.get_subtask(3)
-        else:
-            main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2)
+        subtask=self.get_subtask(2)
 
+        assert isinstance(subtask, Subtask)
         #subtask.start_time = now()
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
-        assert isinstance(subtask, Subtask)
 
         #added by HB
         check.debug("@$@$@ Results subtask start time: ")
@@ -263,8 +258,16 @@ class TaskPlugin(BaseTask):
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
+        #added by HB
+        check.debug("@$@$@$@ Task directory: ")
+        check.debug(directory)
 
-
+        if self.use_load_balancing:
+            main_subtask = self.get_subtask(2)
+            subtask = self.get_subtask(3)
+        else:
+            main_subtask = self.get_subtask(1)
+            subtask = self.get_subtask(2)
 
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
 
