@@ -58,6 +58,14 @@ def get_task_display_name(name):
 def get_task_class(task_type):
     module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
     plugin = getattr(module, 'TaskPlugin')
+    
+    #added by HB
+    check.debug("***** task_plugins/tools.py: get_task_class")
+    check.debug("module: ")
+    check.debug(module)
+    check.debug("plugin: ")
+    check.debug(plugin)
+
     return plugin
 
 def get_form_class(task_type):

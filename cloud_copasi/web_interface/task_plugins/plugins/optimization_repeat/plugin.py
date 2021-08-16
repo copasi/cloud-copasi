@@ -251,7 +251,7 @@ class TaskPlugin(BaseTask):
         check.debug(subtask.start_time)
         #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
         temp_start_time = subtask.start_time
-        check.debug("temp_start_time: ")
+        check.debug("temp_start_time ******: ")
         check.debug(temp_start_time)
 
         #Go through and collate the results
