@@ -247,7 +247,7 @@ class TaskPlugin(BaseTask):
         subtask.start_time = timezone.localtime()
 
         #added by HB
-        check.debug("@$@$@ Results subtask start time: ")
+        check.debug("@$@$@ Results subtask start time (optimization_repeat): ")
         check.debug(subtask.start_time)
         #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
         temp_start_time = subtask.start_time
@@ -272,7 +272,10 @@ class TaskPlugin(BaseTask):
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
 
         results_files = [job.job_output for job in main_jobs]
-
+        
+        #added by HB
+        check.debug("passing results files to /copasi/model.py file")
+        check.debug("check.....")
         self.copasi_model.process_or_results(results_files)
 
         subtask.status = 'finished'

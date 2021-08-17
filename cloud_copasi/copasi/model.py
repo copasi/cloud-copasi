@@ -14,6 +14,19 @@ from cloud_copasi import settings
 from cloud_copasi.condor import condor_spec
 from lxml import etree
 from string import Template
+import logging
+
+log = logging.getLogger(__name__)
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
+
 xmlns = '{http://www.copasi.org/static/schema}'
 
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
@@ -1468,6 +1481,8 @@ class CopasiModel(object):
         """Process the results of the OR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
+        check.debug("running ~/copasi.model.process_or_results")
+
         #Check if we're maximising or minimising
         optTask = self._getTask('optimization')
         problem =  optTask.find(xmlns + 'Problem')
@@ -1492,10 +1507,12 @@ class CopasiModel(object):
 
         #Copy the contents of the first file to results.txt
         for line in open(os.path.join(self.path, filenames[0]), 'r'):
+            check.debug("(~/copasi/model.py) File name: %s" %(os.path.join(self.path, filenames[0])))
             output_file.write(line)
             if line != '\n':
                 if output_re.match(line):
                     value = float(output_re.match(line).groupdict()['best_value'])
+                    check.debug("value: %s" %value)
                     if best_value != None and maximize:
                         if value > best_value:
                             best_value = value
@@ -1538,7 +1555,8 @@ class CopasiModel(object):
         output_file = open(os.path.join(self.path, 'results.txt'), 'w')
 
         output_file.write('Best value\t')
-
+        check.debug("Best value: %s" %best_value)
+        check.debug("Best line: %s" %best_line)
         for parameter in self.get_optimization_parameters():
 
             output_file.write(parameter[0].encode('utf8'))
