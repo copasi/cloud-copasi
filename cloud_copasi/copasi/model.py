@@ -1579,8 +1579,7 @@ class CopasiModel(object):
 
         for parameter in parameter_list:   
         #for parameter in self.get_optimization_parameters():
-            check.debug("------- parameter: " %parameter)
-            check.debug("------- parameter[0]: " %parameter[0]) 
+            check.debug("This line runs")
             output_file.write(parameter[0].encode('utf8'))
             output_file.write('\t')
         output_file.write('\n')
