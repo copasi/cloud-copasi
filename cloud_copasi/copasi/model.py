@@ -8,7 +8,7 @@
 
 #Adapted from Condor-COPSAI
 #code.google.com/p/condor-copasi
- 
+
 import subprocess, os, re, math, time
 from cloud_copasi import settings
 from cloud_copasi.condor import condor_spec
@@ -299,7 +299,7 @@ class CopasiModel(object):
                         reaction = parameter_match.group('reaction')
                         parameter = parameter_match.group('parameter')
                         name = '(%s).%s'%(reaction, parameter)
-                        check.debug("*** parameter_match(if) runs --> name: %s" %name)  
+                        check.debug("*** parameter_match(if) runs --> name: %s" %name)
 
                     else:
                         #Try again, this time looking for a string like: Vector=Metabolites[blah]
@@ -1563,7 +1563,7 @@ class CopasiModel(object):
         output_file = open(os.path.join(self.path, 'results.txt'), 'w')
 
         output_file.write('Best value\t')
-        
+
         #added by HB
         parameter_list = self.get_optimization_parameters()
 
@@ -1572,8 +1572,8 @@ class CopasiModel(object):
         check.debug("parameter[0]: ")
         check.debug(parameter_list[0])
 
-        for parameter in parameter_list:   
-        #for parameter in self.get_optimization_parameters():            
+        for parameter in parameter_list:
+        #for parameter in self.get_optimization_parameters():
             #output_file.write(parameter[0].encode('utf8'))
             #above line is commented by HB as follows
             output_file.write(parameter[0])
@@ -1855,7 +1855,10 @@ class CopasiModel(object):
 
         for parameter in self.get_parameter_estimation_parameters():
 
-            output_file.write(parameter[0].encode('utf8'))
+            #output_file.write(parameter[0].encode('utf8'))
+            #above line is commented by HB as follows
+            output_file.write(parameter[0])
+
             output_file.write('\t')
         output_file.write('\n')
 

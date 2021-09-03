@@ -22,7 +22,10 @@ from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
-from django.utils.timezone import now
+import datetime
+#from django.utils.timezone import now
+from django.utils import timezone #added by HB
+
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -31,6 +34,15 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 internal_type = ('parameter_estimation_repeat', 'Parameter estimation repeat')
 
@@ -223,8 +235,8 @@ class TaskPlugin(BaseTask):
                                                                   self.data_files,
                                                                   rank='')
 
-        log.debug('Prepared copasi files %s'%model_files)
-        log.debug('Prepared condor job %s' %condor_job_file)
+        check.debug('Prepared copasi files %s'%model_files)
+        check.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -247,19 +259,26 @@ class TaskPlugin(BaseTask):
 
         assert isinstance(subtask, Subtask)
 
-        subtask.start_time = now()
+        #subtask.start_time = now()
+        #above line is modified by HB as follows
+        subtask.start_time = timezone.localtime()
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
-
+        #added by HB
+        check.debug("@$@$@$@ Task directory: ")
+        check.debug(directory)
 
 
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
 
         results_files = [job.job_output for job in main_jobs]
 
+        #added by HB
+        check.debug("passing results files to /copasi/model.py file")
+        check.debug("check.....")
         success = self.copasi_model.process_pr_results(results_files, self.custom_report)
 
 
@@ -282,9 +301,27 @@ class TaskPlugin(BaseTask):
         self.task.save()
         subtask.status = 'finished'
 
-        subtask.finish_time = now()
+        #subtask.finish_time = now()
+        #above line is modified by HB as follows
+        subtask.finish_time = timezone.localtime()
 
-        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #added by HB
+        check.debug("@$@$@ Results subtask finish time: ")
+        check.debug(subtask.finish_time)
+        temp_finish_time = subtask.finish_time
+
+        #added by HB
+        check.debug("@$@$@ Printing subtask start time again: ")
+        check.debug(subtask.start_time)
+
+        #added by HB
+        time_delta = temp_finish_time - temp_start_time
+
+        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #above line is modified by HB as follows
+        check.debug("@$@$@ Time Delta: ")
+        check.debug(time_delta)
+        subtask.set_run_time(time_delta)
 
         subtask.save()
 
