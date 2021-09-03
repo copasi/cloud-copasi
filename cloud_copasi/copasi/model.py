@@ -1491,7 +1491,6 @@ class CopasiModel(object):
         """Process the results of the OR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
-        check.debug("running ~/copasi.model.process_or_results")
 
         #Check if we're maximising or minimising
         optTask = self._getTask('optimization')
@@ -1517,7 +1516,6 @@ class CopasiModel(object):
 
         #Copy the contents of the first file to results.txt
         for line in open(os.path.join(self.path, filenames[0]), 'r'):
-            #check.debug("(~/copasi/model.py) File name: %s" %(os.path.join(self.path, filenames[0])))
             output_file.write(line)
             if line != '\n':
                 if output_re.match(line):
@@ -1565,9 +1563,6 @@ class CopasiModel(object):
         output_file = open(os.path.join(self.path, 'results.txt'), 'w')
 
         output_file.write('Best value\t')
-        check.debug("Best value: %s" %best_value)
-        check.debug("Best line: %s" %best_line)
-        check.debug("----------- getting into def get_optimization_parameters ----------")
         
         #added by HB
         parameter_list = self.get_optimization_parameters()
@@ -1578,9 +1573,11 @@ class CopasiModel(object):
         check.debug(parameter_list[0])
 
         for parameter in parameter_list:   
-        #for parameter in self.get_optimization_parameters():
-            check.debug("This line runs")
-            output_file.write(parameter[0].encode('utf8'))
+        #for parameter in self.get_optimization_parameters():            
+            #output_file.write(parameter[0].encode('utf8'))
+            #above line is commented by HB as follows
+            output_file.write(parameter[0])
+
             output_file.write('\t')
         output_file.write('\n')
 
