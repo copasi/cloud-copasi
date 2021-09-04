@@ -1787,8 +1787,8 @@ class CopasiModel(object):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
-
-
+        check.debug("----- process_pr_results def runs....")
+        
         output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
 
         #Keep track of the last read line before a newline; this will be the best value from an optimization run
@@ -1853,7 +1853,15 @@ class CopasiModel(object):
 
         output_file.write('Best value\tCPU time\tFunction evals\t')
 
-        for parameter in self.get_parameter_estimation_parameters():
+        #added by HB
+        parameter_list = self.get_parameter_estimation_parameters()
+        check.debug("Got the parameter list back to original pr function")
+        check.debug(parameter_list)
+        check.debug("parameter[0]: ")
+        check.debug(parameter_list[0])
+
+        for parameter in parameter_list:
+        #for parameter in self.get_parameter_estimation_parameters():
 
             #output_file.write(parameter[0].encode('utf8'))
             #above line is commented by HB as follows

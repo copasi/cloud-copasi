@@ -263,6 +263,14 @@ class TaskPlugin(BaseTask):
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
 
+        check.debug("@$@$@ Results subtask start time (parameter_estimation_repeat): ")
+        check.debug(subtask.start_time)
+        #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
+        temp_start_time = subtask.start_time
+        check.debug("temp_start_time ******: ")
+        check.debug(temp_start_time)
+
+
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
@@ -310,9 +318,6 @@ class TaskPlugin(BaseTask):
         check.debug(subtask.finish_time)
         temp_finish_time = subtask.finish_time
 
-        #added by HB
-        check.debug("@$@$@ Printing subtask start time again: ")
-        check.debug(subtask.start_time)
 
         #added by HB
         time_delta = temp_finish_time - temp_start_time
