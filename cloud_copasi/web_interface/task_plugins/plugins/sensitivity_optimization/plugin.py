@@ -18,7 +18,10 @@ import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.utils.timezone import now
+import datetime
+#from django.utils.timezone import now
+from django.utils import timezone #added by HB
+
 log = logging.getLogger(__name__)
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
@@ -27,6 +30,15 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
@@ -83,8 +95,8 @@ class TaskPlugin(BaseTask):
 
         condor_job_file = self.copasi_model.prepare_so_condor_job(condor_pool.pool_type, condor_pool.address, subtask_index=1, rank='')
 
-        log.debug('Prepared copasi files %s'%model_files)
-        log.debug('Prepared condor job %s' %condor_job_file)
+        check.debug('Prepared copasi files %s'%model_files)
+        check.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -101,7 +113,13 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
 
-        subtask.start_time = now()
+        #subtask.start_time = now()
+        #above line is modified by HB as follows
+        subtask.start_time = timezone.localtime()
+        temp_start_time = subtask.start_time
+        check.debug("temp_start_time ******: ")
+        check.debug(temp_start_time)
+
         #Go through and collate the results
         #This is a computationally simple task, so we will run locally, not remotely
 
@@ -113,15 +131,28 @@ class TaskPlugin(BaseTask):
 
 
         results = self.copasi_model.get_so_results(save=True)
-        log.debug('Results:')
-        log.debug(results)
+        check.debug('Results:')
+        check.debug(results)
 
         subtask.task.set_custom_field('results_file', 'results.txt')
 
-        log.debug('Setting subtask as finished')
+        check.debug('Setting subtask as finished')
         subtask.status = 'finished'
-        subtask.finish_time = now()
-        subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #subtask.finish_time = now()
+        #above line is modified by HB as follows
+        subtask.finish_time = timezone.localtime()
+        temp_finish_time = subtask.finish_time
+        check.debug("@$@$@ Results subtask finish time: ")
+        check.debug(temp_finish_time)
+
+        #added by HB
+        time_delta = temp_finish_time - temp_start_time
+        check.debug("@$@$@ Time Delta: ")
+        check.debug(time_delta)
+        
+        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
+        #above line is modified by HB as follows
+
         subtask.save()
 
         return subtask
