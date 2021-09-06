@@ -586,6 +586,8 @@ class CopasiModel(object):
         #First clear the task list, to ensure that no tasks are set to run
         self._clear_tasks()
 
+        check.debug("running prepare_so_task in model.py")
+
         #Next, go to the sensitivities task and set the appropriate variables
         sensTask = self._getTask('sensitivities')
         problem = sensTask.find(xmlns + 'Problem')
@@ -1788,7 +1790,7 @@ class CopasiModel(object):
         As we copy, extract the best value, and write the details to results.txt"""
 
         check.debug("----- process_pr_results def runs....")
-        
+
         output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
 
         #Keep track of the last read line before a newline; this will be the best value from an optimization run
