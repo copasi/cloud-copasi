@@ -163,6 +163,8 @@ class TaskPlugin(BaseTask):
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
 
+        check.debug("+++ page_name: %s" %page_name)
+
         if page_name == 'main':
             return self.get_template_name('results_view')
         elif page_name == 'plot':
@@ -248,12 +250,18 @@ class TaskPlugin(BaseTask):
     def get_progress_plot(self, request):
         """Return the plot image for the progress of a single sensitivity optimization parameter"""
 
+        check.debug("++++++++++++ Running get_progress_plot definition ++++++++++++++ ")
+        
         results = self.copasi_model.get_so_results()
+        check.debug("------------- printing results below: ")
+        check.debug(results)
+
         #Get parameter names, min and max
         variable_choices = []
         for result in results:
             variable_choices.append(result['name'] + '_max')
             variable_choices.append(result['name'] + '_min')
+            check.debug("-+-+-+-+ result: %s" %result)
 
         #Look at the GET data to see what chart options have been set:
         get_variables = request.GET.get('variables')
@@ -293,6 +301,7 @@ class TaskPlugin(BaseTask):
             #Check if we're plotting a min or a max. Min will be all even numbers, max all odd
             file_index = int(math.floor(i/2))
             filename = os.path.join(self.task.directory, jobs.get(process_id=i).job_output)
+            check.debug("filename: %s"%filename)
             all_evals=[]
             all_values=[]
             linenumber=0

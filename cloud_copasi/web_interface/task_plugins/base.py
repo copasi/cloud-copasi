@@ -115,6 +115,10 @@ class BaseTask(object):
     def get_template_name(self, name):
         """Return the full path of the template with given name
         """
+        check.debug("get_template_name function runs")
+        check.debug("task_type: ")
+        check.debug(self.task.task_type)
+        check.debug("name: %s" %name)
         return '%s/%s.html' % (self.task.task_type, name)
 
     def get_results_view_template_name(self, request):
