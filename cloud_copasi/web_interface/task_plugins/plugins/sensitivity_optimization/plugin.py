@@ -175,14 +175,19 @@ class TaskPlugin(BaseTask):
     def get_results_view_data(self, request):
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
+
+        check.debug("get_results_view_data runs")
+
         if page_name == 'main':
             results = self.copasi_model.get_so_results(save=False)
             output = {'results': results}
             output['sensitivity_object'] = self.copasi_model.get_sensitivities_object()
+            check.debug("page_name: main")
 
             return output
         elif page_name == 'plot':
             output = {}
+            check.debug("page_name: plot")
 
             results = self.copasi_model.get_so_results()
             variable_choices=[]
@@ -198,12 +203,29 @@ class TaskPlugin(BaseTask):
             output['form'] = form
 
             if form.is_valid():
+                check.debug("form is valid")
                 variables = map(int,form.cleaned_data['variables'])
+                check.debug("variables:")
+                check.debug(variables)
+
                 log = form.cleaned_data['logarithmic']
+                check.debug("logarithmic:")
+                check.debug(log) 
+
                 legend = form.cleaned_data['legend']
+                check.debug("legend:")
+                check.debug(legend)
+
                 grid = form.cleaned_data['grid']
+                check.debug("grid:")
+                check.debug(grid)
+
                 fontsize = form.cleaned_data['fontsize']
+                check.debug("fontsize:")
+                check.debug(fontsize)
+
             else:
+                check.debug("form is NOT valid")
                 variables=range(len(variable_choices))
                 log=False
                 legend=True
@@ -223,6 +245,7 @@ class TaskPlugin(BaseTask):
                 img_string += '&fontsize=' + str(fontsize)
 
             output['img_string']=img_string
+            check.debug("img_string: %s" %img_string)
             return output
         else:
             return {}
@@ -265,6 +288,9 @@ class TaskPlugin(BaseTask):
 
         #Look at the GET data to see what chart options have been set:
         get_variables = request.GET.get('variables')
+        check.debug("get_variables:")
+        check.debug(get_variables)
+        check.debug(get_variables.split(','))
         log = request.GET.get('log', 'false')
 
         legend = request.GET.get('legend', 'false')
@@ -276,9 +302,15 @@ class TaskPlugin(BaseTask):
         download_svg = 'download_svg' in request.POST
         download_pdf = 'download_pdf' in request.POST
 
+        #added by HB for debugging plotting error
+        len_variable_choices = len(variable_choices)
+        check.debug("len_variable_choices:")
+        check.debug(len_variable_choices)
 
         try:
             variables = map(int, get_variables.split(','))
+            check.debug("variables:")  #added by HB
+            check.debug(variables)  #added by HB
             assert max(variables) < len(variable_choices)
         except:
             raise

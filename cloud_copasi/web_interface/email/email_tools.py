@@ -50,7 +50,7 @@ def send_message(user, notify_type, subject, message_body):
     #And check we have an email address set for the user
     if user.email == None or user.email == '':
         return
-    check.debug('Sending email')
+    check.debug('Sending email ++')
     if user.first_name:
         name = user.first_name
     else:
