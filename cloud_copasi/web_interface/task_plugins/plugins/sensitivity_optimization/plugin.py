@@ -28,6 +28,7 @@ os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable di
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
+import io
 from matplotlib.pyplot import annotate
 
 ########### following lines are set by HB for debugging
@@ -373,22 +374,43 @@ class TaskPlugin(BaseTask):
             #response = HttpResponse(mimetype='image/png', content_type='image/png')
             #above line is modified by HB as follows
             response = HttpResponse(content_type='image/png')
+            check.debug("png response: ")
+            check.debug(response)
             fig.savefig(response, format='png', transparent=False, dpi=120)
             response['Content-Disposition'] = 'attachment; filename=%s.png' % name
 
         elif download_svg:
             #response = HttpResponse(mimetype='image/svg', content_type='image/svg')
             #above line is modified by HB as follows
-            response = HttpResponse(content_type='image/svg')
-            fig.savefig(response, format='svg', transparent=False, dpi=120)
+            #response = HttpResponse(content_type='image/svg')
+            #check.debug("svg response: ")
+            #check.debug(response)
+            #fig.savefig(response, format='svg', transparent=False, dpi=120)
+            #response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
+
+            #above lines are modified by HB as follows
+            buf = io.BytesIO()
+            fig.savefig(buf, format='svg', transparent=False, dpi=120)
+            response = HttpResponse(buf.getvalue(), content_type='image/svg')
             response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
+
 
         elif download_pdf:
             #response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
             #above line is modified by HB as follows
-            response = HttpResponse(content_type='application/pdf')
-            fig.savefig(response, format='pdf', transparent=False, dpi=120)
-            response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
+            #response = HttpResponse(content_type='application/pdf')
+            #check.debug("pdf response: ")
+            #check.debug(response) 
+            #fig.savefig(response, format='pdf', transparent=False, dpi=120)
+            #response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
+
+            #above lines are modified by HB as follows
+            buf = io.BytesIO()
+            fig.savefig(buf, format='pdf', transparent=False, dpi=120)
+            response = HttpResponse(buf.getvalue(), content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name 
+
+           
 
         else:
             #response = HttpResponse(mimetype='image/png', content_type='image/png')
