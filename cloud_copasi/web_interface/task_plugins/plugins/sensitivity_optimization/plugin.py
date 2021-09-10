@@ -204,25 +204,22 @@ class TaskPlugin(BaseTask):
 
             if form.is_valid():
                 check.debug("form is valid")
+                check.debug("checkging form.cleaned_data['variables']: ")
+                variables_check = form.cleaned_data['variables']
+                check.debug("variables_check: ")
+                check.debug(variables_check)
+                check.debug(" ")
                 variables = map(int,form.cleaned_data['variables'])
                 check.debug("variables:")
                 check.debug(variables)
 
                 log = form.cleaned_data['logarithmic']
-                check.debug("logarithmic:")
-                check.debug(log) 
 
                 legend = form.cleaned_data['legend']
-                check.debug("legend:")
-                check.debug(legend)
 
                 grid = form.cleaned_data['grid']
-                check.debug("grid:")
-                check.debug(grid)
 
                 fontsize = form.cleaned_data['fontsize']
-                check.debug("fontsize:")
-                check.debug(fontsize)
 
             else:
                 check.debug("form is NOT valid")
@@ -276,18 +273,20 @@ class TaskPlugin(BaseTask):
         check.debug("++++++++++++ Running get_progress_plot definition ++++++++++++++ ")
         
         results = self.copasi_model.get_so_results()
-        check.debug("------------- printing results below: ")
-        check.debug(results)
+        #check.debug("------------- printing results below: ")
+        #check.debug(results)
 
         #Get parameter names, min and max
         variable_choices = []
         for result in results:
             variable_choices.append(result['name'] + '_max')
             variable_choices.append(result['name'] + '_min')
-            check.debug("-+-+-+-+ result: %s" %result)
+            #check.debug("-+-+-+-+ result: %s" %result)
 
         #Look at the GET data to see what chart options have been set:
-        get_variables = request.GET.get('variables')
+        #get_variables = request.GET.get('variables')
+        #above line is modified by HB as follows
+        get_variables = request.GET.get('variables','')
         check.debug("get_variables:")
         check.debug(get_variables)
         check.debug(get_variables.split(','))
@@ -309,11 +308,13 @@ class TaskPlugin(BaseTask):
 
         try:
             variables = map(int, get_variables.split(','))
+            #above line is modified by HB as follows
+            #variables = map(int, get_variables)
             check.debug("variables:")  #added by HB
             check.debug(variables)  #added by HB
             assert max(variables) < len(variable_choices)
         except:
-            raise
+            #raise        #commented out by HB
             variables = range(len(results))
 
         matplotlib.rc('font', size=fontsize)
@@ -369,19 +370,30 @@ class TaskPlugin(BaseTask):
         #Remove spaces from the task name for saving
         name = self.task.name.replace(' ', '_')
         if download_png:
-            response = HttpResponse(mimetype='image/png', content_type='image/png')
+            #response = HttpResponse(mimetype='image/png', content_type='image/png')
+            #above line is modified by HB as follows
+            response = HttpResponse(content_type='image/png')
             fig.savefig(response, format='png', transparent=False, dpi=120)
             response['Content-Disposition'] = 'attachment; filename=%s.png' % name
+
         elif download_svg:
-            response = HttpResponse(mimetype='image/svg', content_type='image/svg')
+            #response = HttpResponse(mimetype='image/svg', content_type='image/svg')
+            #above line is modified by HB as follows
+            response = HttpResponse(content_type='image/svg')
             fig.savefig(response, format='svg', transparent=False, dpi=120)
             response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
+
         elif download_pdf:
-            response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
+            #response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
+            #above line is modified by HB as follows
+            response = HttpResponse(content_type='application/pdf')
             fig.savefig(response, format='pdf', transparent=False, dpi=120)
             response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
+
         else:
-            response = HttpResponse(mimetype='image/png', content_type='image/png')
+            #response = HttpResponse(mimetype='image/png', content_type='image/png')
+            #above line is modified by HB as follows
+            response = HttpResponse(content_type='image/png')
             fig.savefig(response, format='png', transparent=False, dpi=120)
         return response
 
@@ -390,6 +402,7 @@ class SOPlotUpdateForm(forms.Form):
     """Form containing controls to update plots"""
 
     def __init__(self, *args, **kwargs):
+        check.debug("class SOPlotUpdateForm __init__ function runs")
         variables = kwargs.pop('variable_choices', [])
         variable_choices = []
         for i in range(len(variables)):

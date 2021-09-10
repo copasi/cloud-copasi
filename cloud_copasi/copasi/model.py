@@ -278,19 +278,19 @@ class CopasiModel(object):
             if friendly:
                 #Construct a user-friendly name for the parameter name using regexs
                 #Look for a match for global parameters: Vector=Values[Test parameter],
-                check.debug("** Entered into friendly if structure **")
+                #check.debug("** Entered into friendly if structure **")
                 values_string = r'.*Vector=Values\[(?P<name>.*)\].*'
                 values_string_re = re.compile(values_string)
                 values_match = re.match(values_string_re, name)
 
                 if values_match:
                     name = 'Values[' + values_match.group('name') + ']'
-                    check.debug("*** values_match(if) runs --> name: %s" %name)
+                    #check.debug("*** values_match(if) runs --> name: %s" %name)
 
                 else:
                     #else check for a parameter match.
                     #Vector=Reactions[Reaction] Parameter=k1
-                    check.debug("*** values_match(else) runs")
+                    #check.debug("*** values_match(else) runs")
                     parameter_string = r'.*Vector=Reactions\[(?P<reaction>.*)\].*Parameter=(?P<parameter>.*),Reference=Value.*'
                     parameter_string_re = re.compile(parameter_string)
                     parameter_match = re.match(parameter_string_re, name)
@@ -299,11 +299,11 @@ class CopasiModel(object):
                         reaction = parameter_match.group('reaction')
                         parameter = parameter_match.group('parameter')
                         name = '(%s).%s'%(reaction, parameter)
-                        check.debug("*** parameter_match(if) runs --> name: %s" %name)
+                        #check.debug("*** parameter_match(if) runs --> name: %s" %name)
 
                     else:
                         #Try again, this time looking for a string like: Vector=Metabolites[blah]
-                        check.debug("*** parameter_match(else) runs")
+                        #check.debug("*** parameter_match(else) runs")
                         metabolites_string = r'.*Vector=Metabolites\[(?P<name>.*)\].*'
                         metabolites_string_re = re.compile(metabolites_string)
                         metabolites_match = re.match(metabolites_string_re, name)
@@ -312,8 +312,9 @@ class CopasiModel(object):
                             check.debug("*** metabolites_match (if) runs --> name: %s" %name)
 
             parameters.append((name, lowerBound, upperBound, startValue))
-            check.debug("parameters: ")
-            check.debug(parameters)
+        
+        #check.debug("parameters: ")
+        #check.debug(parameters)
         return parameters
 
     def get_parameter_estimation_parameters(self, friendly=True):
