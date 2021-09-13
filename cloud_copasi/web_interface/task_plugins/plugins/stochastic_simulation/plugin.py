@@ -23,7 +23,9 @@ from cloud_copasi.condor import condor_spec
 from string import Template
 from cloud_copasi.web_interface.task_plugins import load_balancing
 import re
-from django.utils.timezone import now
+import datetime
+#from django.utils.timezone import now
+from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
 
@@ -33,7 +35,18 @@ import matplotlib
 matplotlib.use(
     'Agg')  # Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
+import io #added by HB
 from matplotlib.pyplot import annotate
+
+########### following lines are set by HB for debugging
+logging.basicConfig(
+        filename='/home/cloudcopasi/log/debug.log',
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt='%m/%d/%y %I:%M:%S %p',
+        level=logging.DEBUG
+    )
+check = logging.getLogger(__name__)
+######################################################
 
 internal_type = ('stochastic_simulation', 'Stochastic simulation')
 
@@ -213,8 +226,8 @@ class TaskPlugin(BaseTask):
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address,
                                                                   len(model_files), subtask.index, rank='')
 
-        log.debug('Prepared copasi files %s' % model_files)
-        log.debug('Prepared condor job %s' % condor_job_file)
+        check.debug('Prepared copasi files %s' % model_files)
+        check.debug('Prepared condor job %s' % condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -365,7 +378,9 @@ class TaskPlugin(BaseTask):
         try:
 
             # Look at the GET data to see what chart options have been set:
-            get_variables = request.GET.get('variables')
+            #get_variables = request.GET.get('variables')
+            #above line is modified by HB as follows
+            get_variables = request.GET.get('variables','')
             log = request.GET.get('log', 'false')
             stdev = request.GET.get('stdev', 'false')
             legend = request.GET.get('legend', 'false')
@@ -376,6 +391,7 @@ class TaskPlugin(BaseTask):
             download_png = 'download_png' in request.POST
             download_svg = 'download_svg' in request.POST
             download_pdf = 'download_pdf' in request.POST
+
             try:
                 variables = map(int, get_variables.split(','))
                 assert max(variables) < ((len(results) - 1) / 2)
@@ -419,20 +435,40 @@ class TaskPlugin(BaseTask):
             name = self.task.name.replace(' ', '_')
             if download_png:
                 response = HttpResponse(mimetype='image/png', content_type='image/png')
+                #above line is modified by HB as follows
+                response = HttpResponse(content_type='image/png')
                 fig.savefig(response, format='png', transparent=False, dpi=120)
                 response['Content-Disposition'] = 'attachment; filename=%s.png' % name
             elif download_svg:
-                response = HttpResponse(mimetype='image/svg', content_type='image/svg')
-                fig.savefig(response, format='svg', transparent=False, dpi=120)
+                #response = HttpResponse(mimetype='image/svg', content_type='image/svg')
+                #fig.savefig(response, format='svg', transparent=False, dpi=120)
+                #response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
+
+                #above lines are modified by HB as follows
+                buf = io.BytesIO()
+                fig.savefig(buf, format='svg', transparent=False, dpi=120)
+                response = HttpResponse(buf.getvalue(), content_type='image/svg')
                 response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
+
+
             elif download_pdf:
-                response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
-                fig.savefig(response, format='pdf', transparent=False, dpi=120)
+                #response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
+                #fig.savefig(response, format='pdf', transparent=False, dpi=120)
+                #response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
+
+                #above lines are modified by HB as follows
+                buf = io.BytesIO()
+                fig.savefig(buf, format='pdf', transparent=False, dpi=120)
+                response = HttpResponse(buf.getvalue(), content_type='application/pdf')
                 response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
+
             else:
-                response = HttpResponse(mimetype='image/png', content_type='image/png')
+                #response = HttpResponse(mimetype='image/png', content_type='image/png')
+                #above line is modified by HB as follows
+                response = HttpResponse(content_type='image/png')
                 fig.savefig(response, format='png', transparent=False, dpi=120)
             return response
+
         except Exception as e:
             log.exception(e)
             raise e

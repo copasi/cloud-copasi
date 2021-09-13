@@ -28,7 +28,7 @@ os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable di
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
-import io
+import io   #added by HB
 from matplotlib.pyplot import annotate
 
 ########### following lines are set by HB for debugging
@@ -150,7 +150,7 @@ class TaskPlugin(BaseTask):
         time_delta = temp_finish_time - temp_start_time
         check.debug("@$@$@ Time Delta: ")
         check.debug(time_delta)
-        
+
         #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         #above line is modified by HB as follows
 
@@ -164,7 +164,6 @@ class TaskPlugin(BaseTask):
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
 
-        check.debug("+++ page_name: %s" %page_name)
 
         if page_name == 'main':
             return self.get_template_name('results_view')
@@ -204,26 +203,12 @@ class TaskPlugin(BaseTask):
             output['form'] = form
 
             if form.is_valid():
-                check.debug("form is valid")
-                check.debug("checkging form.cleaned_data['variables']: ")
-                variables_check = form.cleaned_data['variables']
-                check.debug("variables_check: ")
-                check.debug(variables_check)
-                check.debug(" ")
                 variables = map(int,form.cleaned_data['variables'])
-                check.debug("variables:")
-                check.debug(variables)
-
                 log = form.cleaned_data['logarithmic']
-
                 legend = form.cleaned_data['legend']
-
                 grid = form.cleaned_data['grid']
-
                 fontsize = form.cleaned_data['fontsize']
-
             else:
-                check.debug("form is NOT valid")
                 variables=range(len(variable_choices))
                 log=False
                 legend=True
@@ -271,8 +256,6 @@ class TaskPlugin(BaseTask):
     def get_progress_plot(self, request):
         """Return the plot image for the progress of a single sensitivity optimization parameter"""
 
-        check.debug("++++++++++++ Running get_progress_plot definition ++++++++++++++ ")
-        
         results = self.copasi_model.get_so_results()
         #check.debug("------------- printing results below: ")
         #check.debug(results)
@@ -288,11 +271,7 @@ class TaskPlugin(BaseTask):
         #get_variables = request.GET.get('variables')
         #above line is modified by HB as follows
         get_variables = request.GET.get('variables','')
-        check.debug("get_variables:")
-        check.debug(get_variables)
-        check.debug(get_variables.split(','))
         log = request.GET.get('log', 'false')
-
         legend = request.GET.get('legend', 'false')
         grid = request.GET.get('grid', 'false')
         fontsize = int(request.GET.get('fontsize', '12'))
@@ -302,15 +281,8 @@ class TaskPlugin(BaseTask):
         download_svg = 'download_svg' in request.POST
         download_pdf = 'download_pdf' in request.POST
 
-        #added by HB for debugging plotting error
-        len_variable_choices = len(variable_choices)
-        check.debug("len_variable_choices:")
-        check.debug(len_variable_choices)
-
         try:
             variables = map(int, get_variables.split(','))
-            #above line is modified by HB as follows
-            #variables = map(int, get_variables)
             check.debug("variables:")  #added by HB
             check.debug(variables)  #added by HB
             assert max(variables) < len(variable_choices)
@@ -362,7 +334,7 @@ class TaskPlugin(BaseTask):
         if log != 'false':
             plt.yscale('log')
         if legend != 'false':
-            plt.legend(loc=0, bbox_to_anchor=(1,1), prop={'size':fontsize} )    #loc value is updated by HB from 0. Also bbox.... option included to move the location of legend.  
+            plt.legend(loc=0, bbox_to_anchor=(1,1), prop={'size':fontsize} )    #loc value is updated by HB from 0. Also bbox.... option included to move the location of legend.
         if grid != 'false':
             plt.grid(True)
 
@@ -374,8 +346,6 @@ class TaskPlugin(BaseTask):
             #response = HttpResponse(mimetype='image/png', content_type='image/png')
             #above line is modified by HB as follows
             response = HttpResponse(content_type='image/png')
-            check.debug("png response: ")
-            check.debug(response)
             fig.savefig(response, format='png', transparent=False, dpi=120)
             response['Content-Disposition'] = 'attachment; filename=%s.png' % name
 
@@ -400,7 +370,7 @@ class TaskPlugin(BaseTask):
             #above line is modified by HB as follows
             #response = HttpResponse(content_type='application/pdf')
             #check.debug("pdf response: ")
-            #check.debug(response) 
+            #check.debug(response)
             #fig.savefig(response, format='pdf', transparent=False, dpi=120)
             #response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
 
@@ -408,9 +378,7 @@ class TaskPlugin(BaseTask):
             buf = io.BytesIO()
             fig.savefig(buf, format='pdf', transparent=False, dpi=120)
             response = HttpResponse(buf.getvalue(), content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name 
-
-           
+            response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
 
         else:
             #response = HttpResponse(mimetype='image/png', content_type='image/png')
