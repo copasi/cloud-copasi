@@ -362,7 +362,7 @@ class TaskPlugin(BaseTask):
         if log != 'false':
             plt.yscale('log')
         if legend != 'false':
-            plt.legend(loc=0, prop={'size':fontsize} )
+            plt.legend(loc=0, bbox_to_anchor=(1,1), prop={'size':fontsize} )    #loc value is updated by HB from 0. Also bbox.... option included to move the location of legend.  
         if grid != 'false':
             plt.grid(True)
 
