@@ -370,6 +370,8 @@ class TaskPlugin(BaseTask):
         try:
             assert task.status == 'finished'
             results = np.loadtxt(os.path.join(task.directory, 'results.txt'), skiprows=1, delimiter='\t', unpack=True)
+            check.debug("--=-=-=-== results: ")
+            check.debug(results)
             variable_list = model.get_variables(pretty=True)
 
         except Exception as e:
@@ -394,9 +396,13 @@ class TaskPlugin(BaseTask):
 
             try:
                 variables = map(int, get_variables.split(','))
+                check.debug("+_+_+_+_ variables ")
+                check.debug(variables)
                 assert max(variables) < ((len(results) - 1) / 2)
             except:
-                variables = range((len(results) - 1) / 2)
+                variables = range(int((len(results) - 1) / 2))
+                check.debug("-=-=-=-= variables range: ")
+                check.debug(variables)
 
             matplotlib.rc('font', size=fontsize)
             fig = plt.figure()
@@ -434,7 +440,7 @@ class TaskPlugin(BaseTask):
 
             name = self.task.name.replace(' ', '_')
             if download_png:
-                response = HttpResponse(mimetype='image/png', content_type='image/png')
+                #response = HttpResponse(mimetype='image/png', content_type='image/png')
                 #above line is modified by HB as follows
                 response = HttpResponse(content_type='image/png')
                 fig.savefig(response, format='png', transparent=False, dpi=120)
@@ -470,7 +476,7 @@ class TaskPlugin(BaseTask):
             return response
 
         except Exception as e:
-            log.exception(e)
+            check.exception(e)
             raise e
 
 
