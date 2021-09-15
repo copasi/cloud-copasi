@@ -272,7 +272,7 @@ class TaskPlugin(BaseTask):
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
 
         results_files = [job.job_output for job in main_jobs]
-        
+
         #added by HB
         check.debug("passing results files to /copasi/model.py file")
         check.debug("check.....")
@@ -297,7 +297,6 @@ class TaskPlugin(BaseTask):
 
         #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
         #above line is modified by HB as follows
-        #time_delta = subtask.finish_time - subtask.start_time
         check.debug("@$@$@ Time Delta: ")
         check.debug(time_delta)
         subtask.set_run_time(time_delta)
