@@ -377,20 +377,29 @@ class ExtraTaskFieldsView(APIView):
     """
     def get(self, request, *args, **kwargs):
         try:
+            check.debug("Entered in API try block ====================")
             task_type = request.GET['task_type']
 
             task_form = tools.get_form_class(task_type)
+            check.debug("__________ task_form:")
+            check.debug(task_form)
 
             base_form = base.BaseTaskForm
 
+
             #Create a bound instance of the task form so we can get at the html
             bound_form = task_form(user=None, task_types=[])
+            check.debug("__________ bound_form:")
+            check.debug(bound_form)
 
             #Get a list of all fields that are only in the task form, and not in the base
             extra_fields = []
             for field_name in bound_form.fields:
                 if field_name not in base_form.base_fields:
                     extra_fields.append(field_name)
+
+            check.debug("++++++++ extra fields  ====================")
+            check.debug(extra_fields)
 
             field_list = []
 
@@ -399,10 +408,23 @@ class ExtraTaskFieldsView(APIView):
 
             for field_name in extra_fields:
                 field = bound_form[field_name]
+                check.debug("++++++++ field  ====================")
+                check.debug(bound_form[field_name])
                 field_data=  {}
                 #print field
                 field_data['label'] = field.label
+                check.debug("+++++++++ field_data['label']")
+                check.debug(field.label)
+                field_str = str(field)
+                check.debug("+++++++++ field_str")
+                check.debug(field_str) 
+
                 field_data['field'] = str(field) #should be html
+
+                check.debug(" ")
+                check.debug("field_data: ")
+                check.debug(field_data)
+               
                 if field.field.required:
                     field_data['required'] = 'required'
                 else:
@@ -418,8 +440,11 @@ class ExtraTaskFieldsView(APIView):
             response_data={}
             response_data['fields'] = field_list
             json_response=json.dumps(response_data)
+            check.debug("reached to this point after json_response====================")
         except Exception as e:
+            check.debug("Try block failed, now entered in Except block ====================")
             log.debug(e)
+
         return HttpResponse(json_response, content_type="application/json", status=200)
 
 class TerminateInstanceAlarm(APIView):

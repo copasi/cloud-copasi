@@ -10,7 +10,7 @@
 from cloud_copasi.web_interface.task_plugins.base import BaseTask, BaseTaskForm
 from cloud_copasi.web_interface.models import Task, CondorJob, CondorPool
 from cloud_copasi.web_interface.models import Subtask
-from django.forms import Form
+from django.forms import Form, widgets
 from django import forms
 from cloud_copasi import settings
 from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
@@ -177,7 +177,7 @@ algorithms.append({
 
 
 class SelectButtonWidget(forms.Widget):
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         return mark_safe('<input type="button" name="select_all" value="Select all" onclick="select_all_selectors();"></input><input type="button" name="select_none" value="Select none" onclick="deselect_all_selectors();"></input>')
 
 
@@ -463,8 +463,8 @@ class TaskPlugin(BaseTask):
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
-            result_file = open(filename, 'r')
-            response = HttpResponse(result_file, content_type='application/xml')
+            result_file = open(filename, 'r', encoding='UTF-8')
+            response = HttpResponse(result_file, content_type='application/xml')    
             response['Content-Disposition'] = 'attachment; filename=%s_model.cps' % algorithms[model_index]['prefix']
             response['Content-Length'] = os.path.getsize(filename)
 
