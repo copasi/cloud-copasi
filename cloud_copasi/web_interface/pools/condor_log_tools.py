@@ -57,11 +57,8 @@ class Log:
         self.has_terminated = False
         #Search to see if the job has actually terminated. Only continue if it has...
         for line in open(path, 'r'):
-            check.debug("********* (condo_log_tools) Checking Log line: ")
-            check.debug(line)
             if termination_confirmation_re.match(line):
                 self.has_terminated = True
-                check.debug("********* (condo_log_tools) Job terminated....exiting for-loop. ")
                 break
 
         if not self.has_terminated:
@@ -71,20 +68,15 @@ class Log:
             for line in open(path, 'r'):
                 if execution_re.match(line):
                     execution_match = execution_re.match(line)
-                    check.debug("**** execution_match")
-                    check.debug(execution_match)
+
                 elif termination_re.match(line):
                     termination_match = termination_re.match(line)
-                    check.debug("**** termination_match")
-                    check.debug(termination_match)
+
                 elif termination_status_re.match(line):
                     termination_status_match = termination_status_re.match(line)
-                    check.debug("**** termination_status_match")
-                    check.debug(termination_status_match)
+
                 elif remote_usage_re.match(line):
                     remote_usage_match = remote_usage_re.match(line)
-                    check.debug("**** remote_usage_match")
-                    check.debug(remote_usage_match)
 
 
             if remote_usage_match:
@@ -101,15 +93,9 @@ class Log:
 
                 usr_time = datetime.timedelta(days=usr_days, hours=usr_hours, minutes=usr_minutes, seconds=usr_seconds)
                 sys_time = datetime.timedelta(days=sys_days, hours=sys_hours, minutes=sys_minutes, seconds=sys_seconds)
-                
-                check.debug("***** usr_time: ")
-                check.debug(usr_time)
-                check.debug("***** sys_time: ")
-                check.debug(sys_time)
+
 
                 self.remote_usage_time = usr_time + sys_time
-                check.debug("***** remote_usage_time: ") 
-                check.debug(self.remote_usage_time)
 
             if execution_match:
                 g = execution_match.group
@@ -125,8 +111,6 @@ class Log:
                 #Since log file doesn't store the date, we'll have to guess it
                 #If remote_usage time is stored, take the current date, and subtract the usage time
                 try:
-                    check.debug("***** remote_usage_time: ")
-                    check.debug(remote_usage_time)
                     assert self.remote_usage_time != None
                     year = (datetime.datetime.today() - self.remote_usage_time).year
                 except AssertionError:
@@ -137,7 +121,7 @@ class Log:
 
             if termination_status_match:
                 self.termination_status = int(termination_status_match.group('return_value'))
-                check.debug("***** termination_status match: %d" %self.termination_status)
+
 
             if termination_match:
                 g = termination_match.group
@@ -153,11 +137,11 @@ class Log:
                 year=datetime.datetime.today().year
                 check.debug("**** guessing the year: ")
                 check.debug(year)
-                 
+
                 check.debug("**** guessing the termination_time: ")
                 self.termination_time = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
                 check.debug(self.termination_time)
-                  
+
 
             #For some reason, the remote usage time sometimes appears as zero. In this case, set running time as follows:
             if self.remote_usage_time == datetime.timedelta() and hasattr(self, 'execution_start'):
@@ -165,9 +149,7 @@ class Log:
             else:
                 self.running_time = self.remote_usage_time
             self.running_time_in_days = float(self.running_time.days) + (float(self.running_time.seconds) / 86400.00)
-            
-            check.debug("***** self.running_time_in_days: ")
-            check.debug(self.running_time_in_days) 
+
 
 
         except:

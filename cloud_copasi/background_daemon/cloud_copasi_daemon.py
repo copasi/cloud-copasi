@@ -43,7 +43,6 @@ class MyDaemon(Daemon):
 
     def __init__(self, *args, **kwargs):
 
-
         return super(MyDaemon, self).__init__(*args, **kwargs)
 
     def stop(self, *args, **kwargs):
@@ -58,14 +57,10 @@ class MyDaemon(Daemon):
             start_time = time.time()
 
             try:
-
                 tools.background_script.run()
-
-                check.debug('Background script finished')
 
             except Exception as e:
                 log.exception(e)
-
 
 
             finish_time = time.time()
@@ -73,7 +68,6 @@ class MyDaemon(Daemon):
 
             if difference < min_repeat_time:
                 time.sleep(min_repeat_time - difference)
-
 
 
 if __name__ == "__main__":

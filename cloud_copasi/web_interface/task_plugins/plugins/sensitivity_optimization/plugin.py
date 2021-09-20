@@ -118,8 +118,6 @@ class TaskPlugin(BaseTask):
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
-        check.debug("temp_start_time ******: ")
-        check.debug(temp_start_time)
 
         #Go through and collate the results
         #This is a computationally simple task, so we will run locally, not remotely
@@ -130,29 +128,18 @@ class TaskPlugin(BaseTask):
 
         output_filename = 'output_1.%d.txt'
 
-
         results = self.copasi_model.get_so_results(save=True)
-        check.debug('Results:')
-        check.debug(results)
 
         subtask.task.set_custom_field('results_file', 'results.txt')
 
         check.debug('Setting subtask as finished')
         subtask.status = 'finished'
-        #subtask.finish_time = now()
-        #above line is modified by HB as follows
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
-        check.debug("@$@$@ Results subtask finish time: ")
-        check.debug(temp_finish_time)
 
-        #added by HB
         time_delta = temp_finish_time - temp_start_time
-        check.debug("@$@$@ Time Delta: ")
+        check.debug("Time Delta: ")
         check.debug(time_delta)
-
-        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
-        #above line is modified by HB as follows
 
         subtask.save()
 
@@ -176,18 +163,14 @@ class TaskPlugin(BaseTask):
         #Get the name of the page we're displaying. If not specified, assume main
         page_name = request.GET.get('name', 'main')
 
-        check.debug("get_results_view_data runs")
-
         if page_name == 'main':
             results = self.copasi_model.get_so_results(save=False)
             output = {'results': results}
             output['sensitivity_object'] = self.copasi_model.get_sensitivities_object()
-            check.debug("page_name: main")
 
             return output
         elif page_name == 'plot':
             output = {}
-            check.debug("page_name: plot")
 
             results = self.copasi_model.get_so_results()
             variable_choices=[]
@@ -228,7 +211,6 @@ class TaskPlugin(BaseTask):
                 img_string += '&fontsize=' + str(fontsize)
 
             output['img_string']=img_string
-            check.debug("img_string: %s" %img_string)
             return output
         else:
             return {}
@@ -257,19 +239,14 @@ class TaskPlugin(BaseTask):
         """Return the plot image for the progress of a single sensitivity optimization parameter"""
 
         results = self.copasi_model.get_so_results()
-        #check.debug("------------- printing results below: ")
-        #check.debug(results)
 
         #Get parameter names, min and max
         variable_choices = []
         for result in results:
             variable_choices.append(result['name'] + '_max')
             variable_choices.append(result['name'] + '_min')
-            #check.debug("-+-+-+-+ result: %s" %result)
 
         #Look at the GET data to see what chart options have been set:
-        #get_variables = request.GET.get('variables')
-        #above line is modified by HB as follows
         get_variables = request.GET.get('variables','')
         log = request.GET.get('log', 'false')
         legend = request.GET.get('legend', 'false')
@@ -283,11 +260,9 @@ class TaskPlugin(BaseTask):
 
         try:
             variables = map(int, get_variables.split(','))
-            check.debug("variables:")  #added by HB
-            check.debug(variables)  #added by HB
             assert max(variables) < len(variable_choices)
         except:
-            #raise        #commented out by HB
+            #raise
             variables = range(len(results))
 
         matplotlib.rc('font', size=fontsize)
@@ -350,15 +325,6 @@ class TaskPlugin(BaseTask):
             response['Content-Disposition'] = 'attachment; filename=%s.png' % name
 
         elif download_svg:
-            #response = HttpResponse(mimetype='image/svg', content_type='image/svg')
-            #above line is modified by HB as follows
-            #response = HttpResponse(content_type='image/svg')
-            #check.debug("svg response: ")
-            #check.debug(response)
-            #fig.savefig(response, format='svg', transparent=False, dpi=120)
-            #response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
-
-            #above lines are modified by HB as follows
             buf = io.BytesIO()
             fig.savefig(buf, format='svg', transparent=False, dpi=120)
             response = HttpResponse(buf.getvalue(), content_type='image/svg')
@@ -366,23 +332,12 @@ class TaskPlugin(BaseTask):
 
 
         elif download_pdf:
-            #response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
-            #above line is modified by HB as follows
-            #response = HttpResponse(content_type='application/pdf')
-            #check.debug("pdf response: ")
-            #check.debug(response)
-            #fig.savefig(response, format='pdf', transparent=False, dpi=120)
-            #response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
-
-            #above lines are modified by HB as follows
             buf = io.BytesIO()
             fig.savefig(buf, format='pdf', transparent=False, dpi=120)
             response = HttpResponse(buf.getvalue(), content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
 
         else:
-            #response = HttpResponse(mimetype='image/png', content_type='image/png')
-            #above line is modified by HB as follows
             response = HttpResponse(content_type='image/png')
             fig.savefig(response, format='png', transparent=False, dpi=120)
         return response
@@ -392,7 +347,6 @@ class SOPlotUpdateForm(forms.Form):
     """Form containing controls to update plots"""
 
     def __init__(self, *args, **kwargs):
-        check.debug("class SOPlotUpdateForm __init__ function runs")
         variables = kwargs.pop('variable_choices', [])
         variable_choices = []
         for i in range(len(variables)):

@@ -246,21 +246,12 @@ class TaskPlugin(BaseTask):
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
 
-        #added by HB
-        check.debug("@$@$@ Results subtask start time (optimization_repeat): ")
-        check.debug(subtask.start_time)
-        #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
         temp_start_time = subtask.start_time
-        check.debug("temp_start_time ******: ")
-        check.debug(temp_start_time)
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
-        #added by HB
-        check.debug("@$@$@$@ Task directory: ")
-        check.debug(directory)
 
         if self.use_load_balancing:
             main_subtask = self.get_subtask(2)
@@ -273,31 +264,15 @@ class TaskPlugin(BaseTask):
 
         results_files = [job.job_output for job in main_jobs]
 
-        #added by HB
-        check.debug("passing results files to /copasi/model.py file")
-        check.debug("check.....")
         self.copasi_model.process_or_results(results_files)
 
         subtask.status = 'finished'
-        #subtask.finish_time = now()
-        #above line is modified by HB as follows
         subtask.finish_time = timezone.localtime()
-
-        #added by HB
-        check.debug("@$@$@ Results subtask finish time: ")
-        check.debug(subtask.finish_time)
         temp_finish_time = subtask.finish_time
 
-        #added by HB
-        check.debug("@$@$@ Printing subtask start time again: ")
-        check.debug(subtask.start_time)
-
-        #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
-        #above line is modified by HB as follows
-        check.debug("@$@$@ Time Delta: ")
+        check.debug("Time Delta: ")
         check.debug(time_delta)
         subtask.set_run_time(time_delta)
 

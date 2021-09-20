@@ -35,7 +35,7 @@ def get_subpackages(path):
 #Go through the list of packages and get the task_type tuple
 def get_task_types(subpackages=None):
     if not subpackages:
-        check.debug('@ 5. get_task_types() in tools.py -------|')
+        check.debug('get_task_types() in tools.py -------|')
         check.debug(task_plugins.__path__)
         subpackages = get_subpackages(task_plugins.__path__)
 
@@ -45,7 +45,7 @@ def get_task_types(subpackages=None):
         module = importlib.import_module(task_plugins.__name__ + '.' + package + '.plugin')
         task_type = module.internal_type
         output.append(task_type)
-    
+
     return output
 
 def get_task_display_name(name):
@@ -58,23 +58,12 @@ def get_task_display_name(name):
 def get_task_class(task_type):
     module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
     plugin = getattr(module, 'TaskPlugin')
-    
-    #added by HB
-    check.debug("***** task_plugins/tools.py: get_task_class")
-    check.debug("module: ")
-    check.debug(module)
-    check.debug("plugin: ")
-    check.debug(plugin)
 
     return plugin
 
 def get_form_class(task_type):
     """Return the task form from str task_type"""
     module = importlib.import_module(task_plugins.__name__ + '.' + task_type + '.plugin')
-    check.debug("@ 3. get_form_class() in tools.py -------|") #added by HB
-    #check.debug(module) #added by HB
 
     plugin = getattr(module, 'TaskForm')
-    check.debug("@ 3a. --------> plugin selected: ") #added by HB
-    check.debug(plugin) #added by HB
     return plugin

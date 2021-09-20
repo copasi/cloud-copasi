@@ -674,7 +674,7 @@ class AddBoscoPoolForm(forms.Form):
                                  )
     #added by HB
     slurm_partition = forms.CharField(max_length=20,
-                                      label ='Slurm Partition Name (optional)', 
+                                      label ='Slurm Partition Name (optional)',
 				      help_text = '(if other than "general")',
                                       required=False)
     #added by HB
@@ -713,7 +713,7 @@ class AddBoscoPoolForm(forms.Form):
 	#added by HB
         slurm_partition = cleaned_data.get('slurm_partition')
         slurm_qos = cleaned_data.get('slurm_qos')
-	
+
         if BoscoPool.objects.filter(name=name,user=self.user).count() > 0:
             raise forms.ValidationError('A pool with this name already exists')
 
@@ -749,7 +749,7 @@ class BoscoPoolAddView(RestrictedFormView):
         form = kwargs['form']
 
         ## generating secured temporary file to delete it later manually
-        ## the file is readable/writable only by the user ID creating it. 
+        ## the file is readable/writable only by the user ID creating it.
         file_handle, ssh_key_filename = tempfile.mkstemp()
 
         #Added by HB to write the data in Permanent file and see if it works
@@ -765,11 +765,9 @@ class BoscoPoolAddView(RestrictedFormView):
         username = form.cleaned_data['username']
         address = form.cleaned_data['address']
 
-        #added by HB
+        #taking slurm partition and qos input from pool adding form
         slurm_partition = form.cleaned_data['slurm_partition']
         slurm_qos = form.cleaned_data['slurm_qos']
-        #check.debug(slurm_partition)
-        #check.debug(slurm_qos)
 
         check.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ssh_key_filename, '-l', username, address, 'pwd']
@@ -793,8 +791,6 @@ class BoscoPoolAddView(RestrictedFormView):
         #Next, we try to add the pool using bosco_cluster --add
 
         ##Only do this if no other pools exist with the same address!
-        ## Following lines of code are added by HB for debugging
-        check.debug('********** Reached here **********')
         count= BoscoPool.objects.filter(address = username + '@' + address).count()
 
         check.debug('BoscoPool Object Count: %s', count)
@@ -802,13 +798,13 @@ class BoscoPoolAddView(RestrictedFormView):
         #############################
         if BoscoPool.objects.filter(address = username + '@' + address).count() == 0:
             #following line is duplicated and modified by HB to pass slurm_partition and slurm_qos to condor_tools.py file
-            output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], 
-   								      username+'@'+address, 
-                                                                      ssh_key_filename, 
-                                                                      form.cleaned_data['pool_type'], 
-								      slurm_partition, 
-								      slurm_qos) 	
-            
+            output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'],
+   								      username+'@'+address,
+                                                                      ssh_key_filename,
+                                                                      form.cleaned_data['pool_type'],
+								      slurm_partition,
+								      slurm_qos)
+
             #output, errors, exit_status = condor_tools.add_bosco_pool(form.cleaned_data['platform'], username+'@'+address, ssh_key_filename, form.cleaned_data['pool_type'])
 
             if exit_status != 0:
@@ -867,8 +863,6 @@ class PoolTestResultView(RestrictedView):
         pool = CondorPool.objects.get(id=kwargs.get('pool_id'))
         assert pool.user == request.user
 
-
-
         kwargs['pool'] = pool
 
         output, errors, exit_status = condor_tools.test_bosco_pool(pool.address)
@@ -879,8 +873,6 @@ class PoolTestResultView(RestrictedView):
 
         if exit_status == 0: kwargs['success'] = True
         else: kwargs['success'] = False
-
-
 
         return super(PoolTestResultView, self).dispatch(request, *args, **kwargs)
 

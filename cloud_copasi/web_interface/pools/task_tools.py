@@ -40,7 +40,6 @@ def update_tasks(user=None, task=None):
     """
 
     #Step 1: Get a list of running tasks
-    check.debug('**** RUN by Background Script **** update_tasks() in task_tools.py -------|')
     tasks = Task.objects.filter(status='running')
     if user:
         tasks = tasks.filter(user = user)
@@ -97,9 +96,6 @@ def update_tasks(user=None, task=None):
         subtasks = Subtask.objects.filter(task=task).filter(status='waiting').order_by('index')
         for subtask in subtasks:
             try:
-                #added by HB
-                check.debug("@$@$@ subtask.index:")
-                check.debug(subtask.index)
 
                 if subtask.index > 1:
                     previous_subtasks = Subtask.objects.filter(task=task, index=(subtask.index -1))
@@ -112,30 +108,15 @@ def update_tasks(user=None, task=None):
                         task_instance = TaskClass(task)
                         check.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
+
                         #If this wasn't a local subtask, submit to condor
-
-                        #added by HB
-                        check.debug("@$@$@ update_tasks in task_tools.py")
-                        check.debug("@$@$@ Prepared Subtask: ")
-                        check.debug(prepared_subtask)
-
                         if not subtask.local:
                             condor_tools.submit_task(prepared_subtask)
 
-                    #added by HB
-                    check.debug("@$@$@ task_tools TRY block executed. ")
             except Exception as e:
-                #added by HB
-                check.debug("@$@$@ task_tools EXCEPT block executed. ")
-                #traceback_output = traceback.format_exc()
-                check.debug("__________ traceback log: ___________")
-                check.debug(traceback.print_exc())
-
                 subtask.status = 'error'
                 subtask.set_job_count()
                 subtask.set_run_time()
-                #subtask.finish_time=  now()
-                #the above line is modified by HB as follows:
                 subtask.finish_time = timezone.localtime()
 
                 subtask.save()
@@ -145,18 +126,8 @@ def update_tasks(user=None, task=None):
                 task.set_job_count()
                 task.set_run_time()
                 task.set_custom_field('error', str(e))
-                #task.finish_time = now()
-                #the above line is modified by HB as follows:
                 task.finish_time = timezone.localtime()
                 task.save()
-
-                #added by HB
-                check.debug("@$@$@ set_job_count: ")
-                check.debug(task.set_job_count)
-                check.debug("@$@$@ set_run_time: ")
-                check.debug(task.set_run_time)
-                check.debug("@$@$@ task.finish_time: ")
-                check.debug(task.finish_time)
 
                 email_tools.send_task_completion_email(task)
 

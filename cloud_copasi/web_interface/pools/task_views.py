@@ -59,11 +59,9 @@ class NewTaskView(RestrictedFormView):
 
     def __init__(self, *args, **kwargs):
         self.form_class = base.BaseTaskForm
-        check.debug("@ 1. __init__() in task_views.py -------|")#added by HB
         return super(NewTaskView, self).__init__(*args, **kwargs)
 
     def get_form_kwargs(self):
-        check.debug("@ 4. get_form_kwargs() in task_views.py -------|")
         kwargs = super(NewTaskView, self).get_form_kwargs()
         kwargs['user']=self.request.user
         kwargs['task_types'] = tools.get_task_types()
@@ -75,9 +73,6 @@ class NewTaskView(RestrictedFormView):
         #If task_type has been set, change the form class
         task_type = request.POST.get('task_type')
 
-        #added by HB
-        check.debug("@ 2. dispatch() in task_views.py -------|")
-        #check.debug(task_type)
         if task_type:
             task_form = tools.get_form_class(task_type)
             self.form_class = task_form
@@ -101,7 +96,6 @@ class NewTaskView(RestrictedFormView):
         compute_pool = form.cleaned_data['compute_pool']
         request = self.request
 
-        check.debug('@ 6. form_valid() in task_views.py -------|')
 
         assert isinstance(compute_pool, CondorPool)
         assert compute_pool.user == request.user
@@ -133,8 +127,6 @@ class NewTaskView(RestrictedFormView):
 
         task.original_model = 'original_model.cps'
 
-        check.debug('@ 6a. ----> task.name: %s' %task.name)
-        check.debug('@ 6b. ----> task.type: %s' %task.task_type)
 
         #Get a list of all fields that are only in the task form, and not in the base
 
@@ -236,8 +228,6 @@ class NewTaskView(RestrictedFormView):
 
 
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
-            #check.debug("@@(in task_views.py)@@ TaskClass:") #added by HB
-            #check.debug(TaskClass) #added by HB
 
             task_instance = TaskClass(task)
 
@@ -295,8 +285,6 @@ class NewTaskView(RestrictedFormView):
             kwargs['form']=form
             return self.form_invalid(self, *args, **kwargs)
 
-        #added by HB
-        #check.debug("@@ (in task_views.py) @@ finishing NewTaskView class")
         return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':task.id}))
 
 class TaskListView(RestrictedView):

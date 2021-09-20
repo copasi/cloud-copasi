@@ -42,16 +42,13 @@ else:
 
 
 def run():
-    check.debug("_________________ run() function runs _________________")
     try:
         pool_tools.refresh_all_ec2_pools()
     except Exception as e:
         log.exception(e)
-    
-    check.debug('@@@@@ running process_condor_q by background_script $$$$$$$$$$')
+
     condor_tools.process_condor_q()
-    
-    check.debug('@@@@@ running update_tasks() by background_script $$$$$$$$$$')
+
     task_tools.update_tasks()
 
     try:
@@ -59,8 +56,6 @@ def run():
     except Exception as e:
         #log.exception(e)
         check.exception(e)   #added by HB
-
-    check.debug('Finished background script')
 
 if __name__ == '__main__':
     run()

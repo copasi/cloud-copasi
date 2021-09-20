@@ -73,12 +73,10 @@ class TaskPlugin(BaseTask):
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        check.debug('@ 7. validate() in plugin.py -------|')  #added by HB
         return self.copasi_model.is_valid('PS')
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        check.debug('@ 8. initialize_subtasks() in plugin.py -------|')  #added by HB
         if self.use_load_balancing:
             #Create the load balancing module
             self.create_new_subtask('lb')
@@ -90,9 +88,6 @@ class TaskPlugin(BaseTask):
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
-        check.debug('@ 9. prepare_subtasks() in plugin.py -------|')  #added by HB
-        check.debug("@ 9a. ----> subtask index value: %d" %index)
-
 
         if index == 1:
             if self.use_load_balancing:
@@ -219,9 +214,6 @@ class TaskPlugin(BaseTask):
 
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
 
-        check.debug('@@(in plugin.py)@@ Prepared copasi files %s'%model_files)
-        check.debug('@@(in plugin.py)@@ Prepared condor job %s' %condor_job_file)
-
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
 
@@ -234,35 +226,16 @@ class TaskPlugin(BaseTask):
 
 
     def process_results_subtask(self):
-        check.debug("@$@$@ running process_results_subtask in plugin.py: ")
-        subtask=self.get_subtask(2)
-        check.debug("Returning back to process_results_subtask and the subtask is: ")
-        check.debug(subtask)
-
-        #added by HB
-        #check.debug(subtask)
-
         assert isinstance(subtask, Subtask)
 
-        #subtask.start_time = now()
-        #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
 
-        #added by HB
-        check.debug("@$@$@ Results subtask start time (parallel_scan): ")
-        check.debug(subtask.start_time)
-        #added by HB. Storing the above value in temporary variable to see if that resets as well or not.
         temp_start_time = subtask.start_time
-        check.debug("temp_start_time: ")
-        check.debug(temp_start_time)
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
-        #added by HB
-        check.debug("@$@$@$@ Task directory: ")
-        check.debug(directory)
 
         if self.use_load_balancing:
             main_subtask = self.get_subtask(2)
@@ -278,36 +251,16 @@ class TaskPlugin(BaseTask):
         self.copasi_model.process_ps_results(results_files)
 
         subtask.status = 'finished'
-        #subtask.finish_time = now()
-        #above line is modified by HB as follows
         subtask.finish_time = timezone.localtime()
 
-        #added by HB
-        check.debug("@$@$@ Results subtask finish time: ")
-        check.debug(subtask.finish_time)
         temp_finish_time = subtask.finish_time
-
-        #added by HB
-        check.debug("@$@$@ Printing subtask start time again: ")
-        check.debug(subtask.start_time)
-        #check.debug(" Printing the value of remove_start_time again: ")
-        #check.debug(remove_start_time)
-
-
 
         #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        #subtask.set_run_time(time_delta=subtask.finish_time - subtask.start_time)
-        #above line is modified by HB as follows
-        #time_delta = subtask.finish_time - subtask.start_time
-        check.debug("@$@$@ Time Delta: ")
+        check.debug("Time Delta: ")
         check.debug(time_delta)
         subtask.set_run_time(time_delta)
-
-        #added by HB
-        #check.debug("@$@$@ Results subtask delta time: ")
-        #check.debug(subtask.time_delta)
 
         subtask.save()
 
