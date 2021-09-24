@@ -114,7 +114,7 @@ class PoolRenameView(RestrictedFormView):
 
 class AddEC2PoolForm(forms.Form):
 
-    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
+    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool.')
 
     vpc = forms.ChoiceField(label = 'Keypair')
 
@@ -624,7 +624,7 @@ class BoscoPoolStatusPageForm(forms.Form):
     status_page_link = forms.CharField(max_length=1000,
                                        required=False,
                                        label='Pool status page',
-                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information')
+                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information.')
 
 class BoscoPoolStatusPageView(RestrictedFormView):
     page_title='Edit status page link'
@@ -660,13 +660,13 @@ class BoscoPoolStatusPageView(RestrictedFormView):
 
 class AddBoscoPoolForm(forms.Form):
 
-    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool')
+    name = forms.CharField(max_length=100, label='Pool name', help_text='Choose a name for this pool.')
 
     address = forms.CharField(max_length=200,
-                              help_text='The address or IP of the remote submit node (e.g. server.campus.edu or 86.3.3.2)',
+                              help_text='The address or IP of the remote submit node (e.g. server.campus.edu or 86.3.3.2).',
                               validators=[RegexValidator(r'^[a-z0-9-.]+(:([0-9]+)){0,1}$')])
 
-    username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node',
+    username = forms.CharField(max_length=50, help_text='The username used to log in to the remote submit node.',
                                validators=[RegexValidator(r'^[A-Za-z0-9]+(?:[_-][A-Za-z0-9]+)*$')])
 
     pool_type = forms.ChoiceField(choices = POOL_TYPE_CHOICES,
@@ -697,7 +697,7 @@ class AddBoscoPoolForm(forms.Form):
     status_page_link = forms.CharField(max_length=1000,
                                        required=False,
                                        label='Pool status page',
-                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information')
+                                       help_text='Optional link to a status page for the pool to be displayed alongside the pool information.')
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')

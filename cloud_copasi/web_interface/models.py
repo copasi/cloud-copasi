@@ -170,7 +170,7 @@ class CondorPool(models.Model):
     """Abstract placeholder for either an EC2 condor pool, or some other Bosco pool
     """
 
-    name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool')
+    name = models.CharField(max_length=100, verbose_name='Pool name', help_text='Choose a name for this pool.')
 
     user = models.ForeignKey(User, on_delete = models.CASCADE)
 

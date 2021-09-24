@@ -48,8 +48,8 @@ internal_type = ('parameter_estimation_repeat', 'Parameter estimation repeat')
 
 class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
-    parameter_estimation_data = forms.FileField(required=True, help_text='Select either a single data file, or if more than one data file is required, upload a .zip file containing multiple data files')
-    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform')
+    parameter_estimation_data = forms.FileField(required=True, help_text='Select either a single data file, or if more than one data file is required, upload a .zip file containing multiple data files.')
+    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform.')
     custom_report = forms.BooleanField(required=False, label='Use a custom report', help_text='Select this to use a custom report instead of the automatically generated one. If you select this, Condor-COPASI may not be able to process the output data, and the job will fail. However, you will still be able download the unprocessed results for manual processing. For output processing to work, you must create a report with custom fields added before the fields that would otherwise be automatically generated (Best Parameters, Best Value, CPU Time and Function Evaluations).')
     skip_load_balancing_step = forms.BooleanField(required=False, help_text='Select this to skip the automatic load balancing step, and make the run time of each parallel job as short as possible. <span class="bold">Use with caution! This has the potential to overload the Condor system with huge numbers of parallel jobs.</span> Not applicable for some job types - see documentation for further details.')
 

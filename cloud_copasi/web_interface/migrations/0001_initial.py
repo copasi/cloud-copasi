@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
             name='CondorPool',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='Choose a name for this pool', max_length=100, verbose_name='Pool name')),
+                ('name', models.CharField(help_text='Choose a name for this pool.', max_length=100, verbose_name='Pool name')),
                 ('uuid', cloud_copasi.web_interface.fields.UUIDField(blank=True, editable=False, max_length=32, null=True, unique=True)),
                 ('platform', models.CharField(choices=[('DEB6', 'Debian 6'), ('DEB7', 'Debian 7'), ('RH5', 'Red Hat 5'), ('RH6', 'Red Hat 6'), ('RH7', 'Red Hat 7'), ('UBUNTU12', 'Ubuntu 12'), ('MACOS', 'MAC OS')], default='DEB6', max_length=8, verbose_name='The platform of the remote condor submitter we are connecting to')),
                 ('address', models.CharField(blank=True, default='', max_length=200, verbose_name='The full username@remote_address of the remote submitter')),

@@ -49,7 +49,7 @@ internal_type = ('optimization_repeat', 'Optimization repeat')
 class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
     skip_load_balancing_step = forms.BooleanField(required=False, help_text='Select this to skip the automatic load balancing step, and make the run time of each parallel job as short as possible. <span class="bold">Use with caution! This has the potential to overload the Condor system with huge numbers of parallel jobs.</span> Not applicable for some job types - see documentation for further details.')
-    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform')
+    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform.')
 
 class TaskPlugin(BaseTask):
 

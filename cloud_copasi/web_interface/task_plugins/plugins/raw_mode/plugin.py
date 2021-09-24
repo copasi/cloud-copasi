@@ -38,9 +38,9 @@ internal_type = ('raw_mode', 'Raw mode')
 
 class TaskForm(BaseTaskForm):
     #Any extra fields for the task submission form
-    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform')
-    optional_data = forms.FileField(required=False, label='Optional data files', help_text='Select either a single data file, or if more than one data file is required, upload a .zip file containing multiple data files')
-    raw_mode_args = forms.RegexField(max_length=128, regex=re.compile(r'.*(\-\-save \$new_filename).*(\$filename).*$'), label='COPASI arguments', help_text='Arguments to add when running COPASI. Must contain <b>$filename</b> and <b>--save $new_filename</b> as arguments', widget=forms.TextInput(attrs={'size':'40'}), required=True, initial='--nologo --home . --save $new_filename $filename') #TODO: update this regex so that it won't match certain characters, e.g. ';','|', '&' etc (though perhaps this isn't necessary)
+    repeats = forms.IntegerField(required=True, min_value=1, help_text='The number of repeats to perform.')
+    optional_data = forms.FileField(required=False, label='Optional data files', help_text='Select either a single data file, or if more than one data file is required, upload a .zip file containing multiple data files.')
+    raw_mode_args = forms.RegexField(max_length=128, regex=re.compile(r'.*(\-\-save \$new_filename).*(\$filename).*$'), label='COPASI arguments', help_text='Arguments to add when running COPASI. Must contain <b>$filename</b> and <b>--save $new_filename</b> as arguments.', widget=forms.TextInput(attrs={'size':'40'}), required=True, initial='--nologo --home . --save $new_filename $filename') #TODO: update this regex so that it won't match certain characters, e.g. ';','|', '&' etc (though perhaps this isn't necessary)
 
 class TaskPlugin(BaseTask):
 
