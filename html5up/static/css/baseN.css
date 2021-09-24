@@ -25,7 +25,7 @@ header{
 }
 
 .container {
-  min-width: 69em;
+  min-width: 49em;
   min-height: 100%;
 }
 
@@ -110,6 +110,7 @@ ul.navbar-nav.ml-auto.justify-content-right{
   /* position:relative; */
   bottom: 0;
   margin-top: 1em;
+  margin-bottom: 1em;
 }
 .footer span{
   font-style: italic;
@@ -272,7 +273,8 @@ td.bottomline {
 }
 
 .fieldhelp{
-  box-sizing:
+  /* leaving space between the right vertical border and the text */
+  padding-right: 1em;
 }
 
 .form-button {
@@ -303,6 +305,7 @@ th.required, span.required{
 .jumbotron p{
   margin-top: -3em;
   margin-left: 0em;
+  margin-bottom: 1px;
 }
 
 .jumbotron{
@@ -310,16 +313,23 @@ th.required, span.required{
   height:  auto;
   /* width: 60em; */
   width: auto;
-  /* margin-bottom: 0.5em; */
+  margin-bottom: 0.5em;
   margin-left: -1em;
   font-size: 80%;
+  max-width: 800px;
+  padding-bottom: 10px;
+
+
+
 }
 
 
 /* **************** */
 /* Tables */
 /*  */
-
+.formtable th{
+  width: 18em;
+}
 
 .tablelist td, tr, th {
     border-style: solid;
