@@ -1,4 +1,3 @@
-#check
 body {
   min-width:1200px;
   min-height: 600px;
@@ -18,15 +17,20 @@ header{
   border-style: solid;
   border-radius: 1em;
   border-color: #4f4f4f;
-  background-color: white;
+  background-color: #FFFFFF;
   margin-top: 0.5em;
   width: 69em;
   position: fixed;
+  z-index:999;
 }
 
 .container {
-  min-width: 69em;
+  min-width: 49em;
   min-height: 100%;
+}
+
+ul.navbar-nav.ml-auto.justify-content-right{
+  padding-right: 2em;
 }
 /* ********************* */
 
@@ -106,6 +110,7 @@ header{
   /* position:relative; */
   bottom: 0;
   margin-top: 1em;
+  margin-bottom: 1em;
 }
 .footer span{
   font-style: italic;
@@ -224,7 +229,25 @@ textarea {
 }
 input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
     border-color: #585858;
+
 }
+
+/* checking */
+/* form aesthetics */
+
+/* left padding in form input fields */
+td.fielddata {
+  padding-left: 1em;
+  padding-bottom: 4px;
+}
+
+#id_email_address{
+  width: 255px;
+}
+
+
+/**********/
+
 .form label {
     margin-left: 10px;
     color: #999999;
@@ -234,16 +257,24 @@ input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[ty
     margin-right: 5em;
 }
 td.topline {
-    border-top: 1px dotted #999999;
+    /* border-top: 3px dotted #999999; */
+    border-top: hidden!important;
 }
+
 td.bottomline {
     padding-top: 6px;
+    colsp
 }
 .fielddata, .fieldrow {
     padding: 6px 0px 0px 0px;
 }
 
-.fielderror, .fieldhelp {
+.fielderror {
+}
+
+.fieldhelp{
+  /* leaving space between the right vertical border and the text */
+  padding-right: 1em;
 }
 
 .form-button {
@@ -274,6 +305,7 @@ th.required, span.required{
 .jumbotron p{
   margin-top: -3em;
   margin-left: 0em;
+  margin-bottom: 1px;
 }
 
 .jumbotron{
@@ -281,16 +313,23 @@ th.required, span.required{
   height:  auto;
   /* width: 60em; */
   width: auto;
-  /* margin-bottom: 0.5em; */
+  margin-bottom: 0.5em;
   margin-left: -1em;
   font-size: 80%;
+  max-width: 800px;
+  padding-bottom: 10px;
+
+
+
 }
 
 
 /* **************** */
 /* Tables */
 /*  */
-
+.formtable th{
+  width: 18em;
+}
 
 .tablelist td, tr, th {
     border-style: solid;
@@ -331,6 +370,8 @@ div.smalltablelist th{
 header.major {
     border-bottom: solid 1px #dbdbdb;
     margin: 0 0 1em 0;
+    z-index: 0;
+
 }
 
 header.major:after {
@@ -338,6 +379,7 @@ header.major:after {
     display: block;
     border-top: solid 1px #dbdbdb;
     height: 8px;
+
 }
 
 header.major h2, header.major h3 {
