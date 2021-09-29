@@ -19,12 +19,12 @@ http://www.gnu.org/licenses/gpl.html
 {% block main_content %}
   <div class="container">
     <div class="row">
-      <div class="col-3">
+      <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3">
         {% include "account/sidebarN.html" %}
 
       </div>
 
-      <div class="col-9">
+      <div class="col-sm-9 col-md-9 col-lg-9 col-xl-9 col-xs-9">
         <div class="information">
           <article>
 
@@ -83,7 +83,9 @@ http://www.gnu.org/licenses/gpl.html
                 <br />
                 {% else %}
                 <div class="smalltablelist">
-                  <table>
+                  <table class="table table-bordered">
+                    <thead>
+
                     <tr>
                       <th>Name</th>
                       <th>Type</th>
@@ -101,6 +103,7 @@ http://www.gnu.org/licenses/gpl.html
                         {% endif %}</td>
                       </tr>
                       {% endfor %}
+                    </thead>
                     </table>
                   </div>
 
