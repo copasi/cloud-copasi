@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 
     <!-- Customized styling -->
     <link rel="stylesheet" href="{% static '/css/baseN.css' %}"
@@ -32,37 +34,49 @@
     <!-- Navigation Bar -->
     <!-- ********************************************************************* -->
     <header>
-        <div class="container">
-          <nav id="navbar" class="navbar navbar-expand navbar-light  " >
+        <div class="container-fluid">
+          <nav id="navbar" class="navbar navbar-expand-sm navbar-light" >
 
             <!-- Brand/logo -->
             <a class="navbar-brand" href="{% url 'landing_view' %}"> <img src="/static/images/CClogo3sat_64.jpg" alt="logo" style="width:40px;"> Cloud COPASI</a>
 
+            <button class="navbar-toggler"
+                    type="button"
+                    data-toggle="collapse"
+                    data-target="#NavToggler"
+                    aria-controls="NavToggler"
+                    aria-expanded="false"
+                    aria-label="Toggle Naviation">
+                    <span class ="navbar-toggler-icon">  </span>
+            </button>
+
             <!-- Links -->
+            <div class="collapse navbar-collapse"  id="NavToggler">
+              <ul class="navbar-nav ml-auto justify-content-right flex-column flex-sm-row">
+                <li class="nav-item"> <a class="nav-link" href="{% url 'homeN' %}">Home</a> </li>
+                <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="{% url 'helpN' %}" id="navbardrop" data-toggle="dropdown"> Help </a>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'helpN' %}">Instruction Manual</a>
+                    <a class="dropdown-item" href="https://github.com/copasi/cloud-copasi">Source Code</a>
+                    <a class="dropdown-item" href="{% url 'contactN' %}">Contact Us</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Service Status</a>
+                  </div>
+                </li>
 
-            <ul class="navbar-nav ml-auto justify-content-right">
-              <li class="nav-item"> <a class="nav-link" href="{% url 'homeN' %}">Home</a> </li>
-              <li class="nav-item dropdown"> <a class="nav-link dropdown-toggle" href="{% url 'helpN' %}" id="navbardrop" data-toggle="dropdown"> Help </a>
-                <div class="dropdown-menu">
-                  <a class="dropdown-item" href="{% url 'helpN' %}">Instruction Manual</a>
-                  <a class="dropdown-item" href="https://github.com/copasi/cloud-copasi">Source Code</a>
-                  <a class="dropdown-item" href="{% url 'contactN' %}">Contact Us</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">Service Status</a>
-                </div>
-              </li>
-
-            {% if user.is_authenticated %}
+                {% if user.is_authenticated %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'my_account' %}">My account{% if debug %} | {{user.username}}{% endif %}</a></li>
                 {% if user.is_superuser %}
-                  <li class="nav-item"> <a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
+                <li class="nav-item"> <a class="nav-link" href="{% url 'admin:index' %}">Admin</a></li>
                 {% endif %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'sign_out' %}">Sign out</a></li>
-            {% else %}
+                {% else %}
                 <li class="nav-item"> <a class="nav-link" href="{% url 'my_account_register' %}">Register</a> </li>
                 <li class="nav-item"> <a class="nav-link" href="{% url 'sign_in' %}">Sign In</a> </li>
-            {% endif %}
-          </ul>
+                {% endif %}
+              </ul>
+
+            </div> <!-- collapse -->
 
         </nav>
       </div>

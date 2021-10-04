@@ -14,7 +14,8 @@ header{
 /* Bootstrap container holding the content of a page */
 .container{
   /* min-width: 49em; */
-  min-width: inherit;
+  min-width: 50%;
+  /* min-width: inherit; */
   min-height: 100%;
 
 }
@@ -31,10 +32,11 @@ header{
   border-color: #4f4f4f;
   background-color: #FFFFFF;
   margin-top: 0.5em;
-  width: 70em;
+  /* width: 70em; */
   position:relative;
   z-index:999;
 }
+
 
 ul.navbar-nav.ml-auto.justify-content-right{
   padding-right: 1em;
@@ -117,18 +119,21 @@ ul.navbar-nav.ml-auto.justify-content-right{
 .footer{
   /* display: block; */
   border: 3px;
-  height: 2em;
+  min-height: 2em;
+  max-height: 3.5em;
   border-style: solid;
   border-radius: 0.7em;
   border-color:  #4f4f4f;
   /* min-width: 15em; */
-  width: 86em;
+  /* width: 86em; */
   text-indent: 1em;
   font-size: 13px;
   position:relative;
   bottom: 0;
   margin-top: 1em;
   margin-bottom: 1em;
+  box-sizing: border-box;
+  text-align: center;
 }
 .footer span{
   font-style: italic;
@@ -143,26 +148,20 @@ ul.navbar-nav.ml-auto.justify-content-right{
   border: solid 1px;
   border-radius: 10px;
   padding: 1.5em;
-  margin: auto;
+  margin: inherit;
   margin-top: 1em;
   margin-bottom: 1em;
   line-height: 2.5em;
   /* width: 69em; */
-  width: 60em;
-<<<<<<< HEAD
-=======
-  min-width: 60em;
->>>>>>> 914fd0dc75be28f71c759d0f116251885a7646d8
+  /* width: 60em; */
+  /* min-width: 60em; */
   /* min-width: 15em; */
   box-sizing: border-box;
 
   background: url("../images/cloudcopasi2dark.jpg") top center fixed;
   background-size: fixed;
   text-align: center;
-<<<<<<< HEAD
-=======
   position: relative;
->>>>>>> 914fd0dc75be28f71c759d0f116251885a7646d8
 }
 
 #banner h1{
@@ -193,7 +192,7 @@ ul.navbar-nav.ml-auto.justify-content-right{
   vertical-align: center;
   border-style: double none double none;
   padding-top: 0.7em;
-  min-width: 67em;
+  /* min-width: 67em; */
 }
 
 
@@ -205,12 +204,11 @@ ul.navbar-nav.ml-auto.justify-content-right{
   font-size: 1em;
   text-align: justify;
   box-sizing: border-box;
-  min-width: 67em;
+  /* min-width: 67em; */
 }
 /**********************************************************************/
 
 /********************** helpN.html ********************************/
-<<<<<<< HEAD
 
 
 /* ============== Sidebar */
@@ -478,273 +476,3 @@ header.major .byline {
     position: relative;
     top: -1em;
 }
-=======
-
-
-/* ============== Sidebar */
-.leftside-container{
-  /* Setting the height and width of the sidebar */
-  /* width: 16.9em; */
-  /* width: inherit; */
-  /* height: 48.7em; */
-  min-width: 8.5em;
-  height: inherit;
-
-  background-color: #c2c1be;
-
-  /* Defining border */
-  border: 1px solid black;
-  border-radius: 1em;
-
-  margin: 5em 0em 0.2em 0.2em;
-  position: relative;
-}
-.leftside-container a {
-  text-align: left;
-  display: block;
-  color: black;
-  padding: 10px;
-}
-
-.leftside-container a.active{
-  /* background-color: #d17c2c; */
-  background-color: #156abf;
-  color: white;
-}
-
-.leftside-container a:hover:not(.active) {
-  background-color: #555;
-  color: white;
-}
-
-.leftside-container h3{
-  padding: 4px 0 6px 0;
-  text-align: center;
-  text-decoration: underline;
-}
-.leftside-container h4{
-  text-align: left;
-  padding-left: 7px;
-  text-decoration: underline;
-}
-
-.leftside-container hr{
-  margin-top: 5px;
-  margin-bottom: 5px;
-}
-
-/* ============== Help Information */
-.information{
-  width: inherit;
-  height: inherit;
-  min-width: 49em;
-  /* min-height: 47.3em; */
-  min-height: inherit;
-  margin: 5em 0.5em 0 0.5em;
-  text-align: justify;
-  border: 1px solid black;
-  border-radius: 1em;
-  padding: 1em ;
-  overflow: scroll;
-}
-.information{
-  background-color: white;
-}
-
-/**********************************************************************/
-
-#registration, #signin{
-  margin: auto;
-  margin-top: 1em;
-}
-
-#registration h2, #signin h2{
-  margin-left: 0.5em;
-}
-
-/*********************************************************************************/
-/* Forms
-/*********************************************************************************/
-.formerror {
-    color: #8e0000;
-}
-.errorlist {
-    color: #8e0000;
-    margin-bottom: 0em;
-}
-
-input[type="text"], input[type="password"], textarea, select {
-    padding: 9px;
-    border: solid 1px #b3b3b3;
-    outline: 0;
-    font: normal;
-    width: 20em;
-    background: #FFFFFF;
-}
-
-
-textarea {
-    width: 350px;
-    max-width: 400px;
-    height: 100px;
-    max-height: 100px;
-    line-height: 150%;
-}
-input[type="text"]:hover, input[type="password"]:hover, textarea:hover, input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
-    border-color: #585858;
-
-}
-
-/* checking */
-/* form aesthetics */
-
-/* left padding in form input fields */
-td.fielddata {
-  padding-left: 1em;
-  padding-bottom: 4px;
-}
-
-#id_email_address{
-  width: 255px;
-}
-
-/**********/
-
-.form label {
-    margin-left: 10px;
-    color: #999999;
-}
-.fieldlabel {
-    padding-right: 5em;
-    margin-right: 5em;
-}
-td.topline {
-    /* border-top: 3px dotted #999999; */
-    border-top: hidden!important;
-}
-
-td.bottomline {
-    padding-top: 6px;
-    colsp
-}
-.fielddata, .fieldrow {
-    padding: 6px 0px 0px 0px;
-}
-
-.fielderror {
-}
-
-.fieldhelp{
-  /* leaving space between the right vertical border and the text */
-  padding-right: 1em;
-}
-
-.form-button {
-    cursor: default;
-}
-
-th.required, span.required{
-    font-weight: bold;
-    margin-right: 1em;
-}
-.hidden-submit {
-    border: 0 none;
-    height: 0;
-    width: 0;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-}
-
-.btn.btn-primary.btn-lg{
-  color: white;
-  margin-top: 1em;
-  margin-bottom: 0.1em;
-  font-size: 100%;
-
-}
-
-.jumbotron p{
-  margin-top: -3em;
-  margin-left: 0em;
-  margin-bottom: 1px;
-}
-
-.jumbotron{
-  /* height:  56em; */
-  height:  auto;
-  /* width: 60em; */
-  width: auto;
-  margin-bottom: 0.5em;
-  margin-left: 0.5em;
-  font-size: 80%;
-  max-width: 800px;
-  min-width: 60em;
-  padding-bottom: 10px;
-}
-
-/* Tables */
-.formtable th{
-  width: 18em;
-}
-
-.tablelist td, tr, th {
-    border-style: solid;
-    border-color: black;
-    border-width: 1px;
-    margin: 5px 5px 5px 5px;
-    padding: 0.8em;
-}
-
-.tablelist th{
-    font-weight: bold;
-}
-
-/* div.smalltablelist td, div.smalltablelist tr, div.smalltablelist th {
-    border-style: solid;
-    border-width: 1px;
-    margin: 5px 5px 5px 5px;
-    padding: 0.3em;
-}
-div.smalltablelist th{
-    font-weight: bold;
-} */
-
-.smalltable{
-  /* border-width: 5px; */
-  width: 25em;
-  margin-bottom: 1em;
-}
-
-.smalltable td,tr, th {
-  /* border-style: solid; */
-  border-width: 1px;
-  /* border-color: black; */
-}
-
-header.major {
-    /* border-bottom: solid 1px #dbdbdb; */
-    margin: 0 0 1em 0;
-    z-index: 0;
-
-}
-
-header.major:after {
-    content: '';
-    display: block;
-    border-top: solid 1px #dbdbdb;
-    height: 8px;
-
-}
-
-header.major h2, header.major h3 {
-    margin: 0 0 0.5em 0;
-}
-
-header.major .byline {
-    margin: 0 0 0.5em 0;
-    position: relative;
-    top: -1em;
-}
-
->>>>>>> 914fd0dc75be28f71c759d0f116251885a7646d8
