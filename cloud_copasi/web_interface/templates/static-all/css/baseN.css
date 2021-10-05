@@ -14,7 +14,8 @@ header{
 /* Bootstrap container holding the content of a page */
 .container{
   /* min-width: 49em; */
-  min-width: inherit;
+  min-width: 50%;
+  /* min-width: inherit; */
   min-height: 100%;
 
 }
@@ -31,10 +32,11 @@ header{
   border-color: #4f4f4f;
   background-color: #FFFFFF;
   margin-top: 0.5em;
-  width: 70em;
+  /* width: 70em; */
   position:relative;
   z-index:999;
 }
+
 
 ul.navbar-nav.ml-auto.justify-content-right{
   padding-right: 1em;
@@ -117,18 +119,21 @@ ul.navbar-nav.ml-auto.justify-content-right{
 .footer{
   /* display: block; */
   border: 3px;
-  height: 2em;
+  min-height: 2em;
+  max-height: 3.5em;
   border-style: solid;
   border-radius: 0.7em;
   border-color:  #4f4f4f;
   /* min-width: 15em; */
-  width: 86em;
+  /* width: 86em; */
   text-indent: 1em;
   font-size: 13px;
   position:relative;
   bottom: 0;
   margin-top: 1em;
   margin-bottom: 1em;
+  box-sizing: border-box;
+  text-align: center;
 }
 .footer span{
   font-style: italic;
@@ -143,13 +148,13 @@ ul.navbar-nav.ml-auto.justify-content-right{
   border: solid 1px;
   border-radius: 10px;
   padding: 1.5em;
-  margin: auto;
+  margin: inherit;
   margin-top: 1em;
   margin-bottom: 1em;
   line-height: 2.5em;
   /* width: 69em; */
-  width: 60em;
-  min-width: 60em;
+  /* width: 60em; */
+  /* min-width: 60em; */
   /* min-width: 15em; */
   box-sizing: border-box;
 
@@ -187,7 +192,7 @@ ul.navbar-nav.ml-auto.justify-content-right{
   vertical-align: center;
   border-style: double none double none;
   padding-top: 0.7em;
-  min-width: 67em;
+  /* min-width: 67em; */
 }
 
 
@@ -199,7 +204,7 @@ ul.navbar-nav.ml-auto.justify-content-right{
   font-size: 1em;
   text-align: justify;
   box-sizing: border-box;
-  min-width: 67em;
+  /* min-width: 67em; */
 }
 /**********************************************************************/
 
@@ -471,4 +476,3 @@ header.major .byline {
     position: relative;
     top: -1em;
 }
-
