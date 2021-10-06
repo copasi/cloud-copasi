@@ -38,6 +38,7 @@ header{
 }
 
 
+
 ul.navbar-nav.ml-auto.justify-content-right{
   padding-right: 1em;
 }
@@ -218,7 +219,7 @@ ul.navbar-nav.ml-auto.justify-content-right{
   /* width: inherit; */
   /* height: 48.7em; */
   min-width: 8.5em;
-  height: inherit;
+  /* height: inherit; */
 
   background-color: #c2c1be;
 
@@ -226,8 +227,8 @@ ul.navbar-nav.ml-auto.justify-content-right{
   border: 1px solid black;
   border-radius: 1em;
 
-  margin: 5em 0em 0.2em 0.2em;
-  position: relative;
+  margin: 5em 0em 0em 0em;
+  /* position: relative; */
 }
 .leftside-container a {
   text-align: left;
@@ -240,11 +241,13 @@ ul.navbar-nav.ml-auto.justify-content-right{
   /* background-color: #d17c2c; */
   background-color: #156abf;
   color: white;
+  border-radius: 1em;
 }
 
 .leftside-container a:hover:not(.active) {
   background-color: #555;
   color: white;
+  border-radius: 1em;
 }
 
 .leftside-container h3{
@@ -265,11 +268,11 @@ ul.navbar-nav.ml-auto.justify-content-right{
 
 /* ============== Help Information */
 .information{
-  width: inherit;
-  height: inherit;
-  min-width: 49em;
+  /* width: inherit; */
+  /* height: inherit; */
+  /* min-width: 49em; */
   /* min-height: 47.3em; */
-  min-height: inherit;
+  /* min-height: inherit; */
   margin: 5em 0.5em 0 0.5em;
   text-align: justify;
   border: 1px solid black;
