@@ -9,13 +9,13 @@ http://www.gnu.org/licenses/gpl.html
 
     <p><h4>Best value found for parameter estimation task: <b>{{results.best_value}}</b></h4></p>
     <p>
-        
-        <a href="{% url 'task_results_download' task_id=task.id %}?name=optimal_model">Click here</a> to download a model file containing the optimal parameters
+
+        <a href="{% url 'task_results_download' task_id=task.id %}?name=optimal_model">Download</a> a model file containing the optimal parameters.
     </p>
     <p>
-        <a href="{% url 'task_results_download' task_id=task.id %}">Click here</a> to download these results as a tab-separated file
+        <a href="{% url 'task_results_download' task_id=task.id %}">Download</a> these results as a tab-separated file.
         <br/>
-        <a href="{% url 'task_results_download' task_id=task.id %}?name=raw_results">Click here</a> to download the full output from all repeats
+        <a href="{% url 'task_results_download' task_id=task.id %}?name=raw_results">Download</a> the full output from all repeats.
     </p>
     <div class="tablelist">
         <table>

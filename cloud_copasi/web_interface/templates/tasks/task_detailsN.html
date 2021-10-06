@@ -17,7 +17,7 @@ http://www.gnu.org/licenses/gpl.html
 {% endblock %}
 
 {% block main_content %}
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3">
         {% include "account/sidebarN.html" %}
@@ -119,7 +119,7 @@ http://www.gnu.org/licenses/gpl.html
 
 
               {% endif %}
-              <p><a href="#!" onclick="$('#config-options').slideToggle('medium');">Click here to view the configuration options for this task</a></p>
+              <p><a href="#!" onclick="$('#config-options').slideToggle('medium');">View the configuration options for this task</a></p>
               <div id="config-options" style="display:none">
                   <div class="tablelist">
                       <table>
@@ -135,7 +135,7 @@ http://www.gnu.org/licenses/gpl.html
                           </tr>
                           {% endfor %}
                       </table>
-                      <p><a href="#!" onclick="$('#config-options').slideToggle('medium') ;">Click here to hide the configuration options for this task</a></p>
+                      <p><a href="#!" onclick="$('#config-options').slideToggle('medium') ;">Hide the configuration options for this task</a></p>
                   </div>
 
               </div>

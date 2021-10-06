@@ -17,7 +17,7 @@ http://www.gnu.org/licenses/gpl.html
 {% endblock %}
 
 {% block main_content %}
-<div class="container">
+<div class="container-fluid">
   <div class="row">
 
     <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3">
@@ -43,7 +43,8 @@ http://www.gnu.org/licenses/gpl.html
               </ul>
             </p>
 
-            <a href="{% url 'pool_list' %}">Click here</a> to return to your compute pool overview</a>
+            <p><a href="{% url 'pool_list' %}">Return to your compute pool overview</a>.</p>
+
           {% else %}
             <p>The test did not pass. The full output is shown below:</p>
             <h4>Output</h4>
@@ -56,7 +57,7 @@ http://www.gnu.org/licenses/gpl.html
             </p>
 
             <p>We recommend that you retry the test. If it continues to fail, then you should remove the pool from your account.<p>
-            <p><a href="{% url 'pool_details' pool_id=pool.id %}">Click here</a> to return to the pool details page.</p>
+            <p><a href="{% url 'pool_details' pool_id=pool.id %}">Return to the pool details page</a>.</p>
 
           {% endif %}
 

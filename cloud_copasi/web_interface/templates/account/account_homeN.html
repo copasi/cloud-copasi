@@ -110,7 +110,7 @@ http://www.gnu.org/licenses/gpl.html
                   {% endif %}
 
 
-                  <a href="{% url 'pool_list' %}">Click here</a> to manage your compute pools.
+                  <a href="{% url 'pool_list' %}">Manage your compute pools</a>.
                 </p>
               </section>
 
@@ -123,7 +123,7 @@ http://www.gnu.org/licenses/gpl.html
                   You have <span class="bold">{{ access_keys.count }}</span> AWS key{{ access_keys.count|pluralize }} associated with this account.
                   {% endif %}
                   <br />
-                  <a href="{% url 'my_account_keys' %}">Click here</a> to manage your AWS keys.
+                  <a href="{% url 'my_account_keys' %}">Manage your AWS keys</a>.
                 </p>
               </section>
             </article>
