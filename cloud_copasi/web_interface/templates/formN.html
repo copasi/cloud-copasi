@@ -9,8 +9,11 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
 
 <div class="container">
   {# <h2>Register for a new account</h2> #}
-  <div class="jumbotron">
+  <!-- <div class="jumbotron"> -->
     <p>Required fields are listed in <span class="required">bold</span></p>
+
+
+
     {% if form.errors %}
       <h4 class="formerror">There were errors in the form below!</h4>
     {% endif %}
@@ -36,6 +39,7 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
           {% if not forloop.first %}
             <tr><td class="topline" colspan="2"> </td></tr>
           {% endif %}
+
           <tr class="formrow">
             <th class="fieldlabel{% if field.field.required %} required{%endif %}">{{ field.label_tag}}</th>
             <td class="fielddata">{{field}}</td>
@@ -58,6 +62,8 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
         {% endfor %}
 
       </table>
+
+
       <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
       {% if show_loading_screen %}
         <a class="btn btn-primary btn-lg" id="form-submit-link" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
@@ -66,6 +72,6 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
       {% endif %}
     </form>
 
-  </div>
+  <!-- </div> -->
 
 </div>

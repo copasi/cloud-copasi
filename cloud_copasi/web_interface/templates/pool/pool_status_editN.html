@@ -31,7 +31,7 @@ http://www.gnu.org/licenses/gpl.html
                 <h2>Edit status page {{pool.name}}</h2>
             </header>
 
-            {% include 'formN.html' with submit_text="Edit"%}
+            {% include 'formNew.html' with submit_text="Edit"%}
             <p />
             <p><a href="{% url 'pool_details' pool_id=pool_id %}">Back to pool details</a>
 

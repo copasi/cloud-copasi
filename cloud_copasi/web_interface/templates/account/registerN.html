@@ -30,7 +30,7 @@ http://www.gnu.org/licenses/gpl.html
           <h2>Register for a new account</h2>
         </header>
         {% if allow_new_registrations == True %}
-          {% include "formN.html" with submit_text="Register" %}
+          {% include "formNew.html" with submit_text="Register" %}
         {%else%}
           <p>Sorry, new registrations are not currently being accepted. If you have any questions, feel free to <a href="{% url 'contact' %}">contact us</a>.</p>
         {% endif %}
