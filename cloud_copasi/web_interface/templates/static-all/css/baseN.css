@@ -407,19 +407,24 @@ th.required, span.required{
   /* height:  56em; */
   height:  auto;
   /* width: 60em; */
-  width: auto;
+  /* width: auto; */
   margin-bottom: 0.5em;
   margin-left: 0.5em;
   font-size: 80%;
-  max-width: 800px;
-  min-width: 60em;
+  /* max-width: 800px; */
+  /* min-width: 60em; */
   padding-bottom: 10px;
 }
 
 /* Tables */
-.formtable th{
-  width: 18em;
+#forms input {
+  min-width: 20em;
 }
+#forms label {
+  font-weight: bold;
+}
+
+
 
 .tablelist td, tr, th {
     border-style: solid;
