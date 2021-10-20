@@ -10,9 +10,6 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
 
 <div class="container">
 
-
-
-
     <!-- <p>Required fields are listed in <span class="required">bold</span></p> -->
 
     {% if form.errors %}
@@ -24,17 +21,19 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
 
 
         {% if form.non_field_errors %}
-        <table class="formtable">
-          <tr>
-            <td class="fielderror"> {{ form.non_field_errors }} </td>
-          </tr>
-        </table>
+        <div class="formtable">
+          <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3"></div>
+          <div class="col-sm-9 col-md-9 col-lg-9 col-xl-9 col-xs-9">
+            {{ form.non_field_errors }}
+          </div>
+        </div>
         {%endif %}
 
-        <!-- <table class="formtable"> -->
+        <!-- <table class="formtable"  id="formtable"> -->
+        <div class="formtable"  id="formtable">
 
           {% for hidden in form.hidden_fields%}
-          {{ hidden }}
+            {{ hidden }}
           {% endfor %}
 
           {% for field in form.visible_fields %}
@@ -58,8 +57,11 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
                 {% endif %}
 
                 {% if field.errors %}
+                  <div class="fielderror">
                     {{ field.errors }}
+                  </div>
                 {% endif %}
+
 
               </div>
 
@@ -70,7 +72,9 @@ http://www.gnu.org/<label for=""></label>icenses/gpl.html
           {% endfor %}
 
 
+        </div>
         <!-- </table> -->
+
         <div class="hidden-submit"><input type="submit" tabindex="-1"/></div>
         {% if show_loading_screen %}
           <a class="btn btn-primary btn-lg" id="form-submit-link" onclick="formSubmit('form1', true)">{{ submit_text }}</a>
