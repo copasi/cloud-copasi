@@ -141,6 +141,7 @@ class TaskPlugin(BaseTask):
         assert isinstance(subtask, Subtask)
 
         #subtask.start_time = now()
+        subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
