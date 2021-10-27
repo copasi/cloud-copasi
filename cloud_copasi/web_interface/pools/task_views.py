@@ -467,9 +467,13 @@ class TaskDirectoryDownloadView(RestrictedView):
 
         result_file = open(filename, 'rb')
 
-        response = HttpResponse(result_file, content_type='application/x-bzip2')
+        # response = HttpResponse(result_file, content_type='application/x-bzip2')
+        #above line is modified by HB for zip download
+        response = HttpResponse(result_file, content_type='application/zip')
 
-        response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.tar.bz2'
+        # response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.tar.bz2'
+        #above line is modified by HB for zip download
+        response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.zip'
         response['Content-Length'] = os.path.getsize(filename)
 
         return response

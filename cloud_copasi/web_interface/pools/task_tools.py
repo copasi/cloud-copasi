@@ -13,7 +13,9 @@ from boto.sqs.message import Message
 from cloud_copasi.web_interface.task_plugins import tools
 import logging
 from cloud_copasi.web_interface.pools import condor_tools
-import tarfile
+#import tarfile
+import zipfile #added by HB
+
 import datetime
 from django.utils import timezone   #added by HB
 from django.utils.timezone import now
@@ -165,11 +167,21 @@ def zip_up_task(task):
 
     name = str(task.name).replace(' ', '_')
 
-    filename = os.path.join(task.directory, name + '.tar.bz2')
+    #filename = os.path.join(task.directory, name + '.tar.bz2')
+    #modified by HB to compress in zip format
+    filename = os.path.join(task.directory, name + '.zip')
 
     if not os.path.isfile(filename):
-        tar = tarfile.open(name=filename, mode='w:bz2')
-        tar.add(task.directory, name)
-        tar.close()
+        #tar = tarfile.open(name=filename, mode='w:bz2')
+        #tar.add(task.directory, name)
+        #tar.close()
+        directory_size = len(os.listdir(task.directory))
+        file_pointer = os.listdir(task.directory)
+        zip = zipfile.ZipFile(filename, 'w')
+
+        for i in range(directory_size):
+            zip.write(file_pointer[i])
+
+        zip.close()
 
     return filename
