@@ -64,7 +64,7 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{{ec2_pool.vpc.access_key.name }}</td>
                           <td >{{ec2_pool.get_count}}</td>
                           <td> {{ ec2_pool.get_health }}</td>
-                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=ec2_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary" href="{% url 'pool_details' pool_id=ec2_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>
@@ -83,7 +83,7 @@ http://www.gnu.org/licenses/gpl.html
 
               </header>
               <p>Cloud-COPASI can connect to existing Condor, PBS, LSF, SGE, and Slurm compute pools.</p>
-              <p><a class="btn btn-primary btn-lg" href="{% url 'bosco_pool_add' %}">Connect to compute pool</a></p>
+              <p><a class="btn btn-primary" href="{% url 'bosco_pool_add' %}">Connect to compute pool</a></p>
 
               {% if bosco_pools %}
                   <div class="tablelist">
@@ -107,10 +107,11 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{% if bosco_pool.status_page != '' %}<a href="{{bosco_pool.status_page}}" target="new">Status</a>{% endif %}</td>
                           <td>{{bosco_pool.address }}</td>
                           <td >{{bosco_pool.get_pool_type_display}}</td>
-                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary" href="{% url 'pool_details' pool_id=bosco_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>
+                  <br>
               </div>
               {% else %}
               <p><span class="bold">You currently have no active connected pools.</span></p>
@@ -144,7 +145,7 @@ http://www.gnu.org/licenses/gpl.html
                           {% if pool.get_type == 'bosco' %}<td>{{shared_pool.address }}</td>{% endif %}
                           <td >{{shared_pool.get_pool_type_display_true}}</td>
                           <td>{{shared_pool.copy_of.user.username}}</td>
-                          <td><a class="btn btn-primary btn-lg" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
+                          <td><a class="btn btn-primary" href="{% url 'pool_details' pool_id=shared_pool.id %}">Details</a></td>
                       </tr>
                   {% endfor %}
                   </table>

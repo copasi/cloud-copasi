@@ -33,13 +33,13 @@ http://www.gnu.org/licenses/gpl.html
               </header>
                   <p>
                   {% if task.status == 'running' %}
-                  <a href="{% url 'running_task_list' %}">Return to running task list</a>
+                  <a href="{% url 'running_task_list' %}" class="btn btn-primary">Return to running task list</a>
                   {% elif task.status == 'finished' %}
-                  <a href="{% url 'finished_task_list' %}">Return to finished task list</a>
+                  <a href="{% url 'finished_task_list' %}" class="btn btn-primary">Return to finished task list</a>
                   {% elif task.status == 'error' %}
-                  <a href="{% url 'error_task_list' %}">Return to error task list</a>
+                  <a href="{% url 'error_task_list' %}" class="btn btn-primary">Return to error task list</a>
                   {% else %}
-                  <a href="{% url 'my_account' %}">Return to account home</a>
+                  <a href="{% url 'my_account' %}" class="btn btn-primary">Return to account home</a>
                   {% endif %}
               </p>
               {% if task.status == 'finished' %}
@@ -47,17 +47,25 @@ http://www.gnu.org/licenses/gpl.html
 
                       <header class="minor">
                           <h3>Status - finished</h3>
-                          <span class="byline">The task finished running successfully</span>
+                          <span class="byline">The task has finished running successfully.</span>
                       </header>
+                      <p></p>
                       <ul class="style2">
                           {% if task.result_view %}
-                          <li><a class="btn btn-primary btn-lg" href="{% url 'task_results' task_id=task.id %}">View results</a></li>
+                          <a class="btn btn-primary" href="{% url 'task_results' task_id=task.id %}">View results</a><br>
+                          <p></p>
+
                           {% endif %}
                           {% if task.result_download %}
-                          <li><a class="btn btn-primary btn-lg" href="{% url 'task_results_download' task_id=task.id %}">Download results</a></li>
+                          <a class="btn btn-primary" href="{% url 'task_results_download' task_id=task.id %}">Download results</a><br>
+                          <p></p>
+
                           {% endif %}
-                          <li><a class="btn btn-primary btn-lg" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a></li>
-                          <li><a class="btn btn-primary btn-lg" href="{% url 'task_delete' task_id=task.id %}">Delete task</a></li>
+                          <a class="btn btn-primary" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a><br>
+                          <p></p>
+  
+                          <a class="btn btn-primary btn-danger" href="{% url 'task_delete' task_id=task.id %}">Delete task</a><br>
+                          <p></p> 
                       </ul>
                   </p>
 
@@ -112,13 +120,16 @@ http://www.gnu.org/licenses/gpl.html
               {% endif %}
               <p>
                   <ul class="style2">
-                      <li><a class="btn btn-primary btn-lg" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a></li>
-                      <li><a class="btn btn-primary btn-lg" href="{% url 'task_delete' task_id=task.id %}">Delete task</a></li>
+                      <a class="btn btn-primary" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a><br>
+                      <p></p>
+                      <a class="btn btn-primary btn-danger" href="{% url 'task_delete' task_id=task.id %}">Delete task</a><br>
+                      <p></p>
                   </ul>
               </p>
 
 
               {% endif %}
+              <p></p>
               <p><a href="#!" onclick="$('#config-options').slideToggle('medium');">View the configuration options for this task</a></p>
               <div id="config-options" style="display:none">
                   <div class="tablelist">
@@ -135,6 +146,7 @@ http://www.gnu.org/licenses/gpl.html
                           </tr>
                           {% endfor %}
                       </table>
+                      <p></p>
                       <p><a href="#!" onclick="$('#config-options').slideToggle('medium') ;">Hide the configuration options for this task</a></p>
                   </div>
 
@@ -214,14 +226,15 @@ http://www.gnu.org/licenses/gpl.html
                   </table>
               </div>
               <p>
+                  <br>   
                   {% if task.status == 'running' %}
-                  <a href="{% url 'running_task_list' %}">Return to running task list</a>
+                  <a href="{% url 'running_task_list' %}" class="btn btn-primary">Return to running task list</a>
                   {% elif task.status == 'finished' %}
-                  <a href="{% url 'finished_task_list' %}">Return to finished task list</a>
+                  <a href="{% url 'finished_task_list' %}" class="btn btn-primary">Return to finished task list</a>
                   {% elif task.status == 'error' %}
-                  <a href="{% url 'error_task_list' %}">Return to error task list</a>
+                  <a href="{% url 'error_task_list' %}" class="btn btn-primary">Return to error task list</a>
                   {% else %}
-                  <a href="{% url 'my_account' %}">Return to account home</a>
+                  <a href="{% url 'my_account' %}" class="btn btn-primary">Return to account home</a>
                   {% endif %}
               </p>
           </article>

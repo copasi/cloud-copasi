@@ -332,7 +332,7 @@ class PoolDetailsView(RestrictedView):
         #All pools have the following:
         buttons[0] = {'button_text': 'Remove pool', #Rename this later for EC2 pools
                       'url': reverse_lazy('pool_remove', kwargs={'pool_id' : kwargs['pool_id']}),
-                      'class':'button button-narrow button-alt',
+                      'class':'btn btn-primary btn-danger',
                       }
 
         buttons[1] = {'button_text' : 'Test pool',

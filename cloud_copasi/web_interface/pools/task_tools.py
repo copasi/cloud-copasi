@@ -82,6 +82,7 @@ def update_tasks(user=None, task=None):
                 subtask.set_job_count() #And the number of condor jobs
                 #subtask.finish_time = now()
                 #above line is modified by HB as follows:
+                check.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
                 subtask.finish_time = timezone.localtime()
                 subtask.save()
 

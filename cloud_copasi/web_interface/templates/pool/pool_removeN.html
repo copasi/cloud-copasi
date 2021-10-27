@@ -104,10 +104,10 @@ http://www.gnu.org/licenses/gpl.html
             </div>
             {% endif %}
 
+            <br>
+            <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="btn btn-primary btn-danger" onclick="showLoadingScreen()">{{button_text}}</a>
 
-            <a href="{% url 'pool_remove_confirmed' pool_id=pool.id %}" class="button button-icon button-icon-check button-hspace" onclick="showLoadingScreen()">{{button_text}}</a>
-
-            <a href="{% url 'pool_details' pool_id=pool.id %}" class="button button-alt button-hspace">Cancel</a>
+            <a href="{% url 'pool_details' pool_id=pool.id %}" class="btn btn-primary">Cancel</a>
 
           </article>
 

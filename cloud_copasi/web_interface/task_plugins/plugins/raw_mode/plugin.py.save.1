@@ -151,6 +151,7 @@ class TaskPlugin(BaseTask):
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
+        check.debug("directory: %s"%directory)
 
 
         output_files = self.task.get_custom_field('output_files')
