@@ -469,7 +469,7 @@ class TaskDirectoryDownloadView(RestrictedView):
 
         # response = HttpResponse(result_file, content_type='application/x-bzip2')
         #above line is modified by HB for zip download
-        response = HttpResponse(result_file, content_type='application/zip')
+        response = HttpResponse(result_file, content_type='application/x-zip-compressed')
 
         # response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.tar.bz2'
         #above line is modified by HB for zip download

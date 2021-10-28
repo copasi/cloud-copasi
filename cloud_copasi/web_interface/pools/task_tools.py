@@ -175,13 +175,20 @@ def zip_up_task(task):
         #tar = tarfile.open(name=filename, mode='w:bz2')
         #tar.add(task.directory, name)
         #tar.close()
-        directory_size = len(os.listdir(task.directory))
-        file_pointer = os.listdir(task.directory)
-        zip = zipfile.ZipFile(filename, 'w')
+       
+        check.debug("zip file does not exist..... creating a new one.")
 
-        for i in range(directory_size):
-            zip.write(file_pointer[i])
+        for dirpath, dirnames, filenames in os.walk(task.directory):
+            filenames = filenames
+            dirpath = dirpath
+            check.debug("Filenames: %s" %filenames)
+            check.debug("Dirpath: %s" %dirpath)
+        
+        zip = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
 
+        for file in filenames:
+            zip.write(os.path.join(dirpath, file), file)
+            
         zip.close()
 
     return filename
