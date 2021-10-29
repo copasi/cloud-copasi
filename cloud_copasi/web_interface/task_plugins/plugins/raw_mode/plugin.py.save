@@ -226,13 +226,13 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         if page_name == 'main':
             collated_output_files = self.task.get_custom_field('collated_output_files')
-            #output = {'output_files': collated_output_files}
-            #added by HB -----
-            repeats = self.repeats
-            output = {'output_files': collated_output_files,
-                      'repeats': repeats,
-            }
-            #-----------
+            output = {'output_files': collated_output_files}
+            #above lines are modified by HB as follows
+            #repeats = self.task.get_custom_field('repeats')
+            #output = {'output_files': collated_output_files, 
+            #         'repeats': repeats,
+            #         } 
+
             return output
 
     def get_results_download_data(self, request):
