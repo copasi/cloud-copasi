@@ -231,10 +231,10 @@ class TaskPlugin(BaseTask):
             subtask = self.get_subtask(3)
         else:
             main_subtask = self.get_subtask(1)
-            subtask = self.get_subtask(2) 
+            subtask = self.get_subtask(2)
 
         assert isinstance(subtask, Subtask)
-        
+
         subtask.start_time = timezone.localtime()
 
         temp_start_time = subtask.start_time
@@ -275,8 +275,10 @@ class TaskPlugin(BaseTask):
     #===========================================================================
     # Results download code. No results view page for this task
     #===========================================================================
-    
-    #following function was missing and is added by HB.
+
+    #following two function were missing and are added by HB.
+    #have to make sure whether they are really needed or not.
+    #remove them if they are not needed.
     def get_results_view_template_name(self, request):
         """Return a string with the HTML code to be used in the task results view page
         """
@@ -296,7 +298,7 @@ class TaskPlugin(BaseTask):
             #output['sensitivity_object'] = self.copasi_model.get_sensitivities_object()
 
             return output
-
+    ###########################################################
 
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
