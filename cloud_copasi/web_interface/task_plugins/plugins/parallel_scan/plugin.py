@@ -275,7 +275,27 @@ class TaskPlugin(BaseTask):
     #===========================================================================
     # Results download code. No results view page for this task
     #===========================================================================
+    
+    #following function was missing and is added by HB.
+    def get_results_view_template_name(self, request):
+        """Return a string with the HTML code to be used in the task results view page
+        """
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
 
+        if page_name == 'main':
+            return self.get_template_name('results_view')
+
+    def get_results_view_data(self, request):
+        #Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+
+        if page_name == 'main':
+            #output = {'results': results}
+            #output = {'sensitivity_object': self.copasi_model.get_sensitivities_object()}
+            #output['sensitivity_object'] = self.copasi_model.get_sensitivities_object()
+
+            return output
 
 
     def get_results_download_data(self, request):
