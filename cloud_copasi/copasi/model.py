@@ -2694,6 +2694,8 @@ class CopasiModel_BasiCO(object):
 
     def is_valid(self, job_type):
         """ to copy from original function """
+        #temporarily setting this to test parallel scan task
+        return True
 
     def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
         """ to copy from original function """

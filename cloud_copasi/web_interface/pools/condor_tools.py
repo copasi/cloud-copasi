@@ -399,7 +399,7 @@ def process_condor_q(user=None, subtask=None):
             if not in_q:
                 #If not in the queue, then the job must have finished running. Change the status accordingly
                 #TODO: At some point we need to validate the job based on the log file
-                check.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
+                #check.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
 
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
 
