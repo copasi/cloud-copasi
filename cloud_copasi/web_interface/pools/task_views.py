@@ -109,6 +109,7 @@ class NewTaskView(RestrictedFormView):
         #Handle uploaded files...
         #Ensure the directory we're adding the file to exists
         if not os.path.exists(settings.STORAGE_DIR):
+            check.debug("directory did not exist... creating one now...")
             os.mkdir(settings.STORAGE_DIR)
 
         #And the directory for the user
@@ -121,6 +122,7 @@ class NewTaskView(RestrictedFormView):
 
         task = Task()
         task.name = form.cleaned_data['name']
+        check.debug("task.name: %s"%task.name)
         task.condor_pool = form.cleaned_data['compute_pool']
         task.user = request.user
         task.task_type = form.cleaned_data['task_type']
