@@ -2751,7 +2751,42 @@ class CopasiModel_BasiCO(object):
         """
 
     def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
-        """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+        """Prepare the neccessary .job file to submit to condor for the relevant task"""
+
+        #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
+        condor_jobs = []
+
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
 
     def prepare_ss_process_job(self, pool_type, pool_address, jobs, script_path, rank='0'):
         """Collate the results from the stochastic simulation task"""
