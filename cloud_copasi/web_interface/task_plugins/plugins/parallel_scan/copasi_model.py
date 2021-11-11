@@ -138,7 +138,7 @@ class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
             filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat)
             self.scan_items[0]['num_steps'] = repeat
             set_scan_items(self.scan_items)
-            self.write_model(filename)
+            self.write(filename)
 
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]
 

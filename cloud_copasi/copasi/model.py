@@ -2688,7 +2688,7 @@ class CopasiModel_BasiCO(object):
     def __string__(self):
         return self.name
 
-    def write_model(self, filename):
+    def write(self, filename):
         """ writing a new model to the specified filename """
         save_model(filename)
 
@@ -2894,7 +2894,7 @@ class CopasiModel_BasiCO(object):
                              )
 
                     filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
-                    self.write_model(os.path.join(self.path, filename))
+                    self.write(os.path.join(self.path, filename))
                     model_files.append(filename)
 
 
@@ -2941,7 +2941,7 @@ class CopasiModel_BasiCO(object):
                              )
 
                 filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
-                self.write_model(os.path.join(self.path, filename))
+                self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
 
         return model_files
