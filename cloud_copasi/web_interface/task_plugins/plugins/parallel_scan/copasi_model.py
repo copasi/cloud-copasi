@@ -9,6 +9,7 @@
 
 from basico import *
 from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
+from cloud_copasi.copasi.model import *
 from cloud_copasi.copasi import model
 from cloud_copasi import settings
 from lxml import etree
@@ -122,10 +123,10 @@ class PSCopasiModel(CopasiModel):
 class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
     """ Implementation of this method using BasiCO library"""
 
-    def __init__(self, filename):
-        self.model = load_model(filename)
-        self.scan_settings = get_scan_settings()
-        self.scan_items = get_scan_items()
+    #def __init__(self, filename):
+    #    self.model = load_model(filename)
+    #    self.scan_settings = get_scan_settings()
+    #    self.scan_items = get_scan_items()
 
     def prepare_ps_load_balancing(self, repeats=None):
 

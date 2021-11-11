@@ -2676,6 +2676,8 @@ class CopasiModel_BasiCO(object):
 
         #loading the copasi model file using BasiCO
         self.model = load_model(filename)
+        self.scan_settings = get_scan_settings()
+        self.scan_items = get_scan_items()
 
         self.binary = binary
         self.binary_dir = binary_dir
