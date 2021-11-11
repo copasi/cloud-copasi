@@ -7,6 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
+from basico import *
 from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
 from cloud_copasi.copasi import model
 from cloud_copasi import settings
@@ -139,7 +140,7 @@ class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
             set_scan_items(self.scan_items)
             self.write_model(filename)
 
-    return ['load_balancing_%d.cps' % repeat for repeat in repeats]
+        return ['load_balancing_%d.cps' % repeat for repeat in repeats]
 
     def get_number_of_intervals(self):
         """Get the number of intervals set for the top level scan task

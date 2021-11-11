@@ -9,6 +9,7 @@
 #Adapted from Condor-COPSAI
 #code.google.com/p/condor-copasi
 
+from basico import *
 import subprocess, os, re, math, time
 from cloud_copasi import settings
 from cloud_copasi.condor import condor_spec
