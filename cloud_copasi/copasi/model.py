@@ -149,7 +149,6 @@ class CopasiModel(object):
             returncode, stdout, stderr = process.run([self.binary, '--nologo',  '--home', tempdir, '--save', filename, filename], cwd=tempdir, timeout=timeout)
         return returncode, stdout, stderr
 
-
     def _getVersionMajor(self):
         """Get the major version of COPASI used to generate the model"""
         return int(self.model.getroot().attrib['versionMajor'])
@@ -243,7 +242,6 @@ class CopasiModel(object):
         optProblem = optTask.find(xmlns + 'Problem')
         parameterText = optProblem.find(xmlns + 'ParameterText')
         return parameterText.text.strip()
-
 
     def get_optimization_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the sensitvitiy optimization task. Will optionally process names to make them more user friendly"""
@@ -400,7 +398,6 @@ class CopasiModel(object):
                 pass
 
         return scan_number
-
 
     def _create_report(self, report_type, report_key, report_name):
         """Create a report for a particular task, e.g. sensitivity optimization, with key report_key
@@ -2667,3 +2664,306 @@ class CopasiModel(object):
 
 
         return output
+
+
+class CopasiModel_BasiCO(object):
+    """Class representing a Copasi model using BasiCO library"""
+    def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=None, job=None):
+
+        if binary_dir == None:
+            binary_dir, binary_path = os.path.split(settings.COPASI_LOCAL_BINARY)
+
+        #loading the copasi model file using BasiCO
+        self.model = load_model(filename)
+
+        self.binary = binary
+        self.binary_dir = binary_dir
+        self.name = filename
+        (head, tail) = os.path.split(filename)
+        self.path = head
+        self.job=job
+    def __unicode__(self):
+        return self.name
+    def __string__(self):
+        return self.name
+
+    def write_model(self, filename):
+        """ writing a new model to the specified filename """
+        save_model(filename)
+
+    def is_valid(self, job_type):
+        """ to copy from original function """
+
+    def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
+        """ to copy from original function """
+
+    def _getVersionMajor(self):
+        """ to copy from original function """
+
+    def _getVersionMinor(self):
+        """ to copy from original function """
+
+    def _getVersionDevel(self):
+        """ to copy from original function """
+
+    def _getTask(self,task_type, model=None):
+        """ There should be a function to retrieve listOfTasks """
+
+    def _clear_tasks(self):
+        """Go through the task list, and set all tasks as not scheduled to run"""
+
+    def _get_compartment_name(self, key):
+        """Go through the list of compartments and return the name of the compartment with a given key"""
+
+    def get_sensitivities_object(self, friendly=True):
+        """Returns the single object set for the sensitvities task"""
+
+    def _get_optimization_object(self):
+        """Returns the objective expression for the optimization task"""
+
+    def get_optimization_parameters(self, friendly=True):
+        """Returns a list of the parameter names to be included in the sensitvitiy optimization task. Will optionally process names to make them more user friendly"""
+
+    def get_parameter_estimation_parameters(self, friendly=True):
+        """Returns a list of the parameter names to be included in the parameter estimation task. Will optionally process names to make them more user friendly"""
+
+    def get_ps_number(self):
+        """Returns the number of runs set up for the parameter scan task"""
+
+    def _create_report(self, report_type, report_key, report_name):
+        """Create a report for a particular task, e.g. sensitivity optimization, with key report_key
+        report_type: a string representing the job type, e.g. SO for sensitivity optimization"""
+
+    def prepare_so_task(self, subtask_index=1):
+        """Generate the files required to perform the sensitivity optimization,
+
+        This involves creating the appropriate temporary .cps files. The .job files are generated seperately"""
+
+    def prepare_so_condor_job(self, pool_type, pool_address, subtask_index=1, rank='0', extraArgs=''):
+        """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+
+    def get_so_results(self, save=False):
+        """Collate the output files from a successful sensitivity optimization run. Return a list of the results"""
+
+    def prepare_ss_task(self, runs, repeats_per_job, subtask_index=1):
+        """Prepares the temp copasi files needed to run n stochastic simulation runs
+
+        """
+
+    def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
+        """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+
+    def prepare_ss_process_job(self, pool_type, pool_address, jobs, script_path, rank='0'):
+        """Collate the results from the stochastic simulation task"""
+
+    def get_variables(self, pretty=False):
+        """Returns a list of all variable metabolites, compartments and global quantities in the model.
+
+        By default, returns the internal string representation, e.g. CN=Root,Model=Kummer calcium model,Vector=Compartments[compartment],Vector=Metabolites[a],Reference=ParticleNumber. Running pretty=True will parse the string and return a user-friendly version of the names.
+        """
+
+    def prepare_ps_jobs(self, subtask_index, time_per_step=None):
+        """Prepare the parallel scan task
+
+        Efficiently splitting multiple nested scans is a hard problem, and currently beyond the scope of this project.
+        As such, we simplify the problem by only splitting along the first scan task. It is the user's prerogative to ensure the scan task is set up in a way that enables the scan task to be efficiently split.
+        Because of a limitation with the Copasi scan task -- that there must be at least two parameters for each scan, i.e. min and max, we set the requirement that the first scan must have at least one interval (corresponding to two parameter values), and that when splitting, each new scan must also have a minimum of at least one interval.
+        """
+
+        def get_range(min, max, intervals, log):
+            """Get the range of parameters for a scan."""
+            if not log:
+                min = float(min)
+                max = float(max)
+                difference = max-min
+                step_size = difference/intervals
+                output = [min + i*step_size for i in range(intervals+1)]
+                return output
+            else:
+                from math import log10 as log
+                log_min = log(min)
+                log_max = log(max)
+                log_difference = log_max - log_min
+                step_size = log_difference/intervals
+                output = [pow(10, log_min + i*step_size) for i in range(intervals+1)]
+                return output
+
+
+        #scanning the parameters of first scan tasks
+        firstScan = self.scan_items[0]
+        no_of_steps = int(firstScan['num_steps'])
+        task_type = firstScan['type']
+        max = firstScan['max']
+        min = firstScan['min']
+        log = firstScan['log']
+        values = firstScan['values']
+        use_values = firstScan['use_values']
+        item = firstScan['item']
+
+        if task_type == 'scan':
+            max_value = float(max)
+            min_value = float(min)
+
+            no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
+            if time_per_step:
+                time_per_step = time_per_step/2
+
+        #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
+        #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
+
+        #uncomment the following line in cloud-copasi-new
+        time_per_job = settings.IDEAL_JOB_TIME * 60
+
+        if time_per_step:
+            #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
+        else:
+            no_of_steps_per_job = 1
+
+        #Because of a limitation of Copasi, each parameter must have at least one interval, or two steps per job - corresponding to the max and min parameters
+        #Force this limitation:
+        if task_type == 1:
+            if no_of_steps_per_job < 2:
+                no_of_steps_per_job = 2
+
+        no_of_jobs = int(math.ceil(float(no_of_steps) / no_of_steps_per_job))
+
+
+        model_files = [] #Store the relative file names of the model files created here
+
+        #Set the model to update
+        set_scan_settings(update_model = True)
+        #First, deal with the easy case -- where the top-level item is a repeat.
+
+        if task_type == 'repeat':
+            step_count = 0
+            for i in range(no_of_jobs):
+                if no_of_steps_per_job + step_count > no_of_steps:
+                    steps = no_of_steps - step_count
+                else:
+                    steps = no_of_steps_per_job
+                step_count += steps
+
+                if steps > 0:
+                    self.scan_items[0]['num_steps'] = steps
+                    set_scan_items(self.scan_items)
+
+                    output_file = 'output_%d.%d.txt' % (subtask_index, i)
+                    assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
+                              task=T.SCAN,
+                              filename= output_file,
+                              append= True
+                             )
+
+                    filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
+                    self.write_model(os.path.join(self.path, filename))
+                    model_files.append(filename)
+
+
+        #Then, deal with the case where we actually scan a parameter
+        #Example: parameter range = [1,2,3,4,5,6,7,8,9,10] - min 1, max 10, 9 intervals => 10 steps
+        #Split into 3 jobs of ideal length 3, min length 2
+        #We want [1,2,3],[4,5,6],[7,8,9,10]
+        elif task_type == 'scan':
+            scan_range = get_range(min_value, max_value, no_of_steps-1, log)
+            job_scans = []
+            for i in range(no_of_jobs):
+                #Go through the complete list of parameters, and split into jobs of size no_of_steps_per_job
+                job_scans.append(scan_range[i*no_of_steps_per_job:(i+1)*no_of_steps_per_job]) #No need to worry about the final index being outside the list range - python doesn't mind
+
+            #If the last job is only of length 1, merge it with the previous job
+            assert no_of_jobs == len(job_scans)
+            if len(job_scans[no_of_jobs-1]) ==1:
+                job_scans[no_of_jobs-2] = job_scans[no_of_jobs-2] + job_scans[no_of_jobs-1]
+                del job_scans[no_of_jobs-1]
+                no_of_jobs -= 1
+
+            #Write the Copasi XML files
+            for i in range(no_of_jobs):
+                job_scan_range = job_scans[i]
+                job_min_value = job_scan_range[0]
+                job_max_value = job_scan_range[-1]
+                job_no_of_intervals = len(job_scan_range)-1
+
+
+                # parameters['min'].attrib['value'] = str(job_min_value)
+                self.scan_items[0]['min'] = job_min_value
+                self.scan_items[0]['max'] = job_max_value
+                self.scan_items[0]['num_steps'] = job_no_of_intervals
+
+                # print(self.scan_items)
+                set_scan_items(self.scan_items)
+
+                #Set the report output
+                output_file = 'output_%d.%d.txt' % (subtask_index, i)
+                assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
+                              task=T.SCAN,
+                              filename= output_file,
+                              append= True
+                             )
+
+                filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
+                self.write_model(os.path.join(self.path, filename))
+                model_files.append(filename)
+
+        return model_files
+
+
+    def prepare_ps_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
+        """ps condor jobs"""
+
+    def process_ps_results(self, results_files):
+        """ parallel scan results """
+
+    def prepare_or_jobs(self, repeats, repeats_per_job, subtask_index):
+        """Prepare jobs for the optimization repeat task"""
+
+    def prepare_or_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
+        """ or condor job"""
+
+    def process_or_results(self, filenames):
+        """Process the results of the OR task by copying them all into one file, named raw_results.txt.
+        As we copy, extract the best value, and write the details to results.txt"""
+
+    def get_or_best_value(self):
+        """Read the best value and best parameters from results.txt"""
+
+    def prepare_pr_jobs(self, repeats, repeats_per_job, subtask_index, custom_report=False):
+        """Prepare jobs for the parameter estimation repeat task"""
+
+    def prepare_pr_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
+        """Prepare the condor jobs for the parallel scan task"""
+
+    def process_pr_results(self, results_files, custom_report):
+        """Process the results of the PR task by copying them all into one file, named raw_results.txt.
+        As we copy, extract the best value, and write the details to results.txt"""
+
+    def get_pr_best_value(self):
+        """Read the best value and best parameters from results.txt"""
+
+    def create_pr_best_value_model(self, subtask_index, custom_report=False):
+        """Create a .CPS model containing the best parameter values found by the PR task, and save it to filename"""
+
+    def prepare_pr_optimal_model_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
+        """Prepare the condor jobs for the parallel scan task"""
+
+    def prepare_rw_jobs(self, repeats):
+        """Prepare the jobs for the new raw mode.
+
+        We assume that the model file is already set up for raw mode, i.e. at least one task marked as executable, reports set etc.
+        Therefore, all we need to do is, for each repeat, append the report name with an appropriate suffix so the names are unique"""
+
+    def prepare_rw_condor_job(self, pool_type, address, repeats, raw_mode_args, data_files, output_files, rank='0'):
+        """Prepare the condor jobs for the raw mode task"""
+
+    def prepare_sp_jobs(self, no_of_jobs, skip_load_balancing=False, custom_report=False):
+        """Prepare jobs for the sigma point method"""
+
+    def prepare_sp_condor_jobs(self, jobs, rank='0'):
+        """Prepare the condor jobs for the parallel scan task"""
+
+    def process_sp_results(self, jobs, custom_report=False):
+        """Calculates the mean, covariance, and coefficients of variation for the parameters from the results of the parameter estimation tasks.  Prints these results to three files.  All equations numbers reference "Optimal experimental design with the sigma point method" (2009) by Schenkendorf, et. al."""
+
+    def get_sp_mean(self):
+        """Read the mean values from mean.txt"""

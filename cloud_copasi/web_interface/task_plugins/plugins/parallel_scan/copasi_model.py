@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.copasi.model import CopasiModel
+from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
 from cloud_copasi.copasi import model
 from cloud_copasi import settings
 from lxml import etree
@@ -117,3 +117,31 @@ class PSCopasiModel(CopasiModel):
         no_of_steps = int(parameters['no_of_steps'].attrib['value'])
 
         return no_of_steps
+
+class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
+    """ Implementation of this method using BasiCO library"""
+
+    def __init__(self, filename):
+        self.model = load_model(filename)
+        self.scan_settings = get_scan_settings()
+        self.scan_items = get_scan_items()
+
+    def prepare_ps_load_balancing(self, repeats=None):
+
+        if not repeats:
+            repeats = [1, 10, 100, 1000]
+
+        #writing copasi models for load balancing
+        for repeat in repeats:
+            print("repeat: %d"%repeat)
+            filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat)
+            self.scan_items[0]['num_steps'] = repeat
+            set_scan_items(self.scan_items)
+            self.write_model(filename)
+
+    return ['load_balancing_%d.cps' % repeat for repeat in repeats]
+
+    def get_number_of_intervals(self):
+        """Get the number of intervals set for the top level scan task
+        """
+        return int(self.scan_items[0]['num_steps'])
