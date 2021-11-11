@@ -2948,7 +2948,23 @@ class CopasiModel_BasiCO(object):
         """ps condor jobs"""
 
     def process_ps_results(self, results_files):
-        """ parallel scan results """
+        output_file = open(os.path.join(self.path, 'results.txt'), 'w')
+
+        #Copy the contents of the first file to results.txt
+        for line in open(os.path.join(self.path, results_files[0]), 'r'):
+            output_file.write(line)
+
+        #And for all other files, copy everything but the last line
+        for result_file in results_files[1:]:
+            firstLine = True
+            for line in open(os.path.join(self.path, result_file), 'r'):
+                if not firstLine:
+                    output_file.write(line)
+                firstLine = False
+
+        output_file.close()
+
+        return
 
     def prepare_or_jobs(self, repeats, repeats_per_job, subtask_index):
         """Prepare jobs for the optimization repeat task"""
