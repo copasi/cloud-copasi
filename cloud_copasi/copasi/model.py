@@ -2683,6 +2683,7 @@ class CopasiModel_BasiCO(object):
         (head, tail) = os.path.split(filename)
         self.path = head
         self.job=job
+
     def __unicode__(self):
         return self.name
     def __string__(self):
@@ -2690,7 +2691,7 @@ class CopasiModel_BasiCO(object):
 
     def write(self, filename):
         """ writing a new model to the specified filename """
-        save_model(filename)
+        return save_model(filename)
 
     def is_valid(self, job_type):
         """ to copy from original function """
@@ -2698,7 +2699,13 @@ class CopasiModel_BasiCO(object):
         return True
 
     def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
-        """ to copy from original function """
+        """Private function to run Copasi locally in a temporary folder."""
+        import process
+        if not save:
+            returncode, stdout, stderr = process.run([self.binary, '--nologo',  '--home', tempdir, filename], cwd=tempdir, timeout=timeout)
+        else:
+            returncode, stdout, stderr = process.run([self.binary, '--nologo',  '--home', tempdir, '--save', filename, filename], cwd=tempdir, timeout=timeout)
+        return returncode, stdout, stderr
 
     def _getVersionMajor(self):
         """ to copy from original function """
