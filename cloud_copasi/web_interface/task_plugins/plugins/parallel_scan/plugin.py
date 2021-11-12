@@ -126,6 +126,8 @@ class TaskPlugin(BaseTask):
         copasi_binary_dir, copasi_binary = os.path.split(settings.COPASI_LOCAL_BINARY)
 
         #write the load balancing script
+        #added by HB
+        check.debug('now creating load balancing shell script')
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
                                                                  copasi_binary='./' + copasi_binary,
@@ -144,6 +146,9 @@ class TaskPlugin(BaseTask):
         for repeat in [1, 10, 100, 1000]:
             copasi_files_string += 'load_balancing_%d.cps, ' % repeat
         copasi_files_string = copasi_files_string.rstrip(', ') #Remove final comma
+
+        #added by HB
+        check.debug('now load_balancing.job file')
 
         load_balancing_condor_template = Template(condor_spec.condor_string_header + condor_spec.load_balancing_spec_string)
         load_balancing_condor_string = load_balancing_condor_template.substitute(pool_type=self.task.condor_pool.pool_type,
@@ -187,6 +192,8 @@ class TaskPlugin(BaseTask):
 
             output = open(os.path.join(subtask.task.directory, lb_job.std_output_file), 'r')
 
+            #added by HB
+            check.debug('Reading load_balancing.out file.')
 
             for line in output.readlines():
                 line = line.rstrip('\n')
@@ -211,13 +218,20 @@ class TaskPlugin(BaseTask):
 
 
         #If no load balancing step required:
+        #added by HB
+        check.debug('Preparing parallel scan jobs.')
         model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
 
         condor_pool = self.task.condor_pool
 
+        #added by HB
+        check.debug('Preparing condor job files using prepare_ss_condor_job method.')
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
 
         model_count = len(model_files)
+        #added by HB
+        check.debug('total model files prepared: %d'%model_count)
+
         self.task.set_custom_field('model_count', model_count)
 
 
@@ -229,6 +243,9 @@ class TaskPlugin(BaseTask):
 
 
     def process_results_subtask(self):
+        #added by HB
+        check.debug('Now processing results. ')
+
         if self.use_load_balancing:
             main_subtask = self.get_subtask(2)
             subtask = self.get_subtask(3)

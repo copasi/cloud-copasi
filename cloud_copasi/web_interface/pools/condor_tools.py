@@ -183,6 +183,8 @@ def condor_submit(condor_file):
     #condor_file must be an absolute path to the condor job filename
     (directory, filename) = os.path.split(condor_file)
 
+    #added by HB
+    check.debug('submitting job to pool')
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
 
     #Get condor_process number...

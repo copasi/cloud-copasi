@@ -215,6 +215,8 @@ class NewTaskView(RestrictedFormView):
                     os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
 
                 os.mkdir(task_dir_path)
+                #added by HB
+                check.debug('Following directory created: %s' %task_dir_path)
 
             task.directory = task_dir_path
             task.save()
@@ -265,6 +267,8 @@ class NewTaskView(RestrictedFormView):
             return self.form_invalid(self, *args, **kwargs)
 
         try:
+            #added by HB
+            check.debug("calling initialize_subtasks() method ")
             task_instance.initialize_subtasks()
             subtask = task_instance.prepare_subtask(1)
             condor_tools.submit_task(subtask)
