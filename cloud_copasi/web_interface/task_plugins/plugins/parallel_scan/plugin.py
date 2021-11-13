@@ -117,6 +117,7 @@ class TaskPlugin(BaseTask):
     def process_lb_subtask(self):
         #Prepare the necessary files to run the load balancing task on condor
 
+        check.debug("++++++++++ generating load balancing files. ")
         filenames = self.copasi_model.prepare_ps_load_balancing()
         #Construct the model files for this task
         timeout = str(settings.IDEAL_JOB_TIME * 60)
@@ -131,6 +132,7 @@ class TaskPlugin(BaseTask):
 
         #write the load balancing script
         #added by HB
+
         check.debug('now creating load balancing shell script')
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
@@ -152,7 +154,7 @@ class TaskPlugin(BaseTask):
         copasi_files_string = copasi_files_string.rstrip(', ') #Remove final comma
 
         #added by HB
-        check.debug('now load_balancing.job file')
+        check.debug('+++++++++ now creating load_balancing.job file')
 
         load_balancing_condor_template = Template(condor_spec.condor_string_header + condor_spec.load_balancing_spec_string)
         load_balancing_condor_string = load_balancing_condor_template.substitute(pool_type=self.task.condor_pool.pool_type,
