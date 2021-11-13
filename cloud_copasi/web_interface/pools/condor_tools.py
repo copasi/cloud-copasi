@@ -62,8 +62,8 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
 
     output = process.communicate()
 
-    check.debug("============ OUTPUT: ")
-    check.debug(output)
+    #check.debug("============ OUTPUT: ")
+    #check.debug(output)
 
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
@@ -386,7 +386,7 @@ def process_condor_q(user=None, subtask=None):
         pass
 
     else:
-        check.debug('Reading condor_q')
+        #check.debug('Reading condor_q')
         condor_q = read_condor_q()
 
 

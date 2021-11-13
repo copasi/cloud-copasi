@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel
+from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
 from cloud_copasi.web_interface.task_plugins.plugins.parallel_scan.copasi_model import PSCopasiModel, PSCopasiModel_BasiCO
 import os, math
 import logging
@@ -68,8 +68,12 @@ class TaskPlugin(BaseTask):
             task.save()
 
         super(TaskPlugin, self).__init__(task)
-        # self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+
+        #added by HB
+        check.debug('++++++++++++++++++++ loading PSCopasiModel')
+        #self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         #added by HB to check basico implementation of this task
+        check.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
