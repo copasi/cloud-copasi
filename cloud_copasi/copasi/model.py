@@ -2869,7 +2869,7 @@ class CopasiModel_BasiCO(object):
 
         #Because of a limitation of Copasi, each parameter must have at least one interval, or two steps per job - corresponding to the max and min parameters
         #Force this limitation:
-        if task_type == 1:
+        if task_type == 'scan':
             if no_of_steps_per_job < 2:
                 no_of_steps_per_job = 2
 

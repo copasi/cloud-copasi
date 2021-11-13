@@ -206,7 +206,9 @@ class TaskPlugin(BaseTask):
 
                 try:
                     lb_repeats = int(repeats_str)
+                    check.debug("++++++++++ checking time_str float if error occurs here.")
                     time = float(time_str)
+                    check.debug("++++++++++ Passed with no issue")
                 except Exception as e:
                     log.exception(e)
                     lb_repeats = 1

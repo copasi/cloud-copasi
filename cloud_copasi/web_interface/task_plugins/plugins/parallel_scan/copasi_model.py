@@ -133,6 +133,30 @@ class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
         if not repeats:
             repeats = [1, 10, 100, 1000]
 
+        firstScan = self.scan_items[0]
+        no_of_steps = int(firstScan['num_steps'])
+        task_type = firstScan['type']
+        max = firstScan['max']
+        min = firstScan['min']
+        log = firstScan['log']
+        values = firstScan['values']
+        use_values = firstScan['use_values']
+        item = firstScan['item']
+
+        if task_type == 'scan':
+            max_value = float(max)
+            min_value = float(min)
+
+            no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
+
+        output_file = 'output'
+        assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
+                  task=T.SCAN,
+                  filename= output_file,
+                  append= True
+                 )
+
+        import tempfile
         #writing copasi models for load balancing
         for repeat in repeats:
             print("repeat: %d"%repeat)
