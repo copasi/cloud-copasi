@@ -2837,7 +2837,8 @@ class CopasiModel_BasiCO(object):
                 log_difference = log_max - log_min
                 step_size = log_difference/intervals
                 output = [pow(10, log_min + i*step_size) for i in range(intervals+1)]
-                check.debug("Returning output range when log is true: %f" %output)
+                check.debug("Returning output range when log is true:")
+                check.debug(output)
                 return output
 
 
