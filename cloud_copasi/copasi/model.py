@@ -2890,7 +2890,9 @@ class CopasiModel_BasiCO(object):
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            check.debug("calculating no_of_steps_per_job: ")
             no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
+            check.debug(no_of_steps_per_job)
         else:
             no_of_steps_per_job = 1
 
@@ -2987,7 +2989,7 @@ class CopasiModel_BasiCO(object):
                 self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
 
-        check.debug("exiting prepare_ps_jobs methods")        
+        check.debug("exiting prepare_ps_jobs methods")
         return model_files
 
 
