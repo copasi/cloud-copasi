@@ -83,14 +83,18 @@ class TaskPlugin(BaseTask):
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
+        check.debug("initializing subtasks")
         if self.use_load_balancing:
             #Create the load balancing module
+            check.debug("Creating load balancing task")
             self.create_new_subtask('lb')
 
         #The main module
+        check.debug("Creating main task")
         self.create_new_subtask('main')
         self.task.result_view = False
         #And a subtask to process any results
+        check.debug("Creating process results subtask")
         self.create_new_subtask('process', local=True)
 
     def prepare_subtask(self, index):
@@ -116,11 +120,14 @@ class TaskPlugin(BaseTask):
 
     def process_lb_subtask(self):
         #Prepare the necessary files to run the load balancing task on condor
-
+        check.debug("Processing load balancing sub task")
         check.debug("++++++++++ generating load balancing files. ")
         filenames = self.copasi_model.prepare_ps_load_balancing()
         #Construct the model files for this task
+        check.debug("Calculating timeout value: ")
         timeout = str(settings.IDEAL_JOB_TIME * 60)
+        check.debug(timeout)
+
         if self.task.get_custom_field('rank'):
             rank = str(self.task.get_custom_field('rank'))
         else:
@@ -188,7 +195,7 @@ class TaskPlugin(BaseTask):
 
     def process_main_subtask(self):
 
-
+        check.debug("entered in process_main_subtask")
         #Get the correct subtask
         if self.use_load_balancing:
             subtask = self.get_subtask(2)
@@ -200,6 +207,7 @@ class TaskPlugin(BaseTask):
 
             #added by HB
             check.debug('Reading load_balancing.out file.')
+            check.debug(output)
 
             for line in output.readlines():
                 line = line.rstrip('\n')
@@ -218,12 +226,16 @@ class TaskPlugin(BaseTask):
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
 
+                check.debug("time_per_step: ")
                 time_per_step = time / lb_repeats
+                check.debug(time_per_step)
 
 
         else:
             subtask = self.get_subtask(1)
             time_per_step = None
+            check.debug("time_per_step: ")
+            check.debug(time_per_step)
 
 
 
