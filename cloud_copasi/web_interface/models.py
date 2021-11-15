@@ -728,7 +728,7 @@ class Subtask(models.Model):
             check.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
             check.debug(time_delta)
             #Calculate run time in days
-            self.run_time = time_delta.days +  (float(time_delta.seconds) / 86400.00)
+            self.run_time = time_delta.days + (float(time_delta.seconds) / 86400.00)
         self.save()
     def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())
 

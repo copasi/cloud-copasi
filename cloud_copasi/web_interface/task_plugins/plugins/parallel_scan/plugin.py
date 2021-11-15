@@ -232,6 +232,9 @@ class TaskPlugin(BaseTask):
         check.debug('Preparing parallel scan jobs.')
         model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
 
+        check.debug("model_files:")
+        check.debug(model_files)
+
         condor_pool = self.task.condor_pool
 
         #added by HB

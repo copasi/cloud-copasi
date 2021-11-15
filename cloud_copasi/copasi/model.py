@@ -2900,8 +2900,9 @@ class CopasiModel_BasiCO(object):
             if no_of_steps_per_job < 2:
                 no_of_steps_per_job = 2
 
+        check.debug("no_of_jobs: ")
         no_of_jobs = int(math.ceil(float(no_of_steps) / no_of_steps_per_job))
-
+        check.debug(no_of_jobs)
 
         model_files = [] #Store the relative file names of the model files created here
 
@@ -2939,7 +2940,10 @@ class CopasiModel_BasiCO(object):
         #Split into 3 jobs of ideal length 3, min length 2
         #We want [1,2,3],[4,5,6],[7,8,9,10]
         elif task_type == 'scan':
+            check.debug('++++++++ get_range value:')
             scan_range = get_range(min_value, max_value, no_of_steps-1, log)
+            check.debug(scan_range)
+
             job_scans = []
             for i in range(no_of_jobs):
                 #Go through the complete list of parameters, and split into jobs of size no_of_steps_per_job
@@ -2969,7 +2973,10 @@ class CopasiModel_BasiCO(object):
                 set_scan_items(self.scan_items)
 
                 #Set the report output
+                check.debug("++++++ generating output file.")
                 output_file = 'output_%d.%d.txt' % (subtask_index, i)
+                check.debug("Output file name: %s" %output_file)
+
                 assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
                               task=T.SCAN,
                               filename= output_file,
@@ -2980,6 +2987,7 @@ class CopasiModel_BasiCO(object):
                 self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
 
+        check.debug("exiting prepare_ps_jobs methods")        
         return model_files
 
 
