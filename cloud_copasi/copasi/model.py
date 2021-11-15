@@ -2879,6 +2879,10 @@ class CopasiModel_BasiCO(object):
             check.debug('float conversion done')
 
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
+
+            check.debug('time per step: ')
+            check.debug(time_per_step)
+
             if time_per_step:
                 time_per_step = time_per_step/2
                 check.debug('time per step: ')
@@ -2888,7 +2892,9 @@ class CopasiModel_BasiCO(object):
         #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
 
         #uncomment the following line in cloud-copasi-new
+        check.debug('time_per_job: ')
         time_per_job = settings.IDEAL_JOB_TIME * 60
+        check.debug(time_per_job)
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead

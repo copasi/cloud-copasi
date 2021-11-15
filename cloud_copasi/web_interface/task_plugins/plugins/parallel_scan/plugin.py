@@ -243,6 +243,7 @@ class TaskPlugin(BaseTask):
         #added by HB
         check.debug('Preparing parallel scan jobs.')
         model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
+        check.debug("returned back from prepare_ps_jobs method.")
 
         check.debug("model_files:")
         check.debug(model_files)
