@@ -1205,6 +1205,10 @@ class CopasiModel(object):
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            check.debug("~~~~~~~~~ time_per_step: ")
+            check.debug(time_per_step)
+            check.debug("~~~~~~~~~ time_per_job: ")
+            check.debug(time_per_job)
             check.debug("~~~~~~~~~ calculating no_of_steps_per_job: ")
             no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
             check.debug(no_of_steps_per_job)
