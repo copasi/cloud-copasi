@@ -1205,6 +1205,8 @@ class CopasiModel(object):
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            check.debug("~~~~~~~~~ no_of_steps: ")
+            check.debug(no_of_steps)
             check.debug("~~~~~~~~~ time_per_step: ")
             check.debug(time_per_step)
             check.debug("~~~~~~~~~ time_per_job: ")
@@ -2892,7 +2894,7 @@ class CopasiModel_BasiCO(object):
         check.debug("=============================== ")
 
 
-
+        assert no_of_steps > 0
         if task_type == 'scan':
             check.debug('converting max and min values to float type')
             max_value = float(max)
@@ -2919,6 +2921,8 @@ class CopasiModel_BasiCO(object):
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            check.debug("+++++++++++ no_of_steps: ")
+            check.debug(no_of_steps)
             check.debug("+++++++++++ time_per_step: ")
             check.debug(time_per_step)
             check.debug("+++++++++++ time_per_job: ")
