@@ -100,17 +100,25 @@ class TaskPlugin(BaseTask):
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
 
+        check.debug("---------------- preparing subtask")
+        check.debug("index value: %d" %index)
+
         if index == 1:
             if self.use_load_balancing:
+                check.debug("going into process_lb_subtask method")
                 return self.process_lb_subtask()
             else:
+                check.debug("going into process_main_subtask method")
                 return self.process_main_subtask()
 
         elif index == 2:
             if self.use_load_balancing:
+                check.debug("going into process_lb_subtask method")
                 return self.process_main_subtask()
             else:
+                check.debug("going into process_results_subtask method")
                 return self.process_results_subtask()
+                
         elif index == 3:
             assert self.use_load_balancing
             return self.process_results_subtask()
