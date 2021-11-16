@@ -2719,9 +2719,28 @@ class CopasiModel_BasiCO(object):
         return save_model(filename)
 
     def is_valid(self, job_type):
-        """ to copy from original function """
+        """Check if the model has been correctly set up for a particular condor-copasi task"""
         #temporarily setting this to test parallel scan task
-        return True
+        if job_type == 'PS':
+            firstScan = self.scan_items[0]
+            item = firstScan['item']
+            type = firstScan['type']
+            no_of_steps = firstScan['num_steps']
+
+            if not item:
+                return 'At least one scan must have been set'
+
+            if not (type == 'scan' or type == 'repeat'):
+                return 'The first item in the scan task must be either a Parameter Scan or a repeat'
+
+            if type == 'scan' and no_of_steps < 1:
+                return 'The first-level Parameter Scan must have at least one interval. If only one repeat is required, consider replacing the Parameter Scan with a Repeat'
+
+            if not get_report_dict('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values'):
+                return 'A report must be set for the scan task'
+
+            return True
+
 
     def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
         """Private function to run Copasi locally in a temporary folder."""
