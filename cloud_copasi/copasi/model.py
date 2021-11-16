@@ -2740,7 +2740,8 @@ class CopasiModel_BasiCO(object):
                 return 'A report must be set for the scan task'
 
             return True
-
+        else:
+            return False
 
     def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
         """Private function to run Copasi locally in a temporary folder."""
@@ -2859,11 +2860,11 @@ class CopasiModel_BasiCO(object):
         Because of a limitation with the Copasi scan task -- that there must be at least two parameters for each scan, i.e. min and max, we set the requirement that the first scan must have at least one interval (corresponding to two parameter values), and that when splitting, each new scan must also have a minimum of at least one interval.
         """
 
-        check.debug("+_+_+_ Entered into prepare_ps_jobs method")
+        check.debug("+_+_+_ Entered into BasiCO prepare_ps_jobs() method")
 
         def get_range(min, max, intervals, log):
             """Get the range of parameters for a scan."""
-            check.debug("________ entered in get_range method")
+            check.debug("++++++++ entered in get_range() method")
             if not log:
                 min = float(min)
                 max = float(max)
@@ -2897,18 +2898,18 @@ class CopasiModel_BasiCO(object):
         item = firstScan['item']
 
         check.debug("========= model's characteristics =========")
-        check.debug("no_of_steps: %d" %no_of_steps)
-        check.debug("max:")
+        check.debug("++++++ no_of_steps: %d" %no_of_steps)
+        check.debug("++++++ max:")
         check.debug(max)
-        check.debug("min:")
+        check.debug("++++++ min:")
         check.debug(min)
-        check.debug("log:")
+        check.debug("++++++ log:")
         check.debug(log)
-        check.debug("values:")
+        check.debug("++++++ values:")
         check.debug(values)
-        check.debug("use_values:")
+        check.debug("++++++ use_values:")
         check.debug(use_values)
-        check.debug("item:")
+        check.debug("++++++ item:")
         check.debug(item)
         check.debug("=============================== ")
 
@@ -2922,19 +2923,19 @@ class CopasiModel_BasiCO(object):
 
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
 
-            check.debug('time per step: ')
+            check.debug('++++++ time per step: ')
             check.debug(time_per_step)
 
             if time_per_step:
                 time_per_step = time_per_step/2
-                check.debug('time per step: ')
+                check.debug('++++++ time per step/2: ')
                 check.debug(time_per_step)
 
         #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
         #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
 
         #uncomment the following line in cloud-copasi-new
-        check.debug('time_per_job: ')
+        check.debug('++++++ time_per_job: ')
         time_per_job = settings.IDEAL_JOB_TIME * 60
         check.debug(time_per_job)
 
@@ -2958,7 +2959,7 @@ class CopasiModel_BasiCO(object):
             if no_of_steps_per_job < 2:
                 no_of_steps_per_job = 2
 
-        check.debug("no_of_jobs: ")
+        check.debug("++++++ no_of_jobs: ")
         no_of_jobs = int(math.ceil(float(no_of_steps) / no_of_steps_per_job))
         check.debug(no_of_jobs)
 
@@ -2976,6 +2977,9 @@ class CopasiModel_BasiCO(object):
                 else:
                     steps = no_of_steps_per_job
                 step_count += steps
+
+                check.debug("++++++ steps: ")
+                check.debug(steps)
 
                 if steps > 0:
                     self.scan_items[0]['num_steps'] = steps
@@ -3044,6 +3048,7 @@ class CopasiModel_BasiCO(object):
                 filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
                 self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
+
 
         check.debug("exiting prepare_ps_jobs methods")
         return model_files
