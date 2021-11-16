@@ -853,8 +853,10 @@ class CopasiModel(object):
         timeReport.set('reference', report_key)
         timeReport.set('append', '1')
         timeReport.set('target', '')
-
+        
+        check.debug("~~~~~~~~~~~~ LXML CLASS: no_of_jobs: ")
         no_of_jobs = int(math.ceil(float(runs) / repeats_per_job))
+        check.debug(no_of_jobs)
 
         #First clear the task list, to ensure that no tasks are set to run
         self._clear_tasks()
@@ -1156,17 +1158,30 @@ class CopasiModel(object):
         for parameter in firstScan:
             if parameter.attrib['name'] == 'Number of steps':
                 parameters['no_of_steps'] = parameter
+                check.debug("~~~~~~~~ no_of_steps: ")
+                check.debug(parameter)  
             if parameter.attrib['name'] == 'Type':
                 parameters['type'] = parameter
+                check.debug("~~~~~~~~ type: ")
+                check.debug(parameter) 
             if parameter.attrib['name'] == 'Maximum':
                 parameters['max'] = parameter
+                check.debug("~~~~~~~~ max: ")
+                check.debug(parameter) 
             if parameter.attrib['name'] == 'Minimum':
                 parameters['min'] = parameter
+                check.debug("~~~~~~~~ min: ")
+                check.debug(parameter) 
             if parameter.attrib['name'] == 'log':
                 parameters['log'] = parameter
+                check.debug("~~~~~~~~ log: ")
+                check.debug(parameter) 
 
         #Read the values of these parameters before we go about changing them
         no_of_steps = int(parameters['no_of_steps'].attrib['value'])
+        check.debug("~~~~~~~~ no_of_steps after int conversion: ")
+        check.debug(no_of_steps)
+ 
         assert no_of_steps > 0
         task_type = int(parameters['type'].attrib['value'])
         if task_type == 1:
@@ -1190,7 +1205,9 @@ class CopasiModel(object):
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
+            check.debug("~~~~~~~~~ calculating no_of_steps_per_job: ")
             no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
+            check.debug(no_of_steps_per_job)
         else:
             no_of_steps_per_job = 1
 
