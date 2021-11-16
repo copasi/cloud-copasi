@@ -70,7 +70,7 @@ class TaskPlugin(BaseTask):
         super(TaskPlugin, self).__init__(task)
 
         #added by HB
-        check.debug('++++++++++++++++++++ loading PSCopasiModel')
+        check.debug('~~~~~~~~~~~~ loading PSCopasiModel')
         self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         #added by HB to check basico implementation of this task
         #check.debug("+++++++++++ Running BasiCO implementation.")
