@@ -232,8 +232,12 @@ class NewTaskView(RestrictedFormView):
 
 
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
+            check.debug("---------> TaskClass:")
+            check.debug(TaskClass)
 
+            check.debug("---------> task_instance")
             task_instance = TaskClass(task)
+            check.debug(task_instance)
 
         except Exception as e:
             log.exception(e)
