@@ -120,7 +120,7 @@ class TaskPlugin(BaseTask):
         elif index == 2:
             check.debug("index = 2")
             if self.use_load_balancing:
-                check.debug("----------> going into process_lb_subtask method")
+                check.debug("----------> going into process_main_subtask method")
                 return self.process_main_subtask()
             else:
                 check.debug("----------> going into process_results_subtask method")
