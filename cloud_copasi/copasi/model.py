@@ -2941,26 +2941,22 @@ class CopasiModel_BasiCO(object):
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
             check.debug("+++++++++++ no_of_steps: %d" %no_of_steps)
-            check.debug("+++++++++++ time_per_step: %d" %time_per_step)
+            check.debug("+++++++++++ time_per_step: %f" %time_per_step)
             check.debug("+++++++++++ time_per_job: %d" %time_per_job)
             check.debug("+++++++++++ calculating no_of_steps_per_job: ")
 
             try:
                 # no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
-                b = no_of_steps
-                check.debug("b: %d" %b)
-                time_per_job_float = float(time_per_job)
-                check.debug("time_per_job_float: %f" %time_per_job_float)
-                divide = time_per_job_float / time_per_step
-                check.debug("divide: %f" %divide)
-                a = round(divide)
                 check.debug("a: ")
+                a = int(round(float(time_per_job) / time_per_step))
                 check.debug(a)
-                a_int = int(a)
-                check.debug("a_int: ")
-                check.debug(a_int)
-                # no_of_steps_per_job = min(a_int, b)
-                no_of_steps_per_job = 21
+
+                check.debug("a: ")
+                b = no_of_steps
+                check.debug(b)
+                
+                no_of_steps_per_job = min(a, b)
+                # no_of_steps_per_job = 21
                 check.debug(no_of_steps_per_job)
             except:
                 check.exception("********* Error Message:")
