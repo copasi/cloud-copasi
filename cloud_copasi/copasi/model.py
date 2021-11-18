@@ -2934,19 +2934,15 @@ class CopasiModel_BasiCO(object):
         #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
         #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
 
-        #uncomment the following line in cloud-copasi-new
         check.debug('++++++ time_per_job: ')
         time_per_job = settings.IDEAL_JOB_TIME * 60
         check.debug(time_per_job)
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
-            check.debug("+++++++++++ no_of_steps: ")
-            check.debug(no_of_steps)
-            check.debug("+++++++++++ time_per_step: ")
-            check.debug(time_per_step)
-            check.debug("+++++++++++ time_per_job: ")
-            check.debug(time_per_job)
+            check.debug("+++++++++++ no_of_steps: %d" %no_of_steps)
+            check.debug("+++++++++++ time_per_step: %d" %time_per_step)
+            check.debug("+++++++++++ time_per_job: %d" %time_per_job)
             check.debug("+++++++++++ calculating no_of_steps_per_job: ")
             no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
             check.debug(no_of_steps_per_job)

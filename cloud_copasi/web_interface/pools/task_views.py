@@ -276,6 +276,7 @@ class NewTaskView(RestrictedFormView):
             task_instance.initialize_subtasks()
             subtask = task_instance.prepare_subtask(1)
             condor_tools.submit_task(subtask)
+            check.debug("------> (task_views.py) condor job submitted")
 
             task.status = 'running'
             task.save()
