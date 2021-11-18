@@ -2860,19 +2860,14 @@ class CopasiModel_BasiCO(object):
         Because of a limitation with the Copasi scan task -- that there must be at least two parameters for each scan, i.e. min and max, we set the requirement that the first scan must have at least one interval (corresponding to two parameter values), and that when splitting, each new scan must also have a minimum of at least one interval.
         """
 
-        check.debug("+_+_+_ Entered into BasiCO prepare_ps_jobs() method")
-
         def get_range(min, max, intervals, log):
             """Get the range of parameters for a scan."""
-            check.debug("++++++++ entered in get_range() method")
             if not log:
                 min = float(min)
                 max = float(max)
                 difference = max-min
                 step_size = difference/intervals
                 output = [min + i*step_size for i in range(intervals+1)]
-                check.debug("Returning output range when log is false:")
-                check.debug(output)
                 return output
             else:
                 from math import log10 as log
@@ -2881,8 +2876,6 @@ class CopasiModel_BasiCO(object):
                 log_difference = log_max - log_min
                 step_size = log_difference/intervals
                 output = [pow(10, log_min + i*step_size) for i in range(intervals+1)]
-                check.debug("Returning output range when log is true:")
-                check.debug(output)
                 return output
 
 
@@ -2897,81 +2890,24 @@ class CopasiModel_BasiCO(object):
         use_values = firstScan['use_values']
         item = firstScan['item']
 
-        check.debug("========= model's characteristics =========")
-        check.debug("++++++ no_of_steps: %d" %no_of_steps)
-        check.debug("++++++ max:")
-        check.debug(max_CP)
-        check.debug("++++++ min:")
-        check.debug(min_CP)
-        check.debug("++++++ log:")
-        check.debug(log)
-        check.debug("++++++ values:")
-        check.debug(values)
-        check.debug("++++++ use_values:")
-        check.debug(use_values)
-        check.debug("++++++ item:")
-        check.debug(item)
-        check.debug("=============================== ")
-
-
         assert no_of_steps > 0
         if task_type == 'scan':
-            check.debug('converting max and min values to float type')
             max_value = float(max_CP)
             min_value = float(min_CP)
-            check.debug('float conversion done')
 
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
 
-            check.debug('++++++ time per step: ')
-            check.debug(time_per_step)
-
             if time_per_step:
                 time_per_step = time_per_step/2
-                check.debug('++++++ time per step/2: ')
-                check.debug(time_per_step)
 
         #We want to split the scan task up into subtasks of time ~= 10 mins (600 seconds)
         #time_per_job = no_of_steps * time_per_step => no_of_steps = time_per_job/time_per_step
 
-        check.debug('++++++ time_per_job: ')
         time_per_job = settings.IDEAL_JOB_TIME * 60
-        check.debug(time_per_job)
 
         if time_per_step:
             #Calculate the number of steps for each job. If this has been calculated as more than the total number of steps originally specified, use this value instead
-            check.debug("+++++++++++ no_of_steps: %d" %no_of_steps)
-            check.debug("+++++++++++ TYPE of no_of_steps: ")
-            check.debug(type(no_of_steps))
-            check.debug("+++++++++++ time_per_step: %f" %time_per_step)
-            check.debug("+++++++++++ time_per_job: %d" %time_per_job)
-            check.debug("+++++++++++ calculating no_of_steps_per_job: ")
-
-            try:
-                # no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
-                check.debug("a: ")
-                a = int(round(float(time_per_job) / time_per_step))
-                check.debug(a)
-                check.debug("+++++++++++ TYPE of a: ")
-                check.debug(type(a))
-
-                check.debug("b: ")
-                b = int(no_of_steps)
-                check.debug(b)
-
-                #added by HB for debugging
-                check_a = 10
-                check_b = 12
-                minimum_value = min(check_a, check_b)
-                check.debug("minimum_value: %d" %minimum_value)
-                ##################
-
-                no_of_steps_per_job = min(a, b)
-                # no_of_steps_per_job = 21
-                check.debug(no_of_steps_per_job)
-            except:
-                check.exception("********* Error Message:")
-
+            no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
         else:
             no_of_steps_per_job = 1
 
@@ -2981,9 +2917,7 @@ class CopasiModel_BasiCO(object):
             if no_of_steps_per_job < 2:
                 no_of_steps_per_job = 2
 
-        check.debug("++++++ no_of_jobs: ")
         no_of_jobs = int(math.ceil(float(no_of_steps) / no_of_steps_per_job))
-        check.debug(no_of_jobs)
 
         model_files = [] #Store the relative file names of the model files created here
 
@@ -2999,9 +2933,6 @@ class CopasiModel_BasiCO(object):
                 else:
                     steps = no_of_steps_per_job
                 step_count += steps
-
-                check.debug("++++++ steps: ")
-                check.debug(steps)
 
                 if steps > 0:
                     self.scan_items[0]['num_steps'] = steps
@@ -3024,10 +2955,7 @@ class CopasiModel_BasiCO(object):
         #Split into 3 jobs of ideal length 3, min length 2
         #We want [1,2,3],[4,5,6],[7,8,9,10]
         elif task_type == 'scan':
-            check.debug('++++++++ get_range value:')
             scan_range = get_range(min_value, max_value, no_of_steps-1, log)
-            check.debug(scan_range)
-
             job_scans = []
             for i in range(no_of_jobs):
                 #Go through the complete list of parameters, and split into jobs of size no_of_steps_per_job
@@ -3057,9 +2985,7 @@ class CopasiModel_BasiCO(object):
                 set_scan_items(self.scan_items)
 
                 #Set the report output
-                check.debug("++++++ generating output file.")
                 output_file = 'output_%d.%d.txt' % (subtask_index, i)
-                check.debug("Output file name: %s" %output_file)
 
                 assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
                               task=T.SCAN,
@@ -3071,8 +2997,6 @@ class CopasiModel_BasiCO(object):
                 self.write(os.path.join(self.path, filename))
                 model_files.append(filename)
 
-
-        check.debug("exiting prepare_ps_jobs methods")
         return model_files
 
 

@@ -75,7 +75,7 @@ class TaskPlugin(BaseTask):
         check.debug(self.task.directory)
         check.debug("---------> self.task.original_model")
         check.debug(self.task.original_model)
-        # check.debug('~~~~~~~~~~~~ loading PSCopasiModel')
+        # check.debug('~~~~~~~~~~~~ Running LXML Implementation')
         # self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         #added by HB to check basico implementation of this task
         check.debug("+++++++++++ Running BasiCO implementation.")
@@ -84,8 +84,6 @@ class TaskPlugin(BaseTask):
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
-        check.debug("======== Validating the model. ========")
-        check.debug("Is model validated?")
         valid_result = self.copasi_model.is_valid('PS')
         check.debug(valid_result)
         return valid_result
@@ -93,48 +91,33 @@ class TaskPlugin(BaseTask):
 
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
-        check.debug("======== initializing subtasks ========")
         if self.use_load_balancing:
             #Create the load balancing module
-            check.debug("======== Creating load balancing task ========")
             self.create_new_subtask('lb')
 
         #The main module
-        check.debug("======== Creating main task ========")
         self.create_new_subtask('main')
         self.task.result_view = False
         #And a subtask to process any results
-        check.debug("======== Creating process results subtask ========")
         self.create_new_subtask('process', local=True)
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
 
-        check.debug("======== preparing subtask ========")
-        check.debug("index value: %d" %index)
-
         if index == 1:
-            check.debug("index = 1")
             if self.use_load_balancing:
-                check.debug("----------> going into process_lb_subtask method")
                 return self.process_lb_subtask()
             else:
-                check.debug("----------> going into process_main_subtask method")
                 return self.process_main_subtask()
 
         elif index == 2:
-            check.debug("index = 2")
             if self.use_load_balancing:
-                check.debug("----------> going into process_main_subtask method")
                 return self.process_main_subtask()
             else:
-                check.debug("----------> going into process_results_subtask method")
                 return self.process_results_subtask()
 
         elif index == 3:
             assert self.use_load_balancing
-            check.debug("index = 3")
-            check.debug("----------> going into process_results_subtask method")
             return self.process_results_subtask()
         else:
             raise Exception('No subtasks remaining')
@@ -142,13 +125,9 @@ class TaskPlugin(BaseTask):
 
     def process_lb_subtask(self):
         #Prepare the necessary files to run the load balancing task on condor
-        check.debug("======== Processing load balancing sub task ========")
-        check.debug("----------> generating load balancing files. ")
         filenames = self.copasi_model.prepare_ps_load_balancing()
         #Construct the model files for this task
-        check.debug("Calculating timeout value: ")
         timeout = str(settings.IDEAL_JOB_TIME * 60)
-        check.debug(timeout)
 
         if self.task.get_custom_field('rank'):
             rank = str(self.task.get_custom_field('rank'))
@@ -162,7 +141,6 @@ class TaskPlugin(BaseTask):
         #write the load balancing script
         #added by HB
 
-        check.debug('----------> now creating load balancing shell script')
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
                                                                  copasi_binary='./' + copasi_binary,
@@ -181,9 +159,6 @@ class TaskPlugin(BaseTask):
         for repeat in [1, 10, 100, 1000]:
             copasi_files_string += 'load_balancing_%d.cps, ' % repeat
         copasi_files_string = copasi_files_string.rstrip(', ') #Remove final comma
-
-        #added by HB
-        check.debug('----------> now creating load_balancing.job file')
 
         load_balancing_condor_template = Template(condor_spec.condor_string_header + condor_spec.load_balancing_spec_string)
         load_balancing_condor_string = load_balancing_condor_template.substitute(pool_type=self.task.condor_pool.pool_type,
@@ -227,67 +202,32 @@ class TaskPlugin(BaseTask):
 
             output = open(os.path.join(subtask.task.directory, lb_job.std_output_file), 'r')
 
-            #added by HB
-            check.debug('----------> Reading load_balancing.out file.')
-            check.debug(output)
-
             for line in output.readlines():
                 line = line.rstrip('\n')
                 if line != '':
                     repeats_str, time_str = line.split(' ')
 
                 try:
-                    check.debug("----------> repeats_str")
-                    check.debug(repeats_str)
-                    check.debug("----------> time_str")
-                    check.debug(time_str)
-
                     lb_repeats = int(repeats_str)
-                    check.debug("++++++++++ checking time_str float if error occurs here.")
                     time = float(time_str)
-                    check.debug("Time:")
-                    check.debug(time)
-                    check.debug("++++++++++ Passed with no issue")
                 except Exception as e:
                     check.debug("XXXXXXXXX Raised exception")
                     log.exception(e)
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
 
-                check.debug("time_per_step: ")
                 time_per_step = time / lb_repeats
-                check.debug(time_per_step)
-
 
         else:
             subtask = self.get_subtask(1)
             time_per_step = None
-            check.debug("time_per_step: ")
-            check.debug(time_per_step)
-
-
 
         #If no load balancing step required:
-        #added by HB
-        check.debug('======== Preparing parallel scan jobs. ========')
         model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
-        check.debug("returned back from prepare_ps_jobs method.")
-
-        check.debug("model_files:")
-        check.debug(model_files)
-
         condor_pool = self.task.condor_pool
 
-        #added by HB
-        check.debug('======== Preparing condor job files using prepare_ss_condor_job method. ========')
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
-        check.debug("--------> returned back from prepare_ss_condor_job ")
-        check.debug("--------> Condor Job File: ")
-        check.debug(condor_job_file)
-
         model_count = len(model_files)
-        #added by HB
-        check.debug('total model files prepared: %d'%model_count)
 
         self.task.set_custom_field('model_count', model_count)
 
