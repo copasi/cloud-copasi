@@ -721,6 +721,7 @@ class Subtask(models.Model):
             return count
     def set_run_time(self, time_delta=None):
         if not time_delta:
+            check.debug("Entered in set_run_time: ")
             self.run_time = self.get_run_time()
             check.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")
         else:
