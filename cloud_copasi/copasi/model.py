@@ -2944,7 +2944,12 @@ class CopasiModel_BasiCO(object):
             check.debug("+++++++++++ time_per_step: %d" %time_per_step)
             check.debug("+++++++++++ time_per_job: %d" %time_per_job)
             check.debug("+++++++++++ calculating no_of_steps_per_job: ")
-            no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
+
+            try:
+                no_of_steps_per_job = min(int(round(float(time_per_job) / time_per_step)), no_of_steps)
+            except:
+                check.exception("********* Error Message:")
+
             check.debug(no_of_steps_per_job)
         else:
             no_of_steps_per_job = 1
