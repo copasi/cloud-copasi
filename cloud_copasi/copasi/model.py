@@ -2959,7 +2959,8 @@ class CopasiModel_BasiCO(object):
                 a_int = int(a)
                 check.debug("a_int: ")
                 check.debug(a_int)
-                no_of_steps_per_job = min(a_int, b)
+                # no_of_steps_per_job = min(a_int, b)
+                no_of_steps_per_job = 21
                 check.debug(no_of_steps_per_job)
             except:
                 check.exception("********* Error Message:")
