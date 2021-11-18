@@ -372,6 +372,7 @@ class TaskDetailsView(RestrictedView):
             kwargs['error_message'] = task.get_custom_field('error')
             check.debug("----------> error_message: ")
             check.debug(task.get_custom_field('error'))
+            check.exception("******** more details: ")
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
 
 class SubtaskDetailsView(RestrictedView):
