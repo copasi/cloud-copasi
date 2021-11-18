@@ -2890,8 +2890,8 @@ class CopasiModel_BasiCO(object):
         firstScan = self.scan_items[0]
         no_of_steps = int(firstScan['num_steps'])
         task_type = firstScan['type']
-        #max = firstScan['max']
-        #min = firstScan['min']
+        max_CP = firstScan['max']
+        min_CP = firstScan['min']
         log = firstScan['log']
         values = firstScan['values']
         use_values = firstScan['use_values']
@@ -2900,9 +2900,9 @@ class CopasiModel_BasiCO(object):
         check.debug("========= model's characteristics =========")
         check.debug("++++++ no_of_steps: %d" %no_of_steps)
         check.debug("++++++ max:")
-        check.debug(max)
+        check.debug(max_CP)
         check.debug("++++++ min:")
-        check.debug(min)
+        check.debug(min_CP)
         check.debug("++++++ log:")
         check.debug(log)
         check.debug("++++++ values:")
@@ -2917,8 +2917,8 @@ class CopasiModel_BasiCO(object):
         assert no_of_steps > 0
         if task_type == 'scan':
             check.debug('converting max and min values to float type')
-            max_value = float(max)
-            min_value = float(min)
+            max_value = float(max_CP)
+            min_value = float(min_CP)
             check.debug('float conversion done')
 
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
