@@ -145,6 +145,8 @@ class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
         use_values = firstScan['use_values']
         item = firstScan['item']
 
+        assert no_of_steps > 0
+        
         if task_type == 'scan':
             max_value = float(max)
             min_value = float(min)
