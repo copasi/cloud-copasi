@@ -2890,8 +2890,8 @@ class CopasiModel_BasiCO(object):
         firstScan = self.scan_items[0]
         no_of_steps = int(firstScan['num_steps'])
         task_type = firstScan['type']
-        max = firstScan['max']
-        min = firstScan['min']
+        #max = firstScan['max']
+        #min = firstScan['min']
         log = firstScan['log']
         values = firstScan['values']
         use_values = firstScan['use_values']
@@ -2963,6 +2963,7 @@ class CopasiModel_BasiCO(object):
                 check_a = 10
                 check_b = 12
                 minimum_value = min(check_a, check_b)
+                check.debug("minimum_value: %d" %minimum_value)
                 ##################
 
                 no_of_steps_per_job = min(a, b)
