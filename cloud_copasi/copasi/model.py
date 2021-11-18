@@ -2952,10 +2952,18 @@ class CopasiModel_BasiCO(object):
                 check.debug("a: ")
                 a = int(round(float(time_per_job) / time_per_step))
                 check.debug(a)
+                check.debug("+++++++++++ TYPE of a: ")
+                check.debug(type(a))
 
                 check.debug("b: ")
                 b = int(no_of_steps)
                 check.debug(b)
+
+                #added by HB for debugging
+                check_a = 10
+                check_b = 12
+                minimum_value = min(check_a, check_b)
+                ##################
 
                 no_of_steps_per_job = min(a, b)
                 # no_of_steps_per_job = 21
