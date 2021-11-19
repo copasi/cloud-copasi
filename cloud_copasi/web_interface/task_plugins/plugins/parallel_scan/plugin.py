@@ -75,8 +75,8 @@ class TaskPlugin(BaseTask):
         check.debug(self.task.directory)
         check.debug("---------> self.task.original_model")
         check.debug(self.task.original_model)
-        # check.debug('~~~~~~~~~~~~ Running LXML Implementation')
-        # self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
+        #self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         #added by HB to check basico implementation of this task
         check.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
