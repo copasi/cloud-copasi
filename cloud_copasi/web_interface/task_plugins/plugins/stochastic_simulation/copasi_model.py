@@ -7,6 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
+from basico import *
 from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.copasi import model
 from cloud_copasi import settings
