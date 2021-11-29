@@ -71,8 +71,11 @@ class TaskPlugin(BaseTask):
             task.set_custom_field('repeats_per_job', 1)
 
         super(TaskPlugin, self).__init__(task)
-
+        #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
+        #self.copasi_model = SSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        check.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = SSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+
         self.repeats = self.task.get_custom_field('repeats')
         repeats = self.repeats
 
