@@ -2701,6 +2701,8 @@ class CopasiModel_BasiCO(object):
         self.model = load_model(filename)
         self.scan_settings = get_scan_settings()
         self.scan_items = get_scan_items()
+        self.listOfReports = get_reports()
+        self.metabolites = get_species()
 
         self.binary = binary
         self.binary_dir = binary_dir
@@ -2770,6 +2772,19 @@ class CopasiModel_BasiCO(object):
     def _get_compartment_name(self, key):
         """Go through the list of compartments and return the name of the compartment with a given key"""
 
+    def get_name(self):
+        """ Retrieve the model name """
+        model_name = overview(self.model).split("\n",1)[0][16:]
+        return model_name
+
+    def extract_value(self,loop):
+        """ Extracting values in the specific column out of specified data frame """
+        items = []
+        for value in loop:
+            items.append(value)
+
+        return items
+
     def get_sensitivities_object(self, friendly=True):
         """Returns the single object set for the sensitvities task"""
 
@@ -2788,6 +2803,36 @@ class CopasiModel_BasiCO(object):
     def _create_report(self, report_type, report_key, report_name):
         """Create a report for a particular task, e.g. sensitivity optimization, with key report_key
         report_type: a string representing the job type, e.g. SO for sensitivity optimization"""
+
+        report_names_list = self.listOfReports.index
+        print(self.listOfReports)
+        # print()
+
+        #removing the report if it already exists with the name report_name
+        for report in report_names_list:
+            if report == report_name:
+                # print(get_report_dict(report))
+                remove_report(report)
+        updated_listOfReports = get_reports()
+
+        if(report_type == 'SS'):
+            model_name = self.get_name()
+            # print(model_name)
+            objects = []
+            time_object = 'Time'
+            # objects.append(time_object)
+            objects = self.get_variables()
+            objects.insert(0, time_object)
+            add_report(key=report_key,
+                       name=report_name,
+                       task=T.TIME_COURSE,
+                       table= objects,
+                       comment= 'A table of time, variable species particle numbers, variable compartment volumes, and variable global quantity values.'
+                       )
+            #for checking
+            save_model('new2.cps')
+        else:
+            raise Exception('Unknown report type')
 
     def prepare_so_task(self, subtask_index=1):
         """Generate the files required to perform the sensitivity optimization,
