@@ -14,7 +14,7 @@ from django.forms import Form
 from django import forms
 from cloud_copasi import settings
 from cloud_copasi.web_interface.task_plugins.plugins.stochastic_simulation.copasi_model import \
-    SSCopasiModel  # Use the task-specific copasi model in this directory
+    SSCopasiModel, SSCopasiModel_BasiCO  # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -74,7 +74,7 @@ class TaskPlugin(BaseTask):
         #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
         #self.copasi_model = SSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         check.debug("+++++++++++ Running BasiCO implementation.")
-        self.copasi_model = SSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        self.copasi_model = SSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
         self.repeats = self.task.get_custom_field('repeats')
         repeats = self.repeats
