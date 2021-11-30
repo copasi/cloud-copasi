@@ -134,13 +134,9 @@ class TaskPlugin(BaseTask):
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
                                                                                 copasi_binary='./' + copasi_binary,
                                                                                 copasi_file_1=('load_balancing_1.cps'),
-                                                                                copasi_file_10=(
-                                                                                    'load_balancing_10.cps'),
-                                                                                copasi_file_100=(
-                                                                                    'load_balancing_100.cps'),
-                                                                                copasi_file_1000=(
-                                                                                    'load_balancing_1000.cps'),
-
+                                                                                copasi_file_10=('load_balancing_10.cps'),
+                                                                                copasi_file_100=('load_balancing_100.cps'),
+                                                                                copasi_file_1000=('load_balancing_1000.cps'),
                                                                                 )
         load_balancing_script_filename = 'load_balance.sh'
         load_balancing_file = open(os.path.join(self.task.directory, load_balancing_script_filename), 'w')

@@ -2742,6 +2742,15 @@ class CopasiModel_BasiCO(object):
                 return 'A report must be set for the scan task'
 
             return True
+
+        elif job_type == 'SS':
+            timecourse_settings = get_task_settings(T.TIME_COURSE)
+            method_name = timecourse_settings['method']['name']
+            if method_name == 'Deterministic (LSODA)':
+                return 'Time course task must have a valid Stochastic or Hybrid algorithm set'
+            else:
+                return True
+
         else:
             return False
 
