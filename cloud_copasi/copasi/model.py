@@ -2703,6 +2703,7 @@ class CopasiModel_BasiCO(object):
         self.scan_items = get_scan_items()
         self.listOfReports = get_reports()
         self.metabolites = get_species()
+        self.timeTask = get_task_settings(T.TIME_COURSE)
 
         self.binary = binary
         self.binary_dir = binary_dir
@@ -2744,8 +2745,7 @@ class CopasiModel_BasiCO(object):
             return True
 
         elif job_type == 'SS':
-            timecourse_settings = get_task_settings(T.TIME_COURSE)
-            method_name = timecourse_settings['method']['name']
+            method_name = self.timeTask['method']['name']
             if method_name == 'Deterministic (LSODA)':
                 return 'Time course task must have a valid Stochastic or Hybrid algorithm set'
             else:
