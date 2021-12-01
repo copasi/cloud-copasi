@@ -2832,14 +2832,17 @@ class CopasiModel_BasiCO(object):
             # objects.append(time_object)
             objects = self.get_variables()
             objects.insert(0, time_object)
-            add_report(key=report_key,
-                       name=report_name,
-                       task=T.TIME_COURSE,
-                       table= objects,
-                       comment= 'A table of time, variable species particle numbers, variable compartment volumes, and variable global quantity values.'
-                       )
+
+            #to avoid having error of "report already exist", create report only if it does not exist
+            if get_report_dict(report_name) == None:
+                add_report(key=report_key,
+                           name=report_name,
+                           task=T.TIME_COURSE,
+                           table= objects,
+                           comment= 'A table of time, variable species particle numbers, variable compartment volumes, and variable global quantity values.'
+                           )
             #for checking
-            save_model('new2.cps')
+            # save_model('new2.cps')
         else:
             raise Exception('Unknown report type')
 
