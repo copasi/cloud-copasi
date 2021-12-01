@@ -69,6 +69,7 @@ class TaskPlugin(BaseTask):
         else:
             self.subtasks = 2
             task.set_custom_field('repeats_per_job', 1)
+            task.save()
 
         super(TaskPlugin, self).__init__(task)
         #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
