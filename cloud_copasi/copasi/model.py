@@ -2693,16 +2693,19 @@ class CopasiModel(object):
 class CopasiModel_BasiCO(object):
     """Class representing a Copasi model using BasiCO library"""
     def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=None, job=None):
-
+        check.debug('in __init__ method of CopasiModel_BasiCO class')
         if binary_dir == None:
             binary_dir, binary_path = os.path.split(settings.COPASI_LOCAL_BINARY)
 
         #loading the copasi model file using BasiCO
+        check.debug('Model File: %s' %filename)
         self.model = load_model(filename)
         self.scan_settings = get_scan_settings()
         self.scan_items = get_scan_items()
         self.listOfReports = get_reports()
         self.metabolites = get_species()
+        check.debug('List of species: ')
+        check.debug(self.metabolites)
         self.timeTask = get_task_settings(T.TIME_COURSE)
 
         self.binary = binary
@@ -2814,7 +2817,8 @@ class CopasiModel_BasiCO(object):
         report_type: a string representing the job type, e.g. SO for sensitivity optimization"""
 
         report_names_list = self.listOfReports.index
-        print(self.listOfReports)
+        check.debug('list of Reports: ')
+        check.debug(self.listOfReports)
         # print()
 
         #removing the report if it already exists with the name report_name

@@ -146,6 +146,8 @@ class SSCopasiModel_BasiCO(CopasiModel_BasiCO):
 
         First sets up the scan task with a repeat. Write 4 files with 1, 10, 100 and 1000 repeats respectively
         """
+        check.debug("Entered into prepare_ps_load_balancing method.")
+
         if not repeats:
             repeats = [1, 10, 100, 1000]
 
