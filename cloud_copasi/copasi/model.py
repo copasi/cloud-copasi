@@ -2861,6 +2861,70 @@ class CopasiModel_BasiCO(object):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
 
         """
+        #Create a new report for the ss task
+        #report_key is not needed in basico because we cannot change the reference/key in basico. Use direct assignment of report to the relevant tasks
+        report_key = 'condor_copasi_stochastic_simulation_report'
+        self._create_report('SS', report_key, 'auto_ss_report')
+
+        # #if report is not already present
+        if "report" not in self.timeTask:
+            set_task_settings(T.TIME_COURSE,
+                              {'report': {}}
+                             )
+        #Setting TIME_COURSE task report settings
+        set_task_settings(T.TIME_COURSE,
+                          {'report': {'append': True,
+                                      'filename': ''
+                                     }
+                          }
+                         )
+
+        no_of_jobs = int(math.ceil(float(runs) / repeats_per_job))
+        #now getting SCAN task settings
+        scanTask = get_task_settings(T.SCAN)
+
+        #Setting scan task to run and update the model and have one subtask
+        set_task_settings(T.SCAN,
+                          {'scheduled': True,
+                           'update_model': True,
+                           'report':{'append': True},
+                           'problem':{'Subtask': 1}
+                          }
+                         )
+        #Initially setting scan item. num_steps attribute to 0
+        set_scan_items([{'num_steps':0,
+                         'type': 'repeat',
+                        }])
+
+        runs_left = runs # Decrease this value as we generate the jobs
+        model_files = []
+
+        for i in range(no_of_jobs):
+            #Calculate the number of runs per job. This will either be repeats_per_job, or if this is the last job, runs_left
+            no_of_steps = min(repeats_per_job, runs_left)
+            set_scan_items([{'num_steps': no_of_steps,
+                             'type': 'repeat',
+                            }])
+
+            runs_left -= no_of_steps
+
+            target = 'output_%d.%d.txt' % (subtask_index, i)
+            print("target: %s" %target)
+
+            #assigning a report (already created before) to SCAN task
+            assign_report('auto_ss_report', task=T.SCAN, filename=target, append=True)
+
+            #Uncomment the following line only for debugging locally and comment out the line after.
+            # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            self.write(filename)
+            model_files.append(filename)
+            runs_file = open(filename + '.runs.txt', 'w')
+            runs_file.write('Repeats per job:\n')
+            runs_file.write(str(no_of_steps))
+            runs_file.close()
+
+        return model_files
 
     def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the relevant task"""
