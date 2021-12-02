@@ -2976,6 +2976,59 @@ class CopasiModel_BasiCO(object):
 
         By default, returns the internal string representation, e.g. CN=Root,Model=Kummer calcium model,Vector=Compartments[compartment],Vector=Metabolites[a],Reference=ParticleNumber. Running pretty=True will parse the string and return a user-friendly version of the names.
         """
+        # metabolites = get_species()
+        # print(self.metabolites)
+        output = []
+        name = []
+        simulationType = []
+        compartmentKey = []     #this holds compartment name
+
+        #Extracting metabolite names
+        name = self.extract_value(self.metabolites.index)
+
+        #Extracting metabolite simulation type
+        simulationType = self.extract_value(self.metabolites.type)
+
+        #Extracting compartment names
+        compartmentKey = self.extract_value(self.metabolites.compartment)
+
+        for i in range(len(name)):
+            if simulationType[i] != 'fixed':
+                if pretty:
+                    output.append(name[i] + ' (Particle Number)')
+                else:
+                    compartment_name = compartmentKey[i]
+                    model_name = self.get_name()
+                    output_template = Template('CN=Root,Model=${model_name},Vector=Compartments[${compartment_name}],Vector=Metabolites[${name}],Reference=ParticleNumber')
+                    output_string = output_template.substitute(model_name=model_name, compartment_name=compartment_name, name=name[i])
+                    output.append(output_string)
+
+        #Finally, get non-fixed global quantities
+        values = get_parameters()
+        #Hack - If no values have been set in the model, use the empty list to avoid a NoneType error
+        if values.empty:
+            values = []
+
+        #extracting parameter names
+        parameter_names = self.extract_value(values.index)
+        #extracting parameter simulation type
+        paramSimulationType = self.extract_value(values.type)
+
+        for i in range(len(parameter_names)):
+            name = parameter_names[i]
+            simulationType = paramSimulationType[i]
+
+            if simulationType != 'fixed':
+                if pretty:
+                    output.append(name + ' (Value)')
+                else:
+                    model_name = self.get_name()
+                    output_template = Template('CN=Root,Model=${model_name},Vector=Values[${name}],Reference=Value')
+                    output_string = output_template.substitute(model_name=model_name, name=name)
+                    output.append(output_string)
+
+
+        return output
 
     def prepare_ps_jobs(self, subtask_index, time_per_step=None):
         """Prepare the parallel scan task
