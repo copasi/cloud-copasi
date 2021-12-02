@@ -2978,6 +2978,38 @@ class CopasiModel_BasiCO(object):
 
     def prepare_ss_process_job(self, pool_type, pool_address, jobs, script_path, rank='0'):
         """Collate the results from the stochastic simulation task"""
+        ############
+        #The rest of the processing is moved to condor, by the file ss_results_process.py
+        ############
+
+        #Prepare the condor job file
+
+        input_file_string = ''
+        args_string = ''
+        for job in jobs:
+            input_file_string += job.job_output + ', '
+            args_string += job.job_output + ' '
+        input_file_string = input_file_string.rstrip(', ')
+        args_string = args_string.rstrip(' ')
+        output = 'results.txt'
+
+        job_template = Template(condor_spec.condor_string_header + condor_spec.results_process_spec_string)
+
+        job_string = job_template.substitute(pool_type=pool_type,
+                                             pool_address=pool_address,
+                                             script=script_path,
+                                             args=args_string,
+                                             input_files=input_file_string,
+                                             output='results',
+                                             output_files = output,
+                                             rank=rank)
+        job_filename = 'results.job'
+        job_file = open(os.path.join(self.path, job_filename), 'w')
+        job_file.write(job_string)
+        job_file.close()
+
+        return job_filename
+
 
     def get_variables(self, pretty=False):
         """Returns a list of all variable metabolites, compartments and global quantities in the model.
