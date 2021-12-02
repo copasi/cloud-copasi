@@ -2818,7 +2818,7 @@ class CopasiModel_BasiCO(object):
 
         report_names_list = self.listOfReports.index
         check.debug('list of Reports: ')
-        check.debug(self.listOfReports)
+        check.debug(report_names_list)
         # print()
 
         #removing the report if it already exists with the name report_name
