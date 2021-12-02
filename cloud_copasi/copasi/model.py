@@ -2925,6 +2925,7 @@ class CopasiModel_BasiCO(object):
 
             #assigning a report (already created before) to SCAN task
             assign_report('auto_ss_report', task=T.SCAN, filename=target, append=True)
+            assign_report('auto_ss_report', task=T.TIME_COURSE, append=True)
 
             #Uncomment the following line only for debugging locally and comment out the line after.
             # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
