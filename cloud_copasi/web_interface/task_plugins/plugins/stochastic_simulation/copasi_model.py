@@ -172,8 +172,8 @@ class SSCopasiModel_BasiCO(CopasiModel_BasiCO):
         #no need to set different attributes separately as done by Ed in LXML
 
         for repeat in repeats:
-            # filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
-            filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
+            filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
+            # filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
             target = str(repeat) + '_out.txt'
             assign_report('auto_ss_report', task=T.SCAN, filename=target, append=True)
             self.scan_items[0]['num_steps'] = repeat
