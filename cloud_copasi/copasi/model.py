@@ -833,6 +833,7 @@ class CopasiModel(object):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
 
         """
+        check.debug("~~~~~~~~~~~~ LXML prepare_ss_task runnnig")
         self._clear_tasks()
         timeTask = self._getTask('timeCourse')
 
@@ -976,6 +977,7 @@ class CopasiModel(object):
 
         ############
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
+        check.debug("~~~~~~~~~~~~ LXML prepare_ss_condor_job runnnig")
         condor_jobs = []
 
         copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
@@ -2843,6 +2845,7 @@ class CopasiModel_BasiCO(object):
 
             #to avoid having error of "report already exist", create report only if it does not exist
             if get_report_dict(report_name) == None:
+                check.debug("Report does not already exist. So creating it now.")
                 add_report(key=report_key,
                            name=report_name,
                            task=T.TIME_COURSE,
@@ -2871,6 +2874,7 @@ class CopasiModel_BasiCO(object):
         """
         #Create a new report for the ss task
         #report_key is not needed in basico because we cannot change the reference/key in basico. Use direct assignment of report to the relevant tasks
+        check.debug("+++++++++++ BasiCO prepare_ss_task runnnig")
         report_key = 'condor_copasi_stochastic_simulation_report'
         self._create_report('SS', report_key, 'auto_ss_report')
 
@@ -2936,7 +2940,7 @@ class CopasiModel_BasiCO(object):
 
     def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the relevant task"""
-
+        check.debug("+++++++++++ BasiCO prepare_ss_condor_job runnnig")
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
         condor_jobs = []
 
