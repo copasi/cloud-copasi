@@ -138,7 +138,7 @@ class SSCopasiModel(CopasiModel):
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]
 
 class SSCopasiModel_BasiCO(CopasiModel_BasiCO):
-    """ Implementation of using BasiCO library"""
+    """ Implementation using BasiCO library"""
 
     def prepare_ss_load_balancing(self, repeats=None):
         """Prepare copasi model files that can be used for the benchmarking step

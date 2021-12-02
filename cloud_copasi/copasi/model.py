@@ -2756,6 +2756,13 @@ class CopasiModel_BasiCO(object):
             else:
                 return True
 
+        elif job_type == 'OR' or job_type == 'OD':
+            if len(self.get_optimization_parameters()) == 0:
+                return 'No parameters have been set for the optimization task'
+            if self._get_optimization_object() == '':
+                return 'No objective expression has been set for the optimization task'
+            return True
+
         else:
             return False
 
@@ -2804,9 +2811,30 @@ class CopasiModel_BasiCO(object):
 
     def _get_optimization_object(self):
         """Returns the objective expression for the optimization task"""
+        return get_opt_settings()['expression']
 
     def get_optimization_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the sensitvitiy optimization task. Will optionally process names to make them more user friendly"""
+
+        opt_parameters = get_opt_parameters()
+
+        #extracting parameter names
+        names = self.extract_value(opt_parameters.index)
+
+        #arranging parameters in the form of dictionary
+        dict = opt_parameters.to_dict()
+
+        #arranging parameter values in separate dictionaries
+        lower = dict['lower']
+        upper = dict['upper']
+        start = dict['start']
+
+        #packing values in list as tuples of name, lower, upper, start
+        parameters = []
+        for name in names:
+            parameters.append((name, lower[name], upper[name], start[name]))
+
+        return parameters
 
     def get_parameter_estimation_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the parameter estimation task. Will optionally process names to make them more user friendly"""

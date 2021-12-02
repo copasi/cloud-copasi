@@ -7,8 +7,9 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.copasi.model import CopasiModel
+from basico import *
 from cloud_copasi.copasi import model
+from cloud_copasi.copasi.model import *
 from cloud_copasi import settings
 from lxml import etree
 import os, time, math
@@ -118,3 +119,7 @@ class ORCopasiModel(CopasiModel):
 
 
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]
+
+class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
+    """ Implementation using BasiCO library"""
+    pass
