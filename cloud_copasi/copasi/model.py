@@ -2818,7 +2818,7 @@ class CopasiModel_BasiCO(object):
 
         report_names_list = self.listOfReports.index
         check.debug('list of Reports: ')
-        check.debug(self.listOfReports)
+        check.debug(report_names_list)
         # print()
 
         #removing the report if it already exists with the name report_name
@@ -2835,7 +2835,11 @@ class CopasiModel_BasiCO(object):
             time_object = 'Time'
             # objects.append(time_object)
             objects = self.get_variables()
+            check.debug("Objects list before inserting time_object:")
+            check.debug(objects)
             objects.insert(0, time_object)
+            check.debug("Objects list AFTER inserting time_object:")
+            check.debug(objects)
 
             #to avoid having error of "report already exist", create report only if it does not exist
             if get_report_dict(report_name) == None:
