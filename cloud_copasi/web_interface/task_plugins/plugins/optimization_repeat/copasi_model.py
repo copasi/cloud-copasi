@@ -122,4 +122,67 @@ class ORCopasiModel(CopasiModel):
 
 class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
     """ Implementation using BasiCO library"""
-    pass
+
+    def prepare_or_load_balancing(self, repeats=None):
+        # check.debug("+++++++++++ Entered into prepare_ps_load_balancing method.")
+
+        if not repeats:
+            repeats = [1, 10, 100, 1000]
+
+        #check if this is really needed
+        optTask = get_opt_settings()
+
+        #Creating a report
+        report_key = None
+        self._create_report('OR', report_key, 'auto_or_report')
+
+        #setting scan task settings
+        # print("Initial Scan Settings")
+        # print(get_scan_settings())
+
+        # set_scan_items([{
+        #                 'type': 'scan',
+        #                 'num_steps': 0 #initially setting to 0
+        #                 }])
+        self.scan_items.remove(self.scan_items[1])
+        self.scan_items[0]['num_steps'] = 0
+        self.scan_items[0]['type'] = 'repeat'
+
+        print("check:")
+        print(self.scan_items)
+        self.scan_items[0].pop('cn')
+        self.scan_items[0].pop('log')
+        self.scan_items[0].pop('min')
+        self.scan_items[0].pop('max')
+        self.scan_items[0].pop('values')
+        self.scan_items[0].pop('use_values')
+        self.scan_items[0].pop('item')
+
+        print("Self.scan_items: ")
+        print(self.scan_items)
+
+        set_scan_settings(
+                          scheduled = True,
+                          update_model = True,
+                          subtask = 'Optimization',
+                          output_during_subtask = True,
+                          scan_items = self.scan_items,
+                        )
+
+        # print("New Scan Settings")
+        # print(get_scan_settings())
+
+        #assigning report to scan task
+        assign_report('auto_or_report', task=T.SCAN, append=True)
+        assign_report('auto_or_report', task=T.OPTIMIZATION, append=True)
+
+        for repeat in repeats:
+            filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
+            # filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
+            target = str(repeat) + '_out.txt'
+            assign_report('auto_or_report', task=T.SCAN, filename=target, append=True)
+            self.scan_items[0]['num_steps'] = repeat
+            set_scan_items(self.scan_items)
+            self.write(filename)
+
+        return ['load_balancing_%d.cps' % repeat for repeat in repeats]
