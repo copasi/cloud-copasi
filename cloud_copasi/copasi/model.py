@@ -2882,6 +2882,21 @@ class CopasiModel_BasiCO(object):
                            )
             #for checking
             # save_model('new2.cps')
+
+        elif(report_type == 'OR'):
+            # table_content =
+            if get_report_dict(report_name) == None:
+                print('Report does not exist. Creating one.')
+                add_report(
+                            name=report_name,
+                            task=T.OPTIMIZATION,
+                            table=['CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Best Parameters',
+                                   'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Best Value',
+                                   'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Timer=CPU Time',
+                                   'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Function Evaluations'
+                                   ]
+                          )
+
         else:
             raise Exception('Unknown report type')
 
