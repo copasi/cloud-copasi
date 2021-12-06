@@ -2789,6 +2789,12 @@ class CopasiModel_BasiCO(object):
 
     def _clear_tasks(self):
         """Go through the task list, and set all tasks as not scheduled to run"""
+        all_tasks = T.all_task_names()
+
+        for task in all_tasks:
+            task_settings = get_task_settings(task)
+            task_settings['scheduled'] = False
+            set_task_settings(task, task_settings)
 
     def _get_compartment_name(self, key):
         """Go through the list of compartments and return the name of the compartment with a given key"""
