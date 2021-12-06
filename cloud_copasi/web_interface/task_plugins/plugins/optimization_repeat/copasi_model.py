@@ -129,6 +129,8 @@ class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
         if not repeats:
             repeats = [1, 10, 100, 1000]
 
+        #resetting all tasks
+        self._clear_tasks()    
         #check if this is really needed
         optTask = get_opt_settings()
 
