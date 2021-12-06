@@ -3373,6 +3373,37 @@ class CopasiModel_BasiCO(object):
 
     def prepare_or_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """ or condor job"""
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
 
     def process_or_results(self, filenames):
         """Process the results of the OR task by copying them all into one file, named raw_results.txt.
