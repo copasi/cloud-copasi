@@ -3292,6 +3292,84 @@ class CopasiModel_BasiCO(object):
 
     def prepare_or_jobs(self, repeats, repeats_per_job, subtask_index):
         """Prepare jobs for the optimization repeat task"""
+        self._clear_tasks()
+
+        optTask = get_opt_settings()
+        #Even though we're not interested in the output at the moment, we'll set a report for the optimization task, or Copasi will complain!
+        #Create a new report for the or task
+        report_key = ''
+        self._create_report('OR', report_key, 'auto_or_report')
+
+        if "report" not in optTask:
+            set_task_settings(T.OPTIMIZATION,
+                              {'report': {}
+                              }
+                             )
+
+        set_task_settings(T.OPTIMIZATION,
+                          {'report': {'append': True,
+                                      'filename': ''
+                                     }
+                          }
+                         )
+
+        no_of_jobs = int(math.ceil(float(repeats) / repeats_per_job))
+        #Clear tasks and set the scan task as scheduled
+        self._clear_tasks()
+
+        scanTask = get_task_settings(T.SCAN)
+        print("\nScan Task Settings: ")
+        print(scanTask)
+
+        if "report" not in scanTask:
+            set_task_settings(T.SCAN,
+                              {'report': {}
+                              }
+                             )
+
+        set_task_settings(T.SCAN,
+                          {'scheduled': True,
+                           'update_model': True,
+                           'report':{ 'append': True,
+                                      'filename': ''
+                                    },
+                           'problem': { 'Subtask': 4,
+                                        'Output in subtask': True,
+                                      }
+                          }
+                         )
+
+        #setting scan item. num_steps to 0
+        set_scan_items([{'num_steps':0,
+                         'type': 'repeat',
+                        }])
+
+        repeat_count = 0
+        model_files = []
+
+        for i in range(no_of_jobs):
+            if repeats_per_job + repeat_count > repeats:
+                    no_of_repeats = repeats - repeat_count
+            else:
+                no_of_repeats = repeats_per_job
+                repeat_count += no_of_repeats
+
+            set_scan_items([{'num_steps': no_of_repeats,
+                             'type': 'repeat',
+                            }])
+
+            target = 'output_%d.%d.txt' % (subtask_index, i)
+
+            assign_report('auto_or_report', task=T.SCAN, filename=target, append=True)
+            assign_report('auto_or_report', task=T.OPTIMIZATION, append=True)
+
+            # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            self.write(filename)
+
+            model_files.append(filename)
+
+        return model_files
 
     def prepare_or_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """ or condor job"""
