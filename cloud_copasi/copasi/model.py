@@ -3409,6 +3409,92 @@ class CopasiModel_BasiCO(object):
         """Process the results of the OR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
+        maximize = get_opt_settings()['problem']['Maximize']
+
+        output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
+
+
+        #Match a string of the format (    0.0995749    0.101685    0.108192    0.091224    )    0.091224    0
+        #Contains parameter values, the best optimization value, the cpu time, and some other values.
+        output_string = r'\(\s(?P<params>.+)\s\)\s+(?P<best_value>\S+)\s+(?P<cpu_time>\S+)\.*'
+        output_re = re.compile(output_string)
+
+        best_value = None
+        best_line = None
+
+        #Copy the contents of the first file to results.txt
+        for line in open(os.path.join(self.path, filenames[0]), 'r'):
+            output_file.write(line)
+            if line != '\n':
+                if output_re.match(line):
+                    value = float(output_re.match(line).groupdict()['best_value'])
+
+                    if best_value != None and maximize:
+                        if value > best_value:
+                            best_value = value
+                            best_line = line
+                    elif best_value != None and not maximize:
+                        if value < best_value:
+                            best_value = value
+                            best_line = line
+                    elif best_value == None:
+                        best_value = value
+                        best_line = line
+            else:
+                pass
+
+        #And for all other files, copy everything but the last line
+        for filename in filenames[1:]:
+            firstLine = True
+            for line in open(os.path.join(self.path,filename), 'r'):
+                if not firstLine:
+                    output_file.write(line)
+                    if line != '\n':
+                        if output_re.match(line):
+                            value = float(output_re.match(line).groupdict()['best_value'])
+                        if maximize:
+                                if value > best_value:
+                                    best_value = value
+                                    best_line = line
+                        elif not maximize:
+                                if value < best_value:
+                                    best_value = value
+                                    best_line = line
+                    else:
+                        pass
+                firstLine = False
+
+
+        output_file.close()
+
+        #Write the best value to results.txt
+        output_file = open(os.path.join(self.path, 'results.txt'), 'w')
+
+        output_file.write('Best value\t')
+
+        #added by HB
+        parameter_list = self.get_optimization_parameters()
+
+
+        for parameter in parameter_list:
+        #for parameter in self.get_optimization_parameters():
+            #output_file.write(parameter[0].encode('utf8'))
+            #above line is commented by HB as follows
+            output_file.write(parameter[0])
+
+            output_file.write('\t')
+        output_file.write('\n')
+
+        best_line_dict = output_re.match(best_line).groupdict()
+
+        output_file.write(best_line_dict['best_value'])
+        output_file.write('\t')
+
+        for parameter in best_line_dict['params'].split('\t'):
+            output_file.write(parameter)
+            output_file.write('\t')
+        output_file.close()
+
     def get_or_best_value(self):
         """Read the best value and best parameters from results.txt"""
 
