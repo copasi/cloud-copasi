@@ -3497,6 +3497,18 @@ class CopasiModel_BasiCO(object):
 
     def get_or_best_value(self):
         """Read the best value and best parameters from results.txt"""
+        best_values = open(os.path.join(self.path, 'results.txt'),'r').readlines()
+
+        headers = best_values[0].rstrip('\n').rstrip('\t').split('\t')
+        values = best_values[1].rstrip('\n').rstrip('\t').split('\t')
+        
+        output = []
+
+        for i in range(len(headers)):
+            output.append((headers[i], values[i]))
+
+
+        return output
 
     def prepare_pr_jobs(self, repeats, repeats_per_job, subtask_index, custom_report=False):
         """Prepare jobs for the parameter estimation repeat task"""
