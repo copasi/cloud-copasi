@@ -3360,8 +3360,8 @@ class CopasiModel_BasiCO(object):
 
             target = 'output_%d.%d.txt' % (subtask_index, i)
 
-            assign_report('auto_or_report', task=T.SCAN, filename=target, append=True)
-            assign_report('auto_or_report', task=T.OPTIMIZATION, append=True)
+            assign_report('auto_or_report', task=T.SCAN, filename=target, append=True, confirm_overwrite = False)
+            assign_report('auto_or_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
 
             # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
             filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
@@ -3501,7 +3501,7 @@ class CopasiModel_BasiCO(object):
 
         headers = best_values[0].rstrip('\n').rstrip('\t').split('\t')
         values = best_values[1].rstrip('\n').rstrip('\t').split('\t')
-        
+
         output = []
 
         for i in range(len(headers)):
