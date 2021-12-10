@@ -2850,7 +2850,7 @@ class CopasiModel_BasiCO(object):
     def get_parameter_estimation_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the parameter estimation task. Will optionally process names to make them more user friendly"""
         fit_parameters = get_fit_parameters()
-        names = self.extract_value(fit_parameters)
+        names = self.extract_value(fit_parameters.index)
 
         dict = fit_parameters.to_dict()
 
