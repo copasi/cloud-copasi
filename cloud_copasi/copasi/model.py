@@ -2763,8 +2763,13 @@ class CopasiModel_BasiCO(object):
                 return 'No objective expression has been set for the optimization task'
             return True
 
+        elif job_type == 'PR':
+            if len(self.get_parameter_estimation_parameters()) == 0:
+                return 'No parameters have been set for the sensitivites task'
+            return True
+
         else:
-            return False
+            return True
 
     def _copasiExecute(self, filename, tempdir, timeout=-1, save=False):
         """Private function to run Copasi locally in a temporary folder."""

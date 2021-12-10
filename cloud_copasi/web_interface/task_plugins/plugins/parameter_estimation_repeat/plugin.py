@@ -13,7 +13,8 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.web_interface.task_plugins.plugins.parameter_estimation_repeat.copasi_model import PRCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
+from cloud_copasi.web_interface.task_plugins.plugins.parameter_estimation_repeat.copasi_model import PRCopasiModel, PRCopasiModel_BasiCO # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -68,10 +69,13 @@ class TaskPlugin(BaseTask):
 
         super(TaskPlugin, self).__init__(task)
 
-        self.copasi_model = PRCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        # self.copasi_model = PRCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        check.debug("+++++++++++ Running BasiCO implementation.")
+        self.copasi_model = PRCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
         self.repeats = self.task.get_custom_field('repeats')
         self.custom_report = self.task.get_custom_field('custom_report')
         repeats = self.repeats
+        
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         return self.copasi_model.is_valid('PR')
