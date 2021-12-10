@@ -130,7 +130,7 @@ class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
             repeats = [1, 10, 100, 1000]
 
         #resetting all tasks
-        self._clear_tasks()    
+        self._clear_tasks()
         #check if this is really needed
         optTask = get_opt_settings()
 
@@ -175,8 +175,8 @@ class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
         # print(get_scan_settings())
 
         #assigning report to scan task
-        assign_report('auto_or_report', task=T.SCAN, append=True)
-        assign_report('auto_or_report', task=T.OPTIMIZATION, append=True)
+        assign_report('auto_or_report', task=T.SCAN, append=True, confirm_overwrite = False)
+        assign_report('auto_or_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
 
         for repeat in repeats:
             filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
