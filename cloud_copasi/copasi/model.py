@@ -2922,6 +2922,21 @@ class CopasiModel_BasiCO(object):
                                    'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Function Evaluations'
                                    ]
                           )
+        elif report_type == 'PR':
+            if get_report_dict(report_name) == None:
+                print('Report does not exist. Creating one.')
+                add_report(
+                            name=report_name,
+                            task=T.PARAMETER_ESTIMATION,
+                            table=['CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Reference=Best Parameters',
+                                   'CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Reference=Best Value',
+                                   'CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Timer=CPU Time',
+                                   'CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Reference=Function Evaluations'
+                                   ],
+                            comment='Condor Copasi automatically generated report.'
+                          )
+                #for testing purpose only. Delete it from the server version.
+                # save_model('test_pr_report.cps')                  
 
         else:
             raise Exception('Unknown report type')
