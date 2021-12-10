@@ -2936,7 +2936,7 @@ class CopasiModel_BasiCO(object):
                             comment='Condor Copasi automatically generated report.'
                           )
                 #for testing purpose only. Delete it from the server version.
-                # save_model('test_pr_report.cps')                  
+                # save_model('test_pr_report.cps')
 
         else:
             raise Exception('Unknown report type')
@@ -3547,6 +3547,97 @@ class CopasiModel_BasiCO(object):
 
     def prepare_pr_jobs(self, repeats, repeats_per_job, subtask_index, custom_report=False):
         """Prepare jobs for the parameter estimation repeat task"""
+
+        #First, clear all tasks
+        self._clear_tasks()
+
+        fitTask = get_task_settings(T.PARAMETER_ESTIMATION)
+        fitTask['update_model'] = False
+
+        #Even though we're not interested in the output at the moment, we have to set a report for the parameter fitting task, or Copasi will complain!
+        #Only do this if custom_report is false
+        if not custom_report:
+            #Create a new report for the or task
+            report_key = None
+            self._create_report('PR', report_key, 'auto_pr_report')
+
+        if custom_report:
+            #no need to assing a reference key. have to check what to do here further.
+            pass
+
+        #If no report has yet been set, report == None. Therefore, create new report
+        if "report" not in fitTask:
+            set_task_settings(T.PARAMETER_ESTIMATION,
+                                  {'report': {}
+                                  }
+                                 )
+
+        set_task_settings(T.PARAMETER_ESTIMATION,
+                              {'report': {'append': True,
+                                          'filename': ''
+                                         }
+                              }
+                             )
+
+        no_of_jobs = int(math.ceil(float(repeats) / repeats_per_job))
+
+        #job Preparation
+        self._clear_tasks()
+        scanTask = get_task_settings(T.SCAN)
+
+        if "report" not in scanTask:
+            set_task_settings(T.SCAN,
+                              {'report': {}
+                              }
+                             )
+
+        set_task_settings(T.SCAN,
+                          {'scheduled': True,
+                           'update_model': True,
+                           'report':{ 'append': True,
+                                      'filename': ''
+                                    },
+                           'problem': { 'Subtask': 5,
+                                        'Output in subtask': True,
+                                      },
+                          }
+                         )
+
+        set_scan_items([{'num_steps':0,
+                         'type': 'repeat',
+                        }])
+
+        print("\nNew Scan Task Settings: ")
+        print(get_task_settings(T.SCAN))
+
+        #Prepare the Copasi files
+        repeat_count = 0
+        model_files = []
+
+        for i in range(no_of_jobs):
+            if repeats_per_job + repeat_count > repeats:
+                no_of_repeats = repeats - repeat_count
+            else:
+                no_of_repeats = repeats_per_job
+            repeat_count += no_of_repeats
+
+            set_scan_items([{'num_steps': no_of_repeats,
+                             'type': 'repeat',
+                            }])
+
+            target = 'output_%d.%d.txt' % (subtask_index, i)
+
+            assign_report('auto_pr_report', task=T.SCAN, filename=target, append=True, confirm_overwrite = False)
+            assign_report('auto_pr_report', task=T.PARAMETER_ESTIMATION, append=True, confirm_overwrite = False)
+
+            filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            # filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            self.write(filename)
+            # save_model(filename)
+
+            model_files.append(filename)
+
+        return model_files
 
     def prepare_pr_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
         """Prepare the condor jobs for the parallel scan task"""
