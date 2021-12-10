@@ -2849,6 +2849,21 @@ class CopasiModel_BasiCO(object):
 
     def get_parameter_estimation_parameters(self, friendly=True):
         """Returns a list of the parameter names to be included in the parameter estimation task. Will optionally process names to make them more user friendly"""
+        fit_parameters = get_fit_parameters()
+        names = self.extract_value(fit_parameters)
+
+        dict = fit_parameters.to_dict()
+
+        #arranging parameter values in separate dictionaries
+        lower = dict['lower']
+        upper = dict['upper']
+        start = dict['start']
+
+        parameters = []
+        for name in names:
+            parameters.append((name, lower[name], upper[name], start[name]))
+
+        return parameters
 
     def get_ps_number(self):
         """Returns the number of runs set up for the parameter scan task"""
