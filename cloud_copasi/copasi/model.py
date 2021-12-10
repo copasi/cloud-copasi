@@ -3641,6 +3641,42 @@ class CopasiModel_BasiCO(object):
 
     def prepare_pr_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
         """Prepare the condor jobs for the parallel scan task"""
+        ############
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+        input_files_string = ', '
+        for data_file in data_files:
+            input_files_string += (data_file + ', ')
+        input_files_string = input_files_string.rstrip(', ')
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles=input_files_string,
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
 
     def process_pr_results(self, results_files, custom_report):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
