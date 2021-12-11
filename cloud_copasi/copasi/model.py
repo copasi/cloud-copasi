@@ -3678,9 +3678,108 @@ class CopasiModel_BasiCO(object):
 
         return condor_job_filename
 
-    def process_pr_results(self, results_files, custom_report):
+    def process_pr_results(results_files, custom_report):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
+
+        # output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
+        output_file = open(os.path.join(os.getcwd(), 'raw_results.txt'), 'w')
+
+        #Keep track of the last read line before a newline; this will be the best value from an optimization run
+        last_line = ''
+        #Match a string of the format (    0.0995749    0.101685    0.108192    0.091224    )    0.091224    0   100
+        #Contains parameter values, the best optimization value, the cpu time, and some other values, e.g. particle numbers that Copasi likes to add. These could be removed, but they seem useful.
+        output_string = r'.*\(\s(?P<params>.+)\s\)\s+(?P<best_value>\S+)\s+(?P<cpu_time>\S+)\s+(?P<function_evals>\S+)\.*'
+        output_re = re.compile(output_string)
+
+        best_value = None
+        best_line = None
+
+        #Copy the contents of the first file to results.txt
+        # for line in open(os.path.join(self.path, results_files[0]), 'r'):
+        for line in open(os.path.join(os.getcwd(), results_files[0]), 'r'):
+            output_file.write(line)
+            try:
+                if line != '\n':
+                    if output_re.match(line):
+                        current_value = float(output_re.match(line).groupdict()['best_value'])
+                        if best_value != None:
+                            if current_value < best_value:
+                                best_value = current_value
+                                best_line = line
+                        elif best_value == None:
+                            best_value = current_value
+                            best_line = line
+                else:
+                    pass
+            except Exception as e:
+                if custom_report:
+                    pass
+                else:
+                    raise e
+
+        for filename in results_files[1:]:
+            firstLine = True
+            # for line in open(os.path.join(self.path, filename), 'r'):
+            for line in open(os.path.join(os.getcwd(), filename), 'r'):
+                if not firstLine:
+                    output_file.write(line)
+                    try:
+                        if line != '\n':
+                            if output_re.match(line):
+                                current_value = float(output_re.match(line).groupdict()['best_value'])
+                                if current_value < best_value:
+                                    best_value = current_value
+                                    best_line = line
+                        else:
+                            pass
+                    except Exception as e:
+                        if custom_report:
+                            pass
+                        else:
+                            raise e
+                firstLine = False
+
+        output_file.close()
+
+        #Write the best value to results.txt
+        # output_file = open(os.path.join(self.path, 'results.txt'), 'w')
+        output_file = open(os.path.join(os.getcwd(), 'results.txt'), 'w')
+
+        output_file.write('Best value\tCPU time\tFunction evals\t')
+
+        #added by HB
+        parameter_list = self.get_parameter_estimation_parameters()
+        # parameter_list = get_parameter_estimation_parameters()
+
+        for parameter in parameter_list:
+            #for parameter in self.get_parameter_estimation_parameters():
+
+            #output_file.write(parameter[0].encode('utf8'))
+            #above line is commented by HB as follows
+            output_file.write(parameter[0])
+
+            output_file.write('\t')
+        output_file.write('\n')
+
+        best_line_dict = output_re.match(best_line).groupdict()
+
+        output_file.write(best_line_dict['best_value'])
+        output_file.write('\t')
+        output_file.write(best_line_dict['cpu_time'])
+        output_file.write('\t')
+        output_file.write(best_line_dict['function_evals'])
+        output_file.write('\t')
+
+        for parameter in best_line_dict['params'].split('\t'):
+            output_file.write(parameter)
+            output_file.write('\t')
+
+        output_file.close()
+        if best_value != None:
+            return True
+        else:
+            return False
 
     def get_pr_best_value(self):
         """Read the best value and best parameters from results.txt"""
