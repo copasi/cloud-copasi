@@ -3783,9 +3783,96 @@ class CopasiModel_BasiCO(object):
 
     def get_pr_best_value(self):
         """Read the best value and best parameters from results.txt"""
+        best_values = open(os.path.join(self.path, 'results.txt'),'r').readlines()
+        # best_values = open(os.path.join(os.getcwd(), 'results.txt'),'r').readlines()
+
+        headers = best_values[0].rstrip('\n').rstrip('\t').split('\t')
+        values = best_values[1].rstrip('\n').rstrip('\t').split('\t')
+
+        output = []
+
+        for i in range(len(headers)):
+            output.append((headers[i], values[i]))
+
+
+        return output
 
     def create_pr_best_value_model(self, subtask_index, custom_report=False):
         """Create a .CPS model containing the best parameter values found by the PR task, and save it to filename"""
+
+        self._clear_tasks()
+
+        task_settings = get_task_settings(T.PARAMETER_ESTIMATION)
+        check.debug(task_settings)
+
+        if not custom_report:
+            #Create a new report for the or task
+            report_key = None
+            self._create_report('PR', report_key, 'auto_pr_report')
+            # _create_report('PR', report_key, 'auto_pr_report')
+
+        if custom_report:
+            #have to check what to do here.
+            pass
+
+        if "report" not in task_settings:
+            set_task_settings(T.PARAMETER_ESTIMATION,
+                                  {'report': {}
+                                  }
+                                 )
+        task_settings['scheduled'] = True
+        task_settings['update_model'] = True
+        task_settings['report'] = {'append': True,
+                                   'filename': 'copasi_temp_output.txt'
+                                  }
+        task_settings['problem'] = {'Randomize Start Values': False}
+
+        #Step 2 - go through the parameter fitting task, and update the parameter start values
+        best_parameter_values = get_pr_best_value()
+        check.debug("Best parameter values: ")
+        check.debug(best_parameter_values)
+
+        #checking if optimizaiton item list is present
+        if len(get_fit_parameters()) != 0:
+            check.debug("Optimization item list is not empty.")
+            fit_parameters = get_fit_parameters()       #extracting fit parameters
+            start = fit_parameters.to_dict()['start']   #extracting start column values
+            set_fit_param = True
+        else:
+            check.debug("Optimization item list empty.")
+            set_fit_param = False
+
+        #In results.txt, Index 0 = best value, 1 = CPU time, 2 = Function Evals, 3...n+3 = parameter values
+        #Therefore, start at 3
+        parameter_index = 3
+
+        #looping through values in start column and updating it with the best values extracted from results.txt previously
+        if set_fit_param:
+            for element, value in start.items():
+                old_value = value
+                new_value = best_parameter_values[parameter_index][1]
+                fit_parameters['start'] = fit_parameters['start'].replace([old_value], new_value)
+                parameter_index += 1
+
+            # updating new fit parameters
+            set_fit_parameters(fit_parameters)
+
+        #Step 3 - get the method, and set to current solution statistics
+        task_settings.pop('method')
+        task_settings['method'] = {'name': 'Current Solution Statistics',
+                              'type': 'CurrentSolutionStatistics'
+                              }
+        print("new_settings: ")
+        print(task_settings)
+        set_task_settings(T.PARAMETER_ESTIMATION,
+                          task_settings
+                         )
+
+        filename = 'auto_copasi_%d.0.cps' % subtask_index
+        self.write(os.path.join(self.path, filename))
+
+        return filename
+
 
     def prepare_pr_optimal_model_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
         """Prepare the condor jobs for the parallel scan task"""
