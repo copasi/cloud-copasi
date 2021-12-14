@@ -3828,7 +3828,7 @@ class CopasiModel_BasiCO(object):
         task_settings['problem'] = {'Randomize Start Values': False}
 
         #Step 2 - go through the parameter fitting task, and update the parameter start values
-        best_parameter_values = get_pr_best_value()
+        best_parameter_values = self.get_pr_best_value()
         check.debug("Best parameter values: ")
         check.debug(best_parameter_values)
 
