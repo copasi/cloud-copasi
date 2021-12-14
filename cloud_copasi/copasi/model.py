@@ -3678,7 +3678,7 @@ class CopasiModel_BasiCO(object):
 
         return condor_job_filename
 
-    def process_pr_results(results_files, custom_report):
+    def process_pr_results(self, results_files, custom_report):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
