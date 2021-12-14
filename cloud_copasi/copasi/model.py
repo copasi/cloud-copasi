@@ -3630,8 +3630,8 @@ class CopasiModel_BasiCO(object):
             assign_report('auto_pr_report', task=T.SCAN, filename=target, append=True, confirm_overwrite = False)
             assign_report('auto_pr_report', task=T.PARAMETER_ESTIMATION, append=True, confirm_overwrite = False)
 
-            filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
-            # filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
+            filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
             self.write(filename)
             # save_model(filename)
 
@@ -3682,8 +3682,8 @@ class CopasiModel_BasiCO(object):
         """Process the results of the PR task by copying them all into one file, named raw_results.txt.
         As we copy, extract the best value, and write the details to results.txt"""
 
-        # output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
-        output_file = open(os.path.join(os.getcwd(), 'raw_results.txt'), 'w')
+        output_file = open(os.path.join(self.path, 'raw_results.txt'), 'w')
+        # output_file = open(os.path.join(os.getcwd(), 'raw_results.txt'), 'w')
 
         #Keep track of the last read line before a newline; this will be the best value from an optimization run
         last_line = ''
@@ -3696,8 +3696,8 @@ class CopasiModel_BasiCO(object):
         best_line = None
 
         #Copy the contents of the first file to results.txt
-        # for line in open(os.path.join(self.path, results_files[0]), 'r'):
-        for line in open(os.path.join(os.getcwd(), results_files[0]), 'r'):
+        for line in open(os.path.join(self.path, results_files[0]), 'r'):
+        # for line in open(os.path.join(os.getcwd(), results_files[0]), 'r'):
             output_file.write(line)
             try:
                 if line != '\n':
@@ -3720,8 +3720,8 @@ class CopasiModel_BasiCO(object):
 
         for filename in results_files[1:]:
             firstLine = True
-            # for line in open(os.path.join(self.path, filename), 'r'):
-            for line in open(os.path.join(os.getcwd(), filename), 'r'):
+            for line in open(os.path.join(self.path, filename), 'r'):
+            # for line in open(os.path.join(os.getcwd(), filename), 'r'):
                 if not firstLine:
                     output_file.write(line)
                     try:
@@ -3743,8 +3743,8 @@ class CopasiModel_BasiCO(object):
         output_file.close()
 
         #Write the best value to results.txt
-        # output_file = open(os.path.join(self.path, 'results.txt'), 'w')
-        output_file = open(os.path.join(os.getcwd(), 'results.txt'), 'w')
+        output_file = open(os.path.join(self.path, 'results.txt'), 'w')
+        # output_file = open(os.path.join(os.getcwd(), 'results.txt'), 'w')
 
         output_file.write('Best value\tCPU time\tFunction evals\t')
 
