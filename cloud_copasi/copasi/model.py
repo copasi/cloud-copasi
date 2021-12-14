@@ -3820,6 +3820,10 @@ class CopasiModel_BasiCO(object):
                                   {'report': {}
                                   }
                                  )
+
+        if not custom_report:
+        assign_report('auto_pr_report', task=T.PARAMETER_ESTIMATION, append=True, confirm_overwrite = False)
+
         task_settings['scheduled'] = True
         task_settings['update_model'] = True
         task_settings['report'] = {'append': True,
