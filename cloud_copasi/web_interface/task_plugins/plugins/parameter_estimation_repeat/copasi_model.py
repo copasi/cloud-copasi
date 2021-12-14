@@ -163,8 +163,8 @@ class PRCopasiModel_BasiCO(CopasiModel_BasiCO):
         assign_report('auto_pr_report', task=T.PARAMETER_ESTIMATION, append=True)
 
         for repeat in repeats:
-            # filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
-            filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
+            filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
+            # filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
             target = str(repeat) + '_out.txt'
             assign_report('auto_pr_report', task=T.SCAN, filename=target, append=True, confirm_overwrite = False)
             self.scan_items[0]['num_steps'] = repeat
