@@ -131,7 +131,7 @@ class PRCopasiModel(CopasiModel):
 
         return ['load_balancing_%d.cps' % repeat for repeat in repeats]
 
-class PRCopasiModel_BasiCO(CopasiModelBasiCO):
+class PRCopasiModel_BasiCO(CopasiModel_BasiCO):
 
     def prepare_pr_load_balancing(self, repeats=None):
 
