@@ -413,8 +413,11 @@ class TaskPlugin(BaseTask):
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
-            result_file = open(filename, 'r')
-            response = HttpResponse(result_file, content_type='application/xml')
+            result_file = open(filename, 'r', encoding='utf8')
+            #added by HB
+            #result_file = result_file.decode('utf-8')
+            #response = HttpResponse(result_file, content_type='application/xml', charset='utf-8')
+            response = HttpResponse(result_file, content_type='application/xml', charset='utf-8')
             response['Content-Disposition'] = 'attachment; filename=%s_optimal_model.cps' % (self.task.name.replace(' ', '_'))
             response['Content-Length'] = os.path.getsize(filename)
 
