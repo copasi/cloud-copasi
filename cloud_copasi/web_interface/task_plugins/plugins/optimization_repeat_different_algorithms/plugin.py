@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form, widgets
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel, ODCopasiModel_BasiCO # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect

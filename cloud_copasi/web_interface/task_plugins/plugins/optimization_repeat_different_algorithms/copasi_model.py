@@ -635,3 +635,12 @@ class ODCopasiModel(CopasiModel):
         for line in open(os.path.join(self.path, 'results.txt')):
             output.append(line.rstrip('\n').rstrip('\t').split('\t')[0:4])#Only return the first 4 columns, not param values
         return output
+
+class ODCopasiModel_BasiCO(CopasiModel_BasiCO):
+    """ Implementation using BasiCO library"""
+
+    def prepare_od_jobs(self, algorithms):
+        """Prepare copasi model files that can be used for the benchmarking step
+
+        First sets up the scan task with a repeat. Write 4 files with 1, 10, 100 and 1000 repeats respectively
+        """
