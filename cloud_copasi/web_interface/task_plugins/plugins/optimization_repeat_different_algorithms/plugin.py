@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form, widgets
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel # Use the task-specific copasi model in this directory
+from cloud_copasi.web_interface.task_plugins.plugins.optimization_repeat_different_algorithms.copasi_model import ODCopasiModel, ODCopasiModel_BasiCO # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -260,8 +260,12 @@ class TaskPlugin(BaseTask):
         self.subtasks = 2
 
         super(TaskPlugin, self).__init__(task)
+        #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
+        #self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        check.debug("+++++++++++ Running BasiCO implementation.")
+        self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
-        self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         return self.copasi_model.is_valid('OD')

@@ -7,8 +7,9 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 
-from cloud_copasi.copasi.model import CopasiModel
+from basico import *
 from cloud_copasi.copasi import model
+from cloud_copasi.copasi.model import *
 from cloud_copasi import settings
 from lxml import etree
 import os, time, math
@@ -635,3 +636,12 @@ class ODCopasiModel(CopasiModel):
         for line in open(os.path.join(self.path, 'results.txt')):
             output.append(line.rstrip('\n').rstrip('\t').split('\t')[0:4])#Only return the first 4 columns, not param values
         return output
+
+class ODCopasiModel_BasiCO(CopasiModel_BasiCO):
+    """ Implementation using BasiCO library"""
+
+    def prepare_od_jobs(self, algorithms):
+        """Prepare copasi model files that can be used for the benchmarking step
+
+        First sets up the scan task with a repeat. Write 4 files with 1, 10, 100 and 1000 repeats respectively
+        """
