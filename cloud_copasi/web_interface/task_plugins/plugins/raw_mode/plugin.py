@@ -204,6 +204,7 @@ class TaskPlugin(BaseTask):
         subtask.set_run_time(time_delta)
 
         subtask.save()
+        subtask.task.save() 
 
         return subtask
 
