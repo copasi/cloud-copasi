@@ -165,7 +165,6 @@ def create_secret_key():
         return "".join([random.choice(string.ascii_letters + string.digits) for n in range(length)])
 
 
-
 class CondorPool(models.Model):
     """Abstract placeholder for either an EC2 condor pool, or some other Bosco pool
     """
@@ -236,7 +235,6 @@ class CondorPool(models.Model):
     def __str__(self):
         return str(self.name)
 
-
 class BoscoPool(CondorPool):
     """Store info about a non-EC2 pool added through Bosco
     """
@@ -259,8 +257,6 @@ class EC2Pool(CondorPool):
     initial_instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES, blank=False, default='t1.micro', help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
 
     secret_key = models.CharField(max_length=30, default=create_secret_key)
-
-
 
     last_update_time = models.DateTimeField(auto_now_add=True)
 
@@ -407,8 +403,6 @@ class SpotRequest(models.Model):
     def __unicode__(self):
         return "%s (User: %s)" % (self.request_id, self.ec2_pool.vpc.access_key.user.username)
 
-
-
 class EC2KeyPair(models.Model):
     name = models.CharField(max_length=100, verbose_name='EC2 Key Pair name')
 
@@ -436,7 +430,6 @@ class ElasticIP(models.Model):
 
     def __str__(self):
         return self.public_ip
-
 
 class Task(models.Model):
     """High-level representation of a computing job
@@ -474,6 +467,7 @@ class Task(models.Model):
 
     def get_task_type_name(self):
         return tools.get_task_display_name(self.task_type)
+
     def set_custom_field(self, field_name, value):
         try:
             custom_fields = json.loads(self.custom_fields)
@@ -501,7 +495,6 @@ class Task(models.Model):
                       ('cancelled', 'Cancelled'),
                       ('unknown', 'Unknown'),
                       )
-
 
     status = models.CharField(verbose_name = 'The status of the task', max_length=32, choices = status_choices, default='waiting')
 
@@ -538,8 +531,6 @@ class Task(models.Model):
 
         self.save()
 
-
-
     def get_job_count(self):
         """Return the number of jobs associated.
         If the number of CondorJobs is 0, return self.job_count instead
@@ -553,6 +544,7 @@ class Task(models.Model):
             for subtask in subtasks:
                 count += subtask.get_job_count()
             return count
+
     def set_job_count(self):
         self.job_count = self.get_job_count()
         self.save()
@@ -575,7 +567,9 @@ class Task(models.Model):
         self.run_time = self.get_run_time()
         self.save()
 
-    def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())
+    def get_run_time_timedelta(self):
+        return datetime.timedelta(days=self.get_run_time())
+
     run_time = models.FloatField(default=-1.0, help_text = 'The run time of associated condor jobs. Only set after the subtask has finished. Use get_run_time() to access.')
 
 
