@@ -713,18 +713,29 @@ class Subtask(models.Model):
             for job in jobs:
                 count += job.run_time
             return count
+
     def set_run_time(self, time_delta=None):
         if not time_delta:
             check.debug("Entered in set_run_time: ")
+            check.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")             
+
+            check.debug("time_delta: ")
+            check.debug(time_delta)
+
             self.run_time = self.get_run_time()
-            check.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")
+            check.debug("self.run_time")
+            check.debug(self.run_time)
+
         else:
             assert isinstance(time_delta, datetime.timedelta)
             check.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
             check.debug(time_delta)
             #Calculate run time in days
             self.run_time = time_delta.days + (float(time_delta.seconds) / 86400.00)
+            check.debug("self.run_time")
+            check.debug(self.run_time)
         self.save()
+
     def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())
 
     run_time = models.FloatField(default=-1.0, help_text = 'The cumulative run time of associated condor jobs in days. Only set after the subtask has finished. Use get_run_time() to access.')

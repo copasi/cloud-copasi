@@ -51,11 +51,9 @@ def update_tasks(user=None, task=None):
     for task in tasks:
         #Next, get the corresponding running subtasks
         subtasks = Subtask.objects.filter(task=task).filter(status='running')
-        check.debug(subtasks)
+       
         for subtask in subtasks:
-            check.debug('Checking subtask status: %s'%subtask.status)
             jobs = CondorJob.objects.filter(subtask=subtask)
-
 
             #Does any of the jobs have an error status? Then mark the whole task as having failed
             errors = jobs.filter(status='E') | jobs.filter(status='H')
