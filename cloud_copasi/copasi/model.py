@@ -3095,7 +3095,6 @@ class CopasiModel_BasiCO(object):
 
         return job_filename
 
-
     def get_variables(self, pretty=False):
         """Returns a list of all variable metabolites, compartments and global quantities in the model.
 
@@ -3301,7 +3300,6 @@ class CopasiModel_BasiCO(object):
                 model_files.append(filename)
 
         return model_files
-
 
     def prepare_ps_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """ps condor jobs"""
@@ -3876,7 +3874,6 @@ class CopasiModel_BasiCO(object):
         self.write(os.path.join(self.path, filename))
 
         return filename
-
 
     def prepare_pr_optimal_model_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0', extraArgs=''):
         """Prepare the condor jobs for the parallel scan task"""
