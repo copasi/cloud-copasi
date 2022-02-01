@@ -958,7 +958,6 @@ class ODCopasiModel_BasiCO(CopasiModel_BasiCO):
 
             if algorithm['prefix'] == 'steepest_descent':
                 set_opt_settings({'method':{'name':'Steepest Descent',
-                                            'Number of Generations': algorithm['params']['no_of_generations'],
                                             'Iteration Limit': algorithm['params']['iteration_limit'],
                                             'Tolerance': algorithm['params']['tolerance']
                                             }
