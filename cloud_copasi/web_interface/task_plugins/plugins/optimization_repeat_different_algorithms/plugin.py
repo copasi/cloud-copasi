@@ -64,7 +64,7 @@ algorithms.append({
     'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
-               ('seed', 'Seed', 0, float, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ]
 })
 algorithms.append({
@@ -74,7 +74,7 @@ algorithms.append({
                ('population_size', 'Population size', 20, int, 1, None),
                ('random_number_generator', 'Random number generator', 1, int, 0, None),
                ('seed', 'Seed', 0, float, 0, None),
-               ('pf', 'Pf', 0.475, float, 0, 1),
+               ('pf', 'Pf', 0.475, int, 0, 1),
                ]
 })
 algorithms.append({
@@ -305,6 +305,9 @@ class TaskPlugin(BaseTask):
                 submitted_algorithms.append({'prefix': algorithm['prefix'],
                                              'params': params
                                              })
+        #added by HB
+        check.debug('submitted_algorithms: ')
+        check.debug(submitted_algorithms)
 
         #If no load balancing step required:
         model_files, output_files = self.copasi_model.prepare_od_jobs(submitted_algorithms)
