@@ -646,13 +646,22 @@ class ODCopasiModel_BasiCO(CopasiModel_BasiCO):
         algorithms is a list of dicts containing the algorithm name, and another dict matching parameter names to values"""
         self._clear_tasks()
         optTask = get_opt_settings()
+        set_opt_settings({'scheduled': True,
+                      'update_model': True
+                    })
 
         #Create a new report for the or task
-        report_key = None
+        report_key = ''
         self._create_report('OR', report_key, 'auto_or_report')
 
+        if "report" not in optTask:
+        set_opt_settings({'report': {}
+                        })
+
+        assign_report('auto_or_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
+
         #extracting method information from the optimization tasks
-        method = optTask['method']
+        #method = optTask['method']
 
         output_counter = 0
         output_files = []
