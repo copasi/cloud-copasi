@@ -260,10 +260,10 @@ class TaskPlugin(BaseTask):
         self.subtasks = 2
 
         super(TaskPlugin, self).__init__(task)
-        #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
-        #self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        check.debug("+++++++++++ Running BasiCO implementation.")
-        self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
+        check.debug('~~~~~~~~~~~~ Running LXML Implementation')
+        self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        #check.debug("+++++++++++ Running BasiCO implementation.")
+        #self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
     def validate(self):
