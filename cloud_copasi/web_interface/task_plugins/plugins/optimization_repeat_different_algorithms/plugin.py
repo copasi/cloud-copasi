@@ -61,26 +61,26 @@ algorithms.append({
     'prefix': 'genetic_algorithm',
     'name': 'Genetic Algorithm',
     #params = (prefix, name, default, type, min, max)
-    'params': [('no_of_generations', 'Number of generations', 200, unsignedInteger, 1, None),
-               ('population_size', 'Population size', 20, unsignedInteger, 1, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ]
 })
 algorithms.append({
     'prefix': 'genetic_algorithm_sr',
     'name': 'Genetic Algorithm SR',
-    'params': [('no_of_generations', 'Number of generations', 200, unsignedInteger, 1, None),
-               ('population_size', 'Population size', 20, unsignedInteger, 1, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ('pf', 'Pf', 0.475, float, 0, 1),
                ]
 })
 algorithms.append({
     'prefix': 'hooke_and_jeeves',
     'name': 'Hooke & Jeeves',
-    'params': [('iteration_limit', 'Iteration limit', 50, unsignedInteger, 1, None),
+    'params': [('iteration_limit', 'Iteration limit', 50, int, 1, None),
                ('tolerance', 'Tolerance', 1e-5, float, 0, None),
                ('rho', 'Rho', 0.2, float, 0, 1),
                ]
@@ -88,7 +88,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'levenberg_marquardt',
     'name': 'Levenberg-Marquardt',
-    'params': [('iteration_limit', 'Iteration limit', 50, unsignedInteger, 1, None),
+    'params': [('iteration_limit', 'Iteration limit', 50, int, 1, None),
                ('tolerance', 'Tolerance', 1e-5, float, 0, None),
                ]
 
@@ -96,19 +96,19 @@ algorithms.append({
 algorithms.append({
     'prefix': 'evolutionary_programming',
     'name': 'Evolutionary Programming',
-    'params': [('no_of_generations', 'Number of generations', 200, unsignedInteger, 1, None),
-               ('population_size', 'Population size', 20, unsignedInteger, 1, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ]
 
 })
 algorithms.append({
     'prefix': 'random_search',
     'name': 'Random Search',
-    'params': [('no_of_iterations', 'Number of iterations', 10000, unsignedInteger, 1, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('no_of_iterations', 'Number of iterations', 10000, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
               ]
 
 
@@ -116,9 +116,9 @@ algorithms.append({
 algorithms.append({
     'prefix': 'nelder_mead',
     'name': 'Nelder-Mead',
-    'params': [('iteration_limit', 'Iteration limit', 200, unsignedInteger, 1, None),
-               ('tolerance', 'Tolerance', 1e-5, unsignedFloat, 0, None),
-               ('scale', 'Scale', 10, unsignedFloat, 0, None),
+    'params': [('iteration_limit', 'Iteration limit', 200, int, 1, None),
+               ('tolerance', 'Tolerance', 1e-5, float, 0, None),
+               ('scale', 'Scale', 10, float, 0, None),
                ]
 
 
@@ -126,11 +126,11 @@ algorithms.append({
 algorithms.append({
     'prefix': 'particle_swarm',
     'name': 'Particle Swarm',
-    'params': [('iteration_limit', 'Iteration limit', 2000, unsignedInteger, 1, None),
-               ('swarm_size', 'Swarm size', 200, unsignedInteger, 1, None),
-               ('std_deviation', 'Standard deviation', 1e-6, unsignedFloat, 0, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('iteration_limit', 'Iteration limit', 2000, int, 1, None),
+               ('swarm_size', 'Swarm size', 200, int, 1, None),
+               ('std_deviation', 'Standard deviation', 1e-6, float, 0, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ]
 
 })
@@ -148,20 +148,20 @@ algorithms.append({
 algorithms.append({
     'prefix': 'simulated_annealing',
     'name': 'Simulated Annealing',
-    'params' : [('start_temperature', 'Start temperature', 1, unsignedFloat, 0, None),
-                ('cooling_factor', 'Cooling factor', 0.85, unsignedFloat, 0, None),
-                ('tolerance', 'Tolerance', 1e-6, unsignedFloat, 0, None),
-                ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-                ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params' : [('start_temperature', 'Start temperature', 1, float, 0, None),
+                ('cooling_factor', 'Cooling factor', 0.85, float, 0, None),
+                ('tolerance', 'Tolerance', 1e-6, float, 0, None),
+                ('random_number_generator', 'Random number generator', 1, int, 0, None),
+                ('seed', 'Seed', 0, int, 0, None),
                 ]
 })
 algorithms.append({
     'prefix': 'evolution_strategy',
     'name': 'Evolution Strategy',
-    'params': [('no_of_generations', 'Number of generations', 200, unsignedInteger, 1, None),
-               ('population_size', 'Population size', 20, unsignedInteger, 1, None),
-               ('random_number_generator', 'Random number generator', 1, unsignedInteger, 0, None),
-               ('seed', 'Seed', 0, unsignedInteger, 0, None),
+    'params': [('no_of_generations', 'Number of generations', 200, int, 1, None),
+               ('population_size', 'Population size', 20, int, 1, None),
+               ('random_number_generator', 'Random number generator', 1, int, 0, None),
+               ('seed', 'Seed', 0, int, 0, None),
                ('pf', 'Pf', 0.475, float, 0, 1),
                ]
 
@@ -169,7 +169,7 @@ algorithms.append({
 algorithms.append({
     'prefix': 'steepest_descent',
     'name': 'Steepest Descent',
-    'params': [('iteration_limit', 'Iteration limit', 100, unsignedInteger, 1, None),
+    'params': [('iteration_limit', 'Iteration limit', 100, int, 1, None),
                ('tolerance', 'Tolerance', 1e-6, float, 0, None),
                ]
 
