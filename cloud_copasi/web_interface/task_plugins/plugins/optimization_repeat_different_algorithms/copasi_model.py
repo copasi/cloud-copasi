@@ -655,7 +655,7 @@ class ODCopasiModel_BasiCO(CopasiModel_BasiCO):
         self._create_report('OR', report_key, 'auto_or_report')
 
         if "report" not in optTask:
-        set_opt_settings({'report': {}
+            set_opt_settings({'report': {}
                         })
 
         assign_report('auto_or_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
