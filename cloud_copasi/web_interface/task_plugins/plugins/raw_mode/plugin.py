@@ -14,7 +14,7 @@ from django.forms import Form
 from django import forms
 from cloud_copasi import settings
 from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel
+from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel, RWCopasiModel_BasiCO
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -156,7 +156,7 @@ class TaskPlugin(BaseTask):
         output_files = self.task.get_custom_field('output_files')
         check.debug("output_files: ")
         check.debug(output_files)
-        
+
         model_count = self.task.get_custom_field('model_count')
         check.debug("model_count: ")
         check.debug(model_count)
@@ -204,7 +204,7 @@ class TaskPlugin(BaseTask):
         subtask.set_run_time(time_delta)
 
         subtask.save()
-        subtask.task.save() 
+        subtask.task.save()
 
         return subtask
 
