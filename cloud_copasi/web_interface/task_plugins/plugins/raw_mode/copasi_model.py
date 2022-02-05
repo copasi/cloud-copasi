@@ -27,6 +27,6 @@ class RWCopasiModel(CopasiModel):
 
     pass
 
-class RWCopasiModel_BasiCO(CopasiModel):
+class RWCopasiModel_BasiCO(CopasiModel_BasiCO):
 
     pass
