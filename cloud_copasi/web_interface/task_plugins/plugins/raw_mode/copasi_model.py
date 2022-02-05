@@ -26,3 +26,7 @@ xmlns = model.xmlns
 class RWCopasiModel(CopasiModel):
 
     pass
+
+class RWCopasiModel_BasiCO(CopasiModel):
+
+    pass
