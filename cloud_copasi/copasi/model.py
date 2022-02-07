@@ -3968,6 +3968,8 @@ class CopasiModel_BasiCO(object):
 
             self.write(target)
 
+        return model_files, output_files    
+
     def prepare_rw_condor_job(self, pool_type, address, repeats, raw_mode_args, data_files, output_files, rank='0'):
         """Prepare the condor jobs for the raw mode task"""
 
@@ -3990,7 +3992,7 @@ class CopasiModel_BasiCO(object):
         #Build up a string containing a comma-seperated list of data files
         input_files_string = ', '
         output_files_string = ' ,'
-        
+
         for data_file in data_files:
             input_files_string += data_file + ', '
         #And the same for the output files
