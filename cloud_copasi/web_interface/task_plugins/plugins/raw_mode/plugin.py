@@ -176,7 +176,6 @@ class TaskPlugin(BaseTask):
                 output_file.close()
                 collated_output_files.append(output_filename)
             except Exception as e:
-                check.debug("error generated here?")
                 raise e
                 pass
 
