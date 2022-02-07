@@ -107,11 +107,7 @@ class TaskPlugin(BaseTask):
 
     def process_main_subtask(self):
 
-
-
         subtask = self.get_subtask(1)
-
-
 
         #If no load balancing step required:
         model_files, output_files = self.copasi_model.prepare_rw_jobs(self.repeats)

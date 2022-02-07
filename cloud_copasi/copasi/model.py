@@ -3922,8 +3922,106 @@ class CopasiModel_BasiCO(object):
         We assume that the model file is already set up for raw mode, i.e. at least one task marked as executable, reports set etc.
         Therefore, all we need to do is, for each repeat, append the report name with an appropriate suffix so the names are unique"""
 
+        #The tasks we need to go through to append the report output
+        taskList = [
+            'Steady-State',
+            'Time-Course',
+            'Scan',
+            'Metabolic Control Analysis',
+            'Optimization',
+            'Parameter Estimation',
+            'Elementary Flux Modes',
+            'Lyapunov Exponents',
+            'Time Scale Separation Analysis',
+            'Sensitivities',
+            'Moieties',
+            'Cross Section',         #newly added tasks
+            'Linear Noise Approximation',
+            'Time-Course Sensitivities'
+            ]
+
+        task_report_targets = {} #Store the report output targets
+        #Create a new COPASI file for each repeat
+        #Keep a note of the output files we're creating
+        model_files = []
+        output_files = []
+        for i in range(repeats):
+            #For each task, if the report output is set, append it with '_i'
+            for taskName in taskList:
+                try:
+                    task = get_task_settings(taskName)
+                    if i==0:
+                        task_report_targets[taskName] = task['report']['filename']
+
+                    task['report']['filename'] = str(i) + '_' + task_report_targets[taskName]
+                    set_task_settings(taskName, task)
+
+                    if i==0:
+                        if task['scheduled'] == True:
+                            output_files.append(task_report_targets[taskName])
+                except:
+                    pass
+
+            filename = 'auto_copasi_1.%d.cps' %i
+            target = os.path.join(self.path, filename)
+            model_files.append(filename)
+
+            self.write(target)
+
     def prepare_rw_condor_job(self, pool_type, address, repeats, raw_mode_args, data_files, output_files, rank='0'):
         """Prepare the condor jobs for the raw mode task"""
+
+        #Prepare a customized condor job string
+        #Somewhat confusingly, the original string was called raw_condor_string
+        #We'll call this one raw_mode_string_with_args
+
+        #We want to substitute '$filename' to ${copasiFile}
+        args_string = Template(raw_mode_args).substitute(filename = '${copasiFile}', new_filename='run_${copasiFile}')
+
+        raw_mode_string_with_args = Template(condor_spec.raw_mode_string).safe_substitute(args=args_string)
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+        #Build up a string containing a comma-seperated list of data files
+        input_files_string = ', '
+        output_files_string = ' ,'
+        
+        for data_file in data_files:
+            input_files_string += data_file + ', '
+        #And the same for the output files
+        for output_file in output_files:
+            output_files_string += '$(Process)_' + output_file + ', '
+        input_files_string = input_files_string.rstrip(', ')
+        output_files_string = output_files_string.rstrip(', ')
+        ############
+        #Build the appropriate .job file for the raw task
+        copasi_file = 'auto_copasi_1.$(Process).cps'
+
+        condor_job_string = Template(raw_mode_string_with_args).substitute(pool_type=pool_type,
+                                                                           pool_address=address,
+                                                                           binary_dir=binary_dir,
+                                                                           transfer_executable=transfer_executable,
+                                                                           copasiFile=copasi_file,
+                                                                           otherFiles=input_files_string,
+                                                                           outputFile=output_files_string,
+                                                                           n=repeats,
+                                                                           extraArgs='',
+                                                                           rank=rank,
+                                                                           )
+
+        condor_job_filename = 'auto_condor_1.job'
+        condor_file = open(os.path.join(self.path, condor_job_filename), 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+
+        return condor_job_filename
+
 
     def prepare_sp_jobs(self, no_of_jobs, skip_load_balancing=False, custom_report=False):
         """Prepare jobs for the sigma point method"""
