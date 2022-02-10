@@ -2962,6 +2962,67 @@ class CopasiModel_BasiCO(object):
 
         This involves creating the appropriate temporary .cps files. The .job files are generated seperately"""
 
+        self._clear_tasks()
+
+        #Now, Unlike LXML implementation, no need to set the sensitivities objects at this moment
+
+        optTask = get_opt_settings()
+        #setting it scheduled to run and to update the model
+        set_opt_settings({'scheduled': True,
+                      'update_model': True
+                      })
+
+        #Set the appropriate objective function for the optimization task:
+        set_objective_function(expression='<CN=Root,Vector=TaskList[Sensitivities],Problem=Sensitivities,Array=Scaled sensitivities array[.]>')
+
+        #Create a new report for the optimization task
+        report_key = None
+        self._create_report('SO', report_key, 'auto_so_report')
+
+        if "report" not in optTask:
+            set_task_settings(T.OPTIMIZATION,
+                              {'report': {}
+                              })
+
+        set_opt_settings({'report': {'append': True,
+                                     'filename': ''}
+                      })
+
+        #assigning the report to optimization task
+        assign_report('auto_so_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
+
+        #get the list of strings to optimize
+        optimizationStrings = []
+        for parameter in self.get_optimization_parameters(friendly=False):
+            optimizationStrings.append(parameter[0])
+
+        #Build the new xml files and save them
+        i = 0
+        file_list = []
+        for optString in optimizationStrings:
+            set_opt_settings({'problem':{'Maximize':True}})
+            output = 'output_%d.%d.txt' % (subtask_index, i)
+            set_opt_settings({'report':{'filename':output}})
+
+            #Update the sensitivities object
+            set_sensitivity_settings({'cause': optString})
+
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' %(subtask_index, i))
+
+            self.write(target)
+            file_list.append(target)
+
+            set_opt_settings({'problem':{'Maximize':False}})
+            output = 'output_%d.%d.txt' % (subtask_index, i+1)
+            set_opt_settings({'report':{'filename':output}})
+
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i+1))
+            self.write(target)
+            file_list.append(target)
+            i = i + 2
+
+        return file_list
+
     def prepare_so_condor_job(self, pool_type, pool_address, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
 
