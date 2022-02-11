@@ -3059,11 +3059,69 @@ class CopasiModel_BasiCO(object):
         condor_file.write(condor_job_string)
         condor_file.close()
 
-        return condor_job_filename                                                                             
+        return condor_job_filename
 
 
     def get_so_results(self, save=False):
         """Collate the output files from a successful sensitivity optimization run. Return a list of the results"""
+        #Read through output files
+        parameters=self.get_optimization_parameters(friendly=True)
+        parameterRange = range(len(parameters))
+
+        results = []
+
+        for i in parameterRange:
+            result = {
+                'name': parameters[i][0],
+                'max_result': '?',
+                'max_evals' : '?',
+                'max_cpu' : '?',
+                'min_result' : '?',
+                'min_evals' : '?',
+                'min_cpu' : '?',
+            }
+            #Read min and max files
+            for max in [0, 1]:
+                iterator = 0
+
+                try:
+                    file = open(os.path.join(self.path, 'output_1.%d.txt' % (2*i + max)),'r')
+                    output=[None for r in range(4)]
+                    for f in file.readlines():
+                        value = f.rstrip('\n') #Read the file line by line.
+                        #Line 0: seperator. Line 1: Evals. Line 2: Time. Line 3: result
+                        index=parameterRange.index(i)
+                        output[iterator] = value
+                        iterator = (iterator + 1)%4
+                    file.close()
+                    evals = output[1].split(' ')[2]
+                    cpu_time = output[2].split(' ')[2]
+                    sens_result = output[3]
+
+                    if max == 0:
+                        max_str = 'max'
+                    else:
+                        max_str = 'min'
+                    result[max_str + '_result'] = sens_result
+                    result[max_str + '_cpu'] = cpu_time
+                    result[max_str + '_evals'] = evals
+
+                except:
+                    raise
+
+            results.append(result)
+
+        #Finally, if save==True, write these results to file results.txt
+        if save:
+            if not os.path.isfile(os.path.join(self.path, 'results.txt')):
+                results_file = open(os.path.join(self.path, 'results.txt'), 'w')
+                header_line = 'Parameter name\tMin result\tMax result\tMin CPU time\tMin Evals\tMax CPU time\tMax Evals\n'
+                results_file.write(header_line)
+                for result in results:
+                    result_line = result['name'] + '\t' + result['min_result'] + '\t' + result['max_result'] + '\t' + result['min_cpu'] + '\t' + result['min_evals'] + '\t' + result['max_cpu'] + '\t' + result['max_evals'] + '\n'
+                    results_file.write(result_line)
+                results_file.close()
+        return results    
 
     def prepare_ss_task(self, runs, repeats_per_job, subtask_index=1):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
