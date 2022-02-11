@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel
+from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -54,7 +54,9 @@ class TaskPlugin(BaseTask):
 
     def __init__(self, *args, **kwargs):
         super(TaskPlugin, self).__init__(*args, **kwargs)
-        self.copasi_model = CopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        # self.copasi_model = CopasiModel(os.path.join(self.task.directory, self.task.original_model))
+        check.debug("+++++++++++ Running BasiCO implementation.")    
+        self.copasi_model = CopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
     def validate(self):
