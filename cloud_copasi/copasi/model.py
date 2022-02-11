@@ -2819,6 +2819,10 @@ class CopasiModel_BasiCO(object):
 
     def get_sensitivities_object(self, friendly=True):
         """Returns the single object set for the sensitvities task"""
+        sensTask = get_sensitivity_settings()
+        value_string = sensTask['effect']
+
+        return value_string
 
     def _get_optimization_object(self):
         """Returns the objective expression for the optimization task"""
@@ -3121,7 +3125,7 @@ class CopasiModel_BasiCO(object):
                     result_line = result['name'] + '\t' + result['min_result'] + '\t' + result['max_result'] + '\t' + result['min_cpu'] + '\t' + result['min_evals'] + '\t' + result['max_cpu'] + '\t' + result['max_evals'] + '\n'
                     results_file.write(result_line)
                 results_file.close()
-        return results    
+        return results
 
     def prepare_ss_task(self, runs, repeats_per_job, subtask_index=1):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
