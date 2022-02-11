@@ -2729,7 +2729,16 @@ class CopasiModel_BasiCO(object):
     def is_valid(self, job_type):
         """Check if the model has been correctly set up for a particular condor-copasi task"""
         #temporarily setting this to test parallel scan task
-        if job_type == 'PS':
+        if job_type == 'SO':
+            #Check that a single object has been set for the sensitivities task:
+            if self.get_sensitivities_object() == '':
+                return 'A single object has not been set for the sensitivities task'
+            #And check that at least one parameter has been set
+            if len(self.get_optimization_parameters()) == 0:
+                return 'No parameters have been set for the optimization task'
+            return True
+
+        elif job_type == 'PS':
             firstScan = self.scan_items[0]
             item = firstScan['item']
             type = firstScan['type']
