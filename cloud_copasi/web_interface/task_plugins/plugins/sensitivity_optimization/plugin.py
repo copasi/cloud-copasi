@@ -92,7 +92,9 @@ class TaskPlugin(BaseTask):
         model_path, model_filename = os.path.split(self.task.original_model)
 
         #If no load balancing step required:
+        check.debug("initializing prepare_so_task()")
         model_files = self.copasi_model.prepare_so_task()
+        check.debug("returned back from prepare_so_task()")
 
         condor_pool = self.task.condor_pool
 
@@ -115,7 +117,8 @@ class TaskPlugin(BaseTask):
     def process_second_subtask(self):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
-
+        
+        check.debug("+++++++++++ process_second_subtask() executed")
         #subtask.start_time = now()
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
