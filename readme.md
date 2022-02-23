@@ -13,7 +13,8 @@ We host an implementation of Cloud-COPASI, which is available for use free of ch
 For those wishing to deploy their own Cloud-COPASI service, please see the [Deployment Guide](https://github.com/copasi/cloud-copasi/wiki/Deployment). This option is recommended for advanced users only and requires some tasks to be carried out by the system administrator of your web server.
 
 # About
-Cloud-COPASI was originally developed by Edward Kent in the [Mendes Group](http://www.comp-sys-bio.org) at the [University of Manchester](http://www.manchester.ac.uk), UK, and is an extension of the previous  [Condor-COPASI](https://github.com/copasi/condor-copasi) software. Cloud-COPASI has subsequently been updated by Hasan Baig and other members of the Mendes group, as well as others in the COPASI team. Cloud-COPASI is written in Python using the Django web application framework. [Bosco](http://bosco.opensciencegrid.org/) is used to connect to remote compute pools, and [HTCondor](http://research.cs.wisc.edu/htcondor/) is used to manage job allocation on EC2 pools.
+Cloud-COPASI was originally developed by Hasan Baig and  Edward Kent in the [Mendes Research Group](http://www.comp-sys-bio.org)
+and is an extension of the previous  [Condor-COPASI](https://github.com/copasi/condor-copasi) software. Cloud-COPASI has subsequently been updated by Hasan Baig and other members of the Mendes group, as well as others in the COPASI team. Cloud-COPASI is written in Python using the Django web application framework. [Bosco](http://bosco.opensciencegrid.org/) is used to connect to remote compute pools, and [HTCondor](http://research.cs.wisc.edu/htcondor/) is used to manage job allocation on EC2 pools.
 
 # License
     The files in the /html5up/ directory contain the ZeroFour HTML template
