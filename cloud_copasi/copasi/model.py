@@ -2729,7 +2729,16 @@ class CopasiModel_BasiCO(object):
     def is_valid(self, job_type):
         """Check if the model has been correctly set up for a particular condor-copasi task"""
         #temporarily setting this to test parallel scan task
-        if job_type == 'PS':
+        if job_type == 'SO':
+            #Check that a single object has been set for the sensitivities task:
+            if self.get_sensitivities_object() == '':
+                return 'A single object has not been set for the sensitivities task'
+            #And check that at least one parameter has been set
+            if len(self.get_optimization_parameters()) == 0:
+                return 'No parameters have been set for the optimization task'
+            return True
+
+        elif job_type == 'PS':
             firstScan = self.scan_items[0]
             item = firstScan['item']
             type = firstScan['type']
@@ -2819,6 +2828,10 @@ class CopasiModel_BasiCO(object):
 
     def get_sensitivities_object(self, friendly=True):
         """Returns the single object set for the sensitvities task"""
+        sensTask = get_sensitivity_settings()
+        value_string = sensTask['effect']
+
+        return value_string
 
     def _get_optimization_object(self):
         """Returns the objective expression for the optimization task"""
@@ -2873,20 +2886,15 @@ class CopasiModel_BasiCO(object):
         report_type: a string representing the job type, e.g. SO for sensitivity optimization"""
 
         report_names_list = self.listOfReports.index
-        check.debug('list of Reports: ')
-        check.debug(report_names_list)
-        # print()
 
         #removing the report if it already exists with the name report_name
         for report in report_names_list:
             if report == report_name:
-                # print(get_report_dict(report))
                 remove_report(report)
         updated_listOfReports = get_reports()
 
         if(report_type == 'SS'):
             model_name = self.get_name()
-            # print(model_name)
             objects = []
             time_object = 'Time'
             # objects.append(time_object)
@@ -2906,13 +2914,11 @@ class CopasiModel_BasiCO(object):
                            table= objects,
                            comment= 'A table of time, variable species particle numbers, variable compartment volumes, and variable global quantity values.'
                            )
-            #for checking
-            # save_model('new2.cps')
 
         elif(report_type == 'OR'):
             # table_content =
             if get_report_dict(report_name) == None:
-                print('Report does not exist. Creating one.')
+                check.debug('Report does not exist. Creating one.')
                 add_report(
                             name=report_name,
                             task=T.OPTIMIZATION,
@@ -2924,7 +2930,7 @@ class CopasiModel_BasiCO(object):
                           )
         elif report_type == 'PR':
             if get_report_dict(report_name) == None:
-                print('Report does not exist. Creating one.')
+                check.debug('Report does not exist. Creating one.')
                 add_report(
                             name=report_name,
                             task=T.PARAMETER_ESTIMATION,
@@ -2935,9 +2941,32 @@ class CopasiModel_BasiCO(object):
                                    ],
                             comment='Condor Copasi automatically generated report.'
                           )
-                #for testing purpose only. Delete it from the server version.
-                # save_model('test_pr_report.cps')
-
+        elif(report_type == 'SO'):
+            if get_report_dict(report_name) == None:
+                print('Report does not exist. Creating one.')
+                body = ['String=#----\n',
+                        'String=Evals \= ',
+                        'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Function Evaluations',
+                        'String=\nTime \= ',
+                        'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Timer=CPU Time',
+                        'String=\n',
+                        'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Best Value'
+                        ]
+                footer = ['String=#----\n',
+                          'String=Evals \= ',
+                          'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Function Evaluations',
+                          'String=\nTime \= ',
+                          'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Timer=CPU Time',
+                          'String=\n',
+                          'CN=Root,Vector=TaskList[Optimization],Problem=Optimization,Reference=Best Value'
+                         ]
+                add_report(
+                            name=report_name,
+                            task=T.OPTIMIZATION,
+                            comment='Report generated by Cloud-COPASI',
+                            body=body,
+                            footer=footer
+                          )
         else:
             raise Exception('Unknown report type')
 
@@ -2946,11 +2975,166 @@ class CopasiModel_BasiCO(object):
 
         This involves creating the appropriate temporary .cps files. The .job files are generated seperately"""
 
+        self._clear_tasks()
+
+        #Now, Unlike LXML implementation, no need to set the sensitivities objects at this moment
+
+        optTask = get_opt_settings()
+        #setting it scheduled to run and to update the model
+        set_opt_settings({'scheduled': True,
+                      'update_model': True
+                      })
+
+        #Set the appropriate objective function for the optimization task:
+        set_objective_function(expression='<CN=Root,Vector=TaskList[Sensitivities],Problem=Sensitivities,Array=Scaled sensitivities array[.]>')
+
+        #Create a new report for the optimization task
+        report_key = None
+        self._create_report('SO', report_key, 'auto_so_report')
+
+        if "report" not in optTask:
+            set_task_settings(T.OPTIMIZATION,
+                              {'report': {}
+                              })
+
+        set_opt_settings({'report': {'append': True,
+                                     'filename': ''}
+                      })
+
+        #assigning the report to optimization task
+        assign_report('auto_so_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
+
+        #get the list of strings to optimize
+        optimizationStrings = []
+        for parameter in self.get_optimization_parameters(friendly=False):
+            optimizationStrings.append(parameter[0])
+
+        #Build the new xml files and save them
+        i = 0
+        file_list = []
+        for optString in optimizationStrings:
+            set_opt_settings({'problem':{'Maximize':True}})
+            output = 'output_%d.%d.txt' % (subtask_index, i)
+            set_opt_settings({'report':{'filename':output}})
+
+            #Update the sensitivities object
+            set_sensitivity_settings({'cause': optString})
+
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' %(subtask_index, i))
+
+            self.write(target)
+            file_list.append(target)
+
+            set_opt_settings({'problem':{'Maximize':False}})
+            output = 'output_%d.%d.txt' % (subtask_index, i+1)
+            set_opt_settings({'report':{'filename':output}})
+
+            target = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i+1))
+            self.write(target)
+            file_list.append(target)
+            i = i + 2
+
+        return file_list
+
     def prepare_so_condor_job(self, pool_type, pool_address, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the sensitivity optimization task"""
+        #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
+        condor_jobs = []
+
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        n = len(self.get_optimization_parameters()) * 2
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = n,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
+
 
     def get_so_results(self, save=False):
         """Collate the output files from a successful sensitivity optimization run. Return a list of the results"""
+        #Read through output files
+        parameters=self.get_optimization_parameters(friendly=True)
+        parameterRange = range(len(parameters))
+
+        results = []
+
+        for i in parameterRange:
+            result = {
+                'name': parameters[i][0],
+                'max_result': '?',
+                'max_evals' : '?',
+                'max_cpu' : '?',
+                'min_result' : '?',
+                'min_evals' : '?',
+                'min_cpu' : '?',
+            }
+            #Read min and max files
+            for max in [0, 1]:
+                iterator = 0
+
+                try:
+                    file = open(os.path.join(self.path, 'output_1.%d.txt' % (2*i + max)),'r')
+                    output=[None for r in range(4)]
+                    for f in file.readlines():
+                        value = f.rstrip('\n') #Read the file line by line.
+                        #Line 0: seperator. Line 1: Evals. Line 2: Time. Line 3: result
+                        index=parameterRange.index(i)
+                        output[iterator] = value
+                        iterator = (iterator + 1)%4
+                    file.close()
+                    evals = output[1].split(' ')[2]
+                    cpu_time = output[2].split(' ')[2]
+                    sens_result = output[3]
+
+                    if max == 0:
+                        max_str = 'max'
+                    else:
+                        max_str = 'min'
+                    result[max_str + '_result'] = sens_result
+                    result[max_str + '_cpu'] = cpu_time
+                    result[max_str + '_evals'] = evals
+
+                except:
+                    raise
+
+            results.append(result)
+
+        #Finally, if save==True, write these results to file results.txt
+        if save:
+            if not os.path.isfile(os.path.join(self.path, 'results.txt')):
+                results_file = open(os.path.join(self.path, 'results.txt'), 'w')
+                header_line = 'Parameter name\tMin result\tMax result\tMin CPU time\tMin Evals\tMax CPU time\tMax Evals\n'
+                results_file.write(header_line)
+                for result in results:
+                    result_line = result['name'] + '\t' + result['min_result'] + '\t' + result['max_result'] + '\t' + result['min_cpu'] + '\t' + result['min_evals'] + '\t' + result['max_cpu'] + '\t' + result['max_evals'] + '\n'
+                    results_file.write(result_line)
+                results_file.close()
+        return results
 
     def prepare_ss_task(self, runs, repeats_per_job, subtask_index=1):
         """Prepares the temp copasi files needed to run n stochastic simulation runs
@@ -3968,7 +4152,7 @@ class CopasiModel_BasiCO(object):
 
             self.write(target)
 
-        return model_files, output_files    
+        return model_files, output_files
 
     def prepare_rw_condor_job(self, pool_type, address, repeats, raw_mode_args, data_files, output_files, rank='0'):
         """Prepare the condor jobs for the raw mode task"""
