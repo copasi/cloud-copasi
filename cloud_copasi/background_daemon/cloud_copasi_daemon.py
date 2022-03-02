@@ -23,22 +23,12 @@ from tools.response import RemoteLoggingResponse
 from cloud_copasi import settings
 import logging
 
-log=logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
+log = logging.getLogger("daemon")
 
 class MyDaemon(Daemon):
 
     #Set the level we wish to log at. Logs are sent back to the central server
     #Choices are all, debug, info, error, none
-
 
 
     def __init__(self, *args, **kwargs):
@@ -50,7 +40,7 @@ class MyDaemon(Daemon):
         return super(MyDaemon, self).stop(*args, **kwargs)
 
     def run(self):
-        check.debug('Daemon running')
+        log.debug('Daemon running')
 
         while True:
             min_repeat_time = settings.DAEMON_POLL_TYME #Seconds

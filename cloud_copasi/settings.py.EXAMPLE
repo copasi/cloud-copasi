@@ -221,7 +221,10 @@ LOGGING = {
     'disable_existing_loggers': True,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            #'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            #the following format is updated by HB
+            'format': '%(levelname)s %(asctime)s %(message)s',
+            'datefmt': '%m/%d/%y %I:%M:%s %p'
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
@@ -245,6 +248,14 @@ LOGGING = {
             'backupCount': 10,
             'formatter':'verbose',
         },
+        'dfile' : {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'cloud-copasi-daemon.log'),
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 10,
+            'formatter':'verbose',
+        },
     },
     'loggers': {
         'django': {
@@ -254,7 +265,12 @@ LOGGING = {
         },
         'cloud_copasi': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',            
-        }
+            'level': 'DEBUG',
+        },
+        'daemon' : {
+            'handlers': ['dfile'],
+            'level' : 'DEBUG',
+        } 
     }
 }
+

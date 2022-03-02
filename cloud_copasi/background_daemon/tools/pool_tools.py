@@ -15,27 +15,13 @@ from cloud_copasi.web_interface.pools import condor_tools
 from cloud_copasi.web_interface.email import email_tools
 import logging
 
-#log = getLogger(__name__)
-log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
+log = logging.getLogger("daemon")
 
 def refresh_all_ec2_pools():
     """Refresh all ec2 pools
     """
-    check.debug('Refreshing all EC2 pools')
+    log.debug('Refreshing all EC2 pools')
     pools = EC2Pool.objects.all() #Get all pools indiscriminately
-
-    #added by HB
-    #check.debug("@@@@@@@@@@@@@ List of pools (pool_tools.py) : ")
-    #check.debug(pools)
 
     for ec2_pool in pools:
         try:
@@ -56,7 +42,7 @@ def terminate_idle_pools():
             if running_tasks.count() == 0 and all_tasks.count() > 0:
 
                 pool_name = ec2_pool.name
-                check.debug('Terminating pool %s since no other jobs running (auto terminate)' % pool_name)
+                log.debug('Terminating pool %s since no other jobs running (auto terminate)' % pool_name)
 
                 #Prune the tasks so that they are disassociated from the pool
                 for task in all_tasks:
