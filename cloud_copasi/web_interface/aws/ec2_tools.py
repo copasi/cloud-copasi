@@ -29,7 +29,6 @@ from boto.exception import BotoServerError, EC2ResponseError
 
 log = logging.getLogger(__name__)
 
-
 def get_active_ami(ec2_connection):
     assert isinstance(ec2_connection, EC2Connection)
     return ec2_connection.get_image(ec2_config.AMI_IMAGE_ID)
