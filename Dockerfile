@@ -34,8 +34,6 @@ RUN curl -L "https://research.cs.wisc.edu/htcondor/tarball/current/${condor_vers
     tar -xzv --strip-components=1
 
 USER cloudcopasi
-# just to temporarily make sure the layers below are rebuilt when this changes
-ENV docker_build_number=3
 RUN ./condor_install --bosco
 
 WORKDIR /home/cloudcopasi
