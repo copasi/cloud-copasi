@@ -11,8 +11,8 @@ RUN apt-get update --assume-yes && \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    CONDOR_CONFIG="/home/cloudcopasi/bosco/etc/condor_config" \
-    PYTHONPATH="/home/cloudcopasi/bosco/lib/python3:/home/cloudcopasi/cloud-copasi" \
+    CONDOR_CONFIG="/home/cloudcopasi/condor/etc/condor_config" \
+    PYTHONPATH="/home/cloudcopasi/condor/lib/python3:/home/cloudcopasi/cloud-copasi" \
     DJANGO_SETTINGS_MODULE=cloud_copasi.settings
 
 RUN useradd --create-home --shell /bin/bash cloudcopasi
@@ -24,17 +24,16 @@ RUN curl -L https://github.com/copasi/COPASI/releases/download/Build-${copasi_bu
     tar -xvz --strip-components=1 && chmod +x */CopasiSE && \
     mkdir bin && ln -s ../Linux64/CopasiSE bin/CopasiSE
 
-# Get and install HTCondor Bosco (using WORKDIR just to get the added "mkdir" benefit)
-WORKDIR /condor
-ENV condor_version="9.8.0" condor_build="20220217"
+# Get and install HTCondor (using WORKDIR just to get the added "mkdir" benefit)
+WORKDIR /home/cloudcopasi/condor
+ENV condor_version="9.8.0" condor_build="20220301"
 RUN curl -L "https://research.cs.wisc.edu/htcondor/tarball/current/${condor_version}/daily/condor-${condor_version}-${condor_build}-x86_64_Ubuntu20-stripped.tar.gz" | \
-    tar -xzv --strip-components=1
-
-USER cloudcopasi
-RUN ./condor_install --bosco
-
+    tar -xzv --strip-components=1 && \
+    mkdir -p local/config.d && \
+    mkdir -p local/fs_auth && \
+    echo "FS_LOCAL_DIR=/home/cloudcopasi/condor/local/fs_auth" >> local/config.d/condor_config.local
+COPY bosco/bosco_cluster bin/bosco_cluster
 WORKDIR /home/cloudcopasi
-COPY bosco/bosco_cluster bosco/bosco_cluster
 COPY brusselator_scan_test.cps copasi/brusselator_scan_test.cps
 RUN mkdir log user-files instance_keypairs
 
