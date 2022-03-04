@@ -17,15 +17,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN useradd --create-home --shell /bin/bash cloudcopasi
 
-# Download the appropriate CopasiSE into a standard bin path.
-WORKDIR /usr/local/bin
+# Download the CopasiSE binaries.
+WORKDIR /home/cloudcopasi/copasi
 ENV copasi_version="4.34" copasi_build="251"
 RUN curl -L https://github.com/copasi/COPASI/releases/download/Build-${copasi_build}/COPASI-${copasi_version}.${copasi_build}-AllSE.tar.gz | \
-    tar -xvz --strip-components=2 "COPASI-${copasi_version}.${copasi_build}-AllSE/Linux64/CopasiSE" && chmod +x CopasiSE
-
-# The current expected location of the CopasiSE binary (Is it better to just download it here, in the first place?)
-WORKDIR /home/cloudcopasi/copasi/bin
-RUN ln -s /usr/local/bin/CopasiSE
+    tar -xvz --strip-components=1 && chmod +x */CopasiSE && \
+    mkdir bin && ln -s ../Linux64/CopasiSE bin/CopasiSE
 
 # Get and install HTCondor Bosco (using WORKDIR just to get the added "mkdir" benefit)
 WORKDIR /condor
