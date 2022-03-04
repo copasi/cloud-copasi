@@ -6,6 +6,8 @@ FROM python:3.8
 RUN apt-get update --assume-yes && \
     apt-get install --assume-yes \
     less \
+    nano \
+    vim \
     htop \
     && rm -rf /var/lib/apt/lists/*
 
