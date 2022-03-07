@@ -28,8 +28,8 @@ RUN curl -L https://github.com/copasi/COPASI/releases/download/Build-${copasi_bu
 
 # Get and install HTCondor (using WORKDIR just to get the added "mkdir" benefit)
 WORKDIR /home/cloudcopasi/condor
-ENV condor_version="9.8.0" condor_build="20220301"
-RUN curl -L "https://research.cs.wisc.edu/htcondor/tarball/current/${condor_version}/daily/condor-${condor_version}-${condor_build}-x86_64_Ubuntu20-stripped.tar.gz" | \
+ENV condor_version="9.0" # "stable" LTS version, which seems to be getting updates with critical bug fixes
+RUN curl -L "https://research.cs.wisc.edu/htcondor/tarball/${condor_version}/current/condor-x86_64_Ubuntu20-stripped.tar.gz" | \
     tar -xzv --strip-components=1
 
 WORKDIR /home/cloudcopasi
