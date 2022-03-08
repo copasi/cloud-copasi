@@ -333,8 +333,6 @@ class CopasiModel_BasiCO(object):
 
         self._clear_tasks()
 
-        #Now, Unlike LXML implementation, no need to set the sensitivities objects at this moment
-
         optTask = get_opt_settings()
         #setting it scheduled to run and to update the model
         set_opt_settings({'scheduled': True,

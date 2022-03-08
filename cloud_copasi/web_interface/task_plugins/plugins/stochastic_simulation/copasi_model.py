@@ -43,8 +43,6 @@ class SSCopasiModel_BasiCO(CopasiModel_BasiCO):
         assign_report('auto_ss_report', task=T.SCAN, append=True)
         assign_report('auto_ss_report', task=T.TIME_COURSE, append=True)
 
-        #no need to set different attributes separately as done by Ed in LXML
-
         for repeat in repeats:
             filename = os.path.join(self.path, 'load_balancing_%d.cps' %repeat) #for production
             # filename = os.path.join(os.getcwd(), 'load_balancing_%d.cps' %repeat) #for pythonHelp
