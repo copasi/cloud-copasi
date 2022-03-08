@@ -752,11 +752,6 @@ class BoscoPoolAddView(RestrictedFormView):
         ## the file is readable/writable only by the user ID creating it.
         file_handle, ssh_key_filename = tempfile.mkstemp()
 
-        #Added by HB to write the data in Permanent file and see if it works
-        #f = open("key.txt",'w')
-        #f.write(form.cleaned_data['ssh_key'])
-        #f.close()
-
 
         ssh_key_file = open(ssh_key_filename, 'w')
         ssh_key_file.write(form.cleaned_data['ssh_key'])

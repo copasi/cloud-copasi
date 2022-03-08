@@ -43,7 +43,6 @@ def run():
         pool_tools.terminate_idle_pools()
     except Exception as e:
         log.exception(e)
-        #check.exception(e)   #added by HB
 
 if __name__ == '__main__':
     run()

@@ -99,8 +99,7 @@ class BaseTask(object):
     def get_subtask(self, index):
         #Get a particular subtask by index
         subtasks = Subtask.objects.filter(task=self.task)
-        #added by HB
-        check.debug("Value of index: %d" %index)
+        
         if index == 2 or index == 3:
             check.debug("Subtask got: ")
             check.debug(subtasks)
