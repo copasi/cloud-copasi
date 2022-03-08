@@ -13,8 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel, RWCopasiModel_BasiCO
+from cloud_copasi.web_interface.task_plugins.plugins.raw_mode.copasi_model import RWCopasiModel_BasiCO
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -70,7 +69,6 @@ class TaskPlugin(BaseTask):
 
 
         super(TaskPlugin, self).__init__(task)
-        #self.copasi_model = RWCopasiModel(os.path.join(self.task.directory, self.task.original_model))
         log.debug("+++++++++++ Running BasiCO implementation.")
         log.debug("+++++++++++ self.task.directory: %s" %self.task.directory)
         log.debug("+++++++++++ self.task.original_model: %s" %self.task.original_model)

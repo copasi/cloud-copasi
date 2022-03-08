@@ -29,7 +29,7 @@ from cloud_copasi.web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
 # from . import copasi
-from cloud_copasi.copasi.model import CopasiModel
+#from cloud_copasi.copasi.model import CopasiModel
 from cloud_copasi.web_interface import task_plugins
 from cloud_copasi.web_interface.task_plugins import base, tools, plugins
 from django.forms.forms import NON_FIELD_ERRORS
@@ -157,7 +157,7 @@ class NewTaskView(RestrictedFormView):
                         os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
 
                     #added by HB for debugging raw-mode task failure
-                    log.debug("********** TRYing to Create a directory")  
+                    log.debug("********** TRYing to Create a directory")
                     os.mkdir(task_dir_path)
                     directory_created = True
 

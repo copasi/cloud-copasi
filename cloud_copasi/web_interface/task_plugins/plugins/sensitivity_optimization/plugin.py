@@ -13,7 +13,7 @@ from cloud_copasi.web_interface.models import Subtask
 from django.forms import Form
 from django import forms
 from cloud_copasi import settings
-from cloud_copasi.copasi.model import CopasiModel, CopasiModel_BasiCO
+from cloud_copasi.copasi.model import CopasiModel_BasiCO
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -54,8 +54,7 @@ class TaskPlugin(BaseTask):
 
     def __init__(self, *args, **kwargs):
         super(TaskPlugin, self).__init__(*args, **kwargs)
-        # self.copasi_model = CopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        check.debug("+++++++++++ Running BasiCO implementation.")    
+        check.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = CopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
@@ -117,7 +116,7 @@ class TaskPlugin(BaseTask):
     def process_second_subtask(self):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
-        
+
         check.debug("+++++++++++ process_second_subtask() executed")
         #subtask.start_time = now()
         #above line is modified by HB as follows
