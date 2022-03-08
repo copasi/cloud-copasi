@@ -27,8 +27,6 @@ logging.basicConfig(
 check = logging.getLogger(__name__)
 ######################################################
 
-xmlns = '{http://www.copasi.org/static/schema}'
-
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
 log =  ${copasiFile}.log
 error = ${copasiFile}.err
