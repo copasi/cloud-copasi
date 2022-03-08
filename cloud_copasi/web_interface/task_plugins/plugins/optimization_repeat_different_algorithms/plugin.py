@@ -205,7 +205,7 @@ class TaskForm(BaseTaskForm):
                 self.fields[algorithm['prefix']] = forms.BooleanField(required=False,
                                                                       label=algorithm['name'],
                                                                       widget=forms.CheckboxInput(attrs={'class':'form-group selector'}))
-                                                                                                       
+
                 for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
                     if typeof==int:
                         field_class=forms.IntegerField
@@ -259,10 +259,8 @@ class TaskPlugin(BaseTask):
         self.subtasks = 2
 
         super(TaskPlugin, self).__init__(task)
-        check.debug('~~~~~~~~~~~~ Running LXML Implementation')
-        self.copasi_model = ODCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        #check.debug("+++++++++++ Running BasiCO implementation.")
-        #self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
+        check.debug("+++++++++++ Running BasiCO implementation.")
+        self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
     def validate(self):
