@@ -1,9 +1,9 @@
 boto3==1.21.10
-copasi-basico==0.16 
+copasi-basico==0.16
 cycler==0.11.0
 Django==4.0.2
 django-extensions==3.1.5
-lxml==4.8.0 #Maybe this can go away, as we start using Basico to handle cps files?
+basico==0.16 #check the updated version
 matplotlib==3.5.1
 numpy==1.22.2
 psycopg==3.0.9
