@@ -1,6 +1,6 @@
 #-------------------------------------------------------------------------------
 # Cloud-COPASI
-# Copyright (c) 2013 Edward Kent.
+# Copyright (c) 2013-2022 Edward Kent, Hasan Baig.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the GNU Public License v3.0
 # which accompanies this distribution, and is available at
@@ -32,11 +32,11 @@ arguments = $args
 """
 
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
-log =  ${copasiFile}.log  
+log =  ${copasiFile}.log
 error = ${copasiFile}.err
 output = ${copasiFile}.out
 rank = ${rank}
-Requirements = ( Arch == "X86_64" && OpSys == "LINUX") 
+Requirements = ( Arch == "X86_64" && OpSys == "LINUX")
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_output_files = run_${copasiFile}, ${outputFile}
@@ -54,8 +54,8 @@ raw_mode_string = condor_string_header + condor_string_no_args + condor_string_b
 
 stochastic_processing_spec_string = """#Condor job
 executable = ${script}
-universe       = vanilla 
-arguments = 
+universe       = vanilla
+arguments =
 transfer_input_files = ${raw_results}
 log =  results.log
 error = results.err
@@ -69,7 +69,7 @@ queue\n"""
 
 load_balancing_spec_string = """
 executable = ${script}
-arguments = 
+arguments =
 transfer_input_files = ${copasi_files}, ${copasi_binary}
 log =  load_balancing.log
 error = load_balancing.err
