@@ -1,36 +1,87 @@
+// -------------------------------------------------------------------------------
+//  Cloud-COPASI
+//  Copyright (c) 2022 Hasan Baig, Edward Kent.
+//  All rights reserved. This program and the accompanying materials
+//  are made available under the terms of the GNU Public License v3.0
+//  which accompanies this distribution, and is available at
+//  http://www.gnu.org/licenses/gpl.html
+// -------------------------------------------------------------------------------
+
+//Query the server and get any additional fields
 //Query the server and get any additional fields
 function getExtraFormData(task_type){
     $.getJSON("{% url 'api_extra_task_fields' %}", {'task_type': task_type }, function(data){
         //Get the #formtable-extra table
+
         for (var i=0; i<data.fields.length; i++){
-            //Add a line at the top -- only if the class is not form-group or class==selector
-
             field = data.fields[i];
+            const extraFields = document.createElement("div");
+            extraFields.classList.add("form-group", "form-row", "formrow-extra")
+            console.log("Field.required: ", field.required )
+            console.log("Field.id: ", field.id )
+            console.log("Field.label: ", field.label )
+            console.log("Field.field: ", field.field )
+            console.log("Field.help_text: ", field.help_text )
+            console.log(" ------ ")
 
-            // Adding extra fields
-              $('#formtable').append('<div class="form-group form-row formrow-extra" id="forms">' +
-                '<div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3 ' + field.required +
-                '"> <label for= "' + field.id + '">' + field.label + ':</label></div>' +
+            // -------------
+            const heading = document.createElement("div")
+            heading.classList.add("col-sm-3", "col-md-3", "col-lg-3", "col-xl-3", "col-xs-3")
+            const label = document.createElement("label")
+            const id = label.htmlFor
+            label.htmlFor = field.id
+            label.innerHTML = field.label
+            heading.append(label)
 
-                '<div class="col-sm-9 col-md-9 col-lg-9 col-xl-9 col-xs-9 ">' + field.field +
+            const parameter = document.createElement("div")
+            parameter.classList.add("col-sm-9", "col-md-9", "col-lg-9", "col-xl-9", "col-xs-9")
+            parameter.innerHTML = field.field
 
-                '<div class="form-text text-muted">' + field.help_text + '</div>' +
+            const helpText = document.createElement("div")
+            helpText.classList.add("form-text", "text-muted")
+            helpText.innerHTML = field.help_text
+            parameter.append(helpText)
 
-                '</div> </div>'
+            if (field.label === "Algorithms" |
+                field.label === "Current Solution Statistics" |
+                field.label === "Genetic Algorithm" |
+                field.label === "Genetic Algorithm SR" |
+                field.label === "Hooke & Jeeves" |
+                field.label === "Lavenberg-Marquardt" |
+                field.label === "Evolutionary Programming" |
+                field.label === "Random Search" |
+                field.label === "Nelder-Mead" |
+                field.label === "Particle Swarm" |
+                field.label === "Praxis" |
+                field.label === "Truncated Newton" |
+                field.label === "Simulated Annealing" |
+                field.label === "Evolution Strategy" |
+                field.label === "Steepest Descent")
+                {
+                heading.style = "font-weight:bold"
+                }
+                else{
+                  heading.style.fontStyle = "italic"
+                }
 
-          );
-
+            extraFields.append(heading)
+            extraFields.append(parameter)
+            //
+            const formtableClass = document.querySelector("#formtable")
+            formtable.append(extraFields)
 
         }
+
         $('.formrow-extra').fadeIn('slow');
 
 
         $('#form-submit-link').fadeIn('slow');
         $('#continue-text').hide();
 
-        hide_if_not_selected();
+        // hide_if_not_selected();
     });
 }
+
 //Remove any extra fields that have been added
 function clearExtraFormData(next_task){
 
@@ -59,39 +110,6 @@ function clearExtraFormData(next_task){
 }
 
 
-function toggle(class_name)
-{
-    $('.hidden_form.' + class_name).parent().parent().fadeToggle('medium');
-
-    $('.hidden_form.' + class_name).each(
-        function()
-        {
-            row_class = $(this).parent().parent();
-            next_row = row_class.next();
-
-            console.log(next_row.find('td.bottomline').length)
-
-            if (next_row.find('td.bottomline').length > 0)
-            {
-                row = next_row;
-            }
-            else if (next_row.next().find('td.bottomline').length > 0)
-            {
-                row = next_row.next();
-            }
-            else
-            {
-                row = next_row.next().next();
-            }
-
-
-            row.fadeToggle('medium');
-        }
-    );
-
-
-
-}
 
 function hide_if_not_selected()
 {
@@ -108,7 +126,7 @@ function hide_if_not_selected()
             selector_checked = $(this).prop('checked');
             if (selector_checked != true)
             {
-                $('.hidden_form.' + class_name).parent().parent().hide();
+                $('.hidden_form.' + class_name).hide();
             }
         });
 
@@ -132,7 +150,7 @@ function hide_if_not_selected()
                 //Otherwise, add a space before the previous topline
                 else
                 {
-                    $(this).parent().parent().prev().before(' <tr class="test"><td class="bottomline" colspan="2"> </td></tr>');
+                   //$(this).parent().parent().prev().before(' <tr class="test"><td class="bottomline" colspan="2"> </td></tr>');
                 }
 
 
@@ -170,7 +188,6 @@ function select_all_selectors()
     {
         if ($(this).prop('checked') == false)
         {
-            toggle($(this).attr('name'));
             $(this).prop('checked', true);
         }
     });
@@ -181,7 +198,6 @@ function deselect_all_selectors()
     {
         if ($(this).prop('checked') == true)
         {
-            toggle($(this).attr('name'));
             $(this).prop('checked', false);
         }
     });
@@ -208,6 +224,6 @@ $(document).ready(function(){
 
     //Hide any non-selected form elements if they have class hidden-form
 
-    hide_if_not_selected();
+   // hide_if_not_selected();
 
 })

@@ -177,7 +177,7 @@ algorithms.append({
 
 class SelectButtonWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
-        return mark_safe('<input type="button" name="select_all" value="Select all" onclick="select_all_selectors();"></input><input type="button" name="select_none" value="Select none" onclick="deselect_all_selectors();"></input>')
+        return mark_safe('<input type="button" name="select_all" value="Select All" onclick="select_all_selectors();"></input><input type="button" name="select_none" value="Select None" onclick="deselect_all_selectors();"></input>')
 
 
 class SelectButtonField(forms.Field):
@@ -204,8 +204,8 @@ class TaskForm(BaseTaskForm):
             for algorithm in algorithms:
                 self.fields[algorithm['prefix']] = forms.BooleanField(required=False,
                                                                       label=algorithm['name'],
-                                                                      widget=forms.CheckboxInput(attrs={'class':'form-group selector',
-                                                                                                        'onclick': "toggle('%s')" % algorithm['prefix']}))
+                                                                      widget=forms.CheckboxInput(attrs={'class':'form-group selector'}))
+                                                                                                       
                 for prefix, name, value, typeof, minimum, maximum in algorithm['params']:
                     if typeof==int:
                         field_class=forms.IntegerField
