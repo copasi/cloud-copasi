@@ -456,6 +456,9 @@ class Task(models.Model):
     #And the full path of the directory the task files are stored in
     directory = models.CharField(blank=True, default='not_set', max_length=255)
 
+    #added for debugging raw-mode task failure
+    log.debug("********** Directory: %s" %directory)
+
     #Field for storing any task-specific fields
     #Will be stored as a string-based python pickle
     #Not the most efficient way of doing this, but these fields unlikely to be needed much

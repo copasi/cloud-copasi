@@ -156,8 +156,12 @@ class NewTaskView(RestrictedFormView):
                     if os.path.exists(task_dir_path):
                         os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
 
+                    #added by HB for debugging raw-mode task failure
+                    log.debug("********** TRYing to Create a directory")  
                     os.mkdir(task_dir_path)
                     directory_created = True
+
+                    log.debug("********** Directory Created ***********")
 
                     data_file = request.FILES[field_name]
                     filename = data_file.name
@@ -182,6 +186,7 @@ class NewTaskView(RestrictedFormView):
                         data_files_list.append(filename)
                     task.set_custom_field('data_files', data_files_list)
                 except Exception as e:
+                    log.debug("******** ERROR OCCURRED ********")
                     log.exception(e)
                     error_messages = ['An error occured while preparing the task data files',
                                        str(e),]
@@ -208,6 +213,7 @@ class NewTaskView(RestrictedFormView):
             if not directory_created:
                 #Create a directory to store the files for the task
                 #This will just be the id of the task
+                log.debug("******** Directory was not previously created")
                 task_dir = str(task.id)
                 task_dir_path = os.path.join(user_dir_path, task_dir)
 
@@ -216,9 +222,10 @@ class NewTaskView(RestrictedFormView):
 
                 os.mkdir(task_dir_path)
                 #added by HB
-                check.debug('Following directory created: %s' %task_dir_path)
+                log.debug('******** directory now created: %s' %task_dir_path)
 
             task.directory = task_dir_path
+            log.debug("******** CONFIRMATION The task.directory is: %s *********" %task.directory)
             task.save()
                     #Next we need to create the directory to store the files for the task
 
@@ -232,12 +239,13 @@ class NewTaskView(RestrictedFormView):
 
 
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
-            check.debug("---------> TaskClass:")
-            check.debug(TaskClass)
+            log.debug("---------> TaskClass:")
+            log.debug(TaskClass)
 
-            check.debug("---------> task_instance")
+            log.debug("---------> task_instance")
             task_instance = TaskClass(task)
-            check.debug(task_instance)
+            log.debug(task_instance)
+
 
         except Exception as e:
             log.exception(e)

@@ -71,7 +71,9 @@ class TaskPlugin(BaseTask):
 
         super(TaskPlugin, self).__init__(task)
         #self.copasi_model = RWCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ self.task.directory: %s" %self.task.directory)
+        log.debug("+++++++++++ self.task.original_model: %s" %self.task.original_model)
         self.copasi_model = RWCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
