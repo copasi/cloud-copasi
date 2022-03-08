@@ -139,7 +139,7 @@ class TaskPlugin(BaseTask):
         copasi_binary_dir, copasi_binary = os.path.split(settings.COPASI_LOCAL_BINARY)
 
         #write the load balancing script
-        #added by HB
+        
 
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
