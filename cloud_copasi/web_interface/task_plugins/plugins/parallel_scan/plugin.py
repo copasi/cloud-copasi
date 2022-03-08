@@ -75,9 +75,7 @@ class TaskPlugin(BaseTask):
         check.debug(self.task.directory)
         check.debug("---------> self.task.original_model")
         check.debug(self.task.original_model)
-        #check.debug('~~~~~~~~~~~~ Running LXML Implementation')
-        #self.copasi_model = PSCopasiModel(os.path.join(self.task.directory, self.task.original_model))
-        #added by HB to check basico implementation of this task
+        
         check.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
@@ -139,7 +137,7 @@ class TaskPlugin(BaseTask):
         copasi_binary_dir, copasi_binary = os.path.split(settings.COPASI_LOCAL_BINARY)
 
         #write the load balancing script
-        
+
 
         load_balacing_script_template = Template(load_balancing.load_balancing_string)
         load_balancing_script_string = load_balacing_script_template.substitute(timeout=timeout,
