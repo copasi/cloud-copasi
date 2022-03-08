@@ -7,6 +7,7 @@
 # 
 # Contributors:
 #     Edward Kent - initial API and implementation
+#     Hasan Baig - Upgrade
 #-------------------------------------------------------------------------------
 # Django settings for cloud_copasi project.
 
@@ -14,20 +15,24 @@ import os
 #The directory where the cloud-copasi source code has been installed
 CLOUD_COPASI_DIR = '/home/cloudcopasi/cloud-copasi/'
 
+TEMPLATES_DIR = os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates/')
+PLUGINS_DIR = os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/task_plugins/plugins')
+STATIC_DIR = os.path.join(TEMPLATES_DIR, 'static')
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'cloud_copasi_db',                      # Or path to database file if using sqlite3.
-        'USER': 'cloud_copasi_user',                      # Not used with sqlite3.
-        'PASSWORD': 'password',                  # Not used with sqlite3.
-        'HOST': '127.0.0.1',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',                   # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': os.environ.get('POSTGRES_NAME', default='cloud_copasi_db'),   # Or path to database file if using sqlite3.
+        'USER': os.environ.get('POSTGRES_USER', default='cloud_copasi_user'), # Not used with sqlite3.
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', default='password'),  # Not used with sqlite3.
+        'HOST': 'db',                                                         # '127.0.0.1' or '' (empty) for localhost. Not used with sqlite3.
+        'PORT': '5432',                                                       # '5432' is the PostgrSQL default (so, also could be '', here). Not used with sqlite3.
     }
 }
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '75yy5l=fo-sldgkjdfhfgmnajjja967yh_v*upck%8pn39nr--!-9y'
 
-DEBUG = True
+DEBUG = True  #Set it to FALSE for production server
 
 ALLOW_NEW_REGISTRATIONS = True
 
@@ -56,8 +61,10 @@ RECAPTCHA_PRIVATE_KEY = ''
 
 #The location of the cloud-copasi user home directory. Include the trailing slash
 HOME_DIR='/home/cloudcopasi/'
+
 #The directory where bosco is installed. Include the trailing slash
-BOSCO_DIR = '/home/cloudcopasi/bosco/'
+BOSCO_DIR = '/home/cloudcopasi/condor/'
+
 #Dictionary containing custom environment variables for bosco, e.g. PATH,
 #LD_LIBRARY_PATH etc. Generally not needed, so leave blank
 BOSCO_CUSTOM_ENV = {}
@@ -67,8 +74,8 @@ BOSCO_CUSTOM_ENV = {}
 MASTER_NODE_TYPE = 'm1.small'
 
 #Storage locations. Be sure to include the trailing slash
-STORAGE_DIR = '/home/cloudcopasi/user-files/'
-KEYPAIR_FILEPATH = '/home/cloudcopasi/instance_keypairs/'
+STORAGE_DIR = '/home/cloudcopasi/cloud-copasi/user-files/'
+KEYPAIR_FILEPATH = '/home/cloudcopasi/cloud-copasi/instance_keypairs/'
 LOG_DIR = '/home/cloudcopasi/log/'
 
 #The location of the CopasiSE binary
@@ -93,7 +100,7 @@ SITE_ID = 1 #Don't change
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'Europe/London'
+TIME_ZONE = 'America/New_York'
 USE_TZ=True
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -123,7 +130,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates/static-all/')
+STATIC_ROOT = os.path.join(TEMPLATES_DIR, 'static-all')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -134,8 +141,7 @@ STATICFILES_DIRS = [
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    os.path.join(CLOUD_COPASI_DIR, 'html5up/static'),
-    os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates/static'),
+    STATIC_DIR,
 ]
 
 # List of finder classes that know how to find static files in
@@ -161,22 +167,11 @@ ROOT_URLCONF = 'cloud_copasi.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'cloud_copasi.wsgi.application'
 
-#TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-#    os.path.join(CLOUD_COPASI_DIR, 'html5up'),
-#    os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates'),
-#    os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/task_plugins/plugins'),
-
-#)
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(CLOUD_COPASI_DIR, 'html5up'),
-                 os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates'),
-                 os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/task_plugins/plugins'),],
+        'DIRS': [TEMPLATES_DIR,
+                 PLUGINS_DIR,],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -206,7 +201,7 @@ INSTALLED_APPS = [
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
     'cloud_copasi.web_interface',
-    'cloud_copasi.django_recaptcha',
+    #'cloud_copasi.django_recaptcha',       #This app is currently not a part of CC upgraded version 2022
     'django_extensions',
 ]
 
@@ -222,7 +217,6 @@ LOGGING = {
     'formatters': {
         'verbose': {
             #'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
-            #the following format is updated by HB
             'format': '%(levelname)s %(asctime)s %(message)s',
             'datefmt': '%m/%d/%y %I:%M:%s %p'
         },
