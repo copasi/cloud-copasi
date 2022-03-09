@@ -35,16 +35,6 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('parameter_estimation_repeat', 'Parameter estimation repeat')
 
 class TaskForm(BaseTaskForm):
@@ -69,7 +59,7 @@ class TaskPlugin(BaseTask):
 
         super(TaskPlugin, self).__init__(task)
 
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PRCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
         self.repeats = self.task.get_custom_field('repeats')
         self.custom_report = self.task.get_custom_field('custom_report')
@@ -238,8 +228,8 @@ class TaskPlugin(BaseTask):
                                                                   self.data_files,
                                                                   rank='')
 
-        check.debug('Prepared copasi files %s'%model_files)
-        check.debug('Prepared condor job %s' %condor_job_file)
+        log.debug('Prepared copasi files %s'%model_files)
+        log.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -290,7 +280,7 @@ class TaskPlugin(BaseTask):
             else:
                 final_subtask_index = 3
             final_subtask = Subtask.objects.filter(task=self.task).get(index=final_subtask_index)
-            check.debug('deleting model creation subtask since no results could be identified in output')
+            log.debug('deleting model creation subtask since no results could be identified in output')
             final_subtask.delete()
         else:
             self.task.results_view = True
@@ -306,8 +296,8 @@ class TaskPlugin(BaseTask):
         #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        check.debug("Time Delta: ")
-        check.debug(time_delta)
+        log.debug("Time Delta: ")
+        log.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()

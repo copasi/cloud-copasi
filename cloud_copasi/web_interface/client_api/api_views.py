@@ -36,15 +36,6 @@ import urllib
 import datetime
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 class APIView(View):
     @method_decorator(csrf_exempt)
@@ -350,7 +341,7 @@ class CheckResourceView(APIView):
 
         user_id = int(float(request.GET['user_id']))
         user = User.objects.get(id=user_id)
-        check.debug('Checking status for user %s'%user)
+        log.debug('Checking status for user %s'%user)
 
         try:
             if not resource_management_tools.get_unrecognized_resources(user).is_empty():
@@ -426,7 +417,7 @@ class ExtraTaskFieldsView(APIView):
             json_response=json.dumps(response_data)
 
         except Exception as e:
-            check.debug(e)
+            log.debug(e)
 
         return HttpResponse(json_response, content_type="application/json", status=200)
 

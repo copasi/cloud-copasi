@@ -23,18 +23,6 @@ from cloud_copasi.web_interface.email import email_tools
 import traceback
 
 log = logging.getLogger(__name__)
-#Note: 31/7/2013, rewritten to support only local task submission with Bosco
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
-
 
 def update_tasks(user=None, task=None):
     """Examines the status of all CondorJob objects. If the status of upstream subtasks and tasks need changing, then this is done.
@@ -51,7 +39,7 @@ def update_tasks(user=None, task=None):
     for task in tasks:
         #Next, get the corresponding running subtasks
         subtasks = Subtask.objects.filter(task=task).filter(status='running')
-       
+
         for subtask in subtasks:
             jobs = CondorJob.objects.filter(subtask=subtask)
 
@@ -59,7 +47,7 @@ def update_tasks(user=None, task=None):
             errors = jobs.filter(status='E') | jobs.filter(status='H')
             if errors.count() > 0:
                 for job in errors:
-                    check.debug('@$@$@$@ Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
+                    log.debug('@$@$@$@ Job %d.%d has status %s. Marking task as errored' % (job.subtask.cluster_id, job.process_id, job.status))
                 subtask.status = 'error'
                 task.status = 'error'
                 #subtask.finish_time = now()
@@ -76,13 +64,13 @@ def update_tasks(user=None, task=None):
             finished = jobs.filter(status='F')
             if finished.count() == jobs.count():
                 #The subtask has finished!
-                check.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
+                log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                 subtask.status = 'finished'
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
                 #subtask.finish_time = now()
                 #above line is modified by HB as follows:
-                check.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
+                log.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
                 subtask.finish_time = timezone.localtime()
                 subtask.save()
 
@@ -107,7 +95,7 @@ def update_tasks(user=None, task=None):
                         #We have a new subtask to submit
                         TaskClass = tools.get_task_class(task.task_type)
                         task_instance = TaskClass(task)
-                        check.debug('Preparing new subtask %d' % (subtask.index))
+                        log.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
 
                         #If this wasn't a local subtask, submit to condor
@@ -143,7 +131,7 @@ def update_tasks(user=None, task=None):
             #the above line is modified by HB as follows:
             task.finish_time = timezone.localtime()
 
-            check.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
+            log.debug('Task %s (user %s), all subtasks finished. Marking task as finished.' % (task.name, task.user.username))
             task.set_run_time()
             task.set_job_count()
             #task.trim_condor_jobs() Don't do this, it breaks plugin functionality
@@ -173,20 +161,20 @@ def zip_up_task(task):
         #tar = tarfile.open(name=filename, mode='w:bz2')
         #tar.add(task.directory, name)
         #tar.close()
-       
-        check.debug("zip file does not exist..... creating a new one.")
+
+        log.debug("zip file does not exist..... creating a new one.")
 
         for dirpath, dirnames, filenames in os.walk(task.directory):
             filenames = filenames
             dirpath = dirpath
-            check.debug("Filenames: %s" %filenames)
-            check.debug("Dirpath: %s" %dirpath)
-        
+            log.debug("Filenames: %s" %filenames)
+            log.debug("Dirpath: %s" %dirpath)
+
         zip = zipfile.ZipFile(filename, 'w', zipfile.ZIP_DEFLATED)
 
         for file in filenames:
             zip.write(os.path.join(dirpath, file), file)
-            
+
         zip.close()
 
     return filename

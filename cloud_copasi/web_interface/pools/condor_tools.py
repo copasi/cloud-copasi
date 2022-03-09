@@ -17,15 +17,6 @@ import datetime
 from django.utils import timezone   #added by HB
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 CONDOR_Q = 'condor_q'
 CONDOR_SUBMIT = 'condor_submit'
@@ -62,9 +53,6 @@ def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #
 
     output = process.communicate()
 
-    #check.debug("============ OUTPUT: ")
-    #check.debug(output)
-
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
 
@@ -78,28 +66,28 @@ def transfer_file(slurm_partition, slurm_qos, address):
     if (slurm_qos == ''):
         slurm_qos='general'
 
-    check.debug("============ slurm inputs modified: ")
-    check.debug(slurm_partition)
-    check.debug(slurm_qos)
+    log.debug("============ slurm inputs modified: ")
+    log.debug(slurm_partition)
+    log.debug(slurm_qos)
 
-    check.debug("Address: ")
-    check.debug(address)
-    check.debug("$$$$ Current Working Directory: ")
-    check.debug(os.getcwd())
+    log.debug("Address: ")
+    log.debug(address)
+    log.debug("$$$$ Current Working Directory: ")
+    log.debug(os.getcwd())
     cwd_old = os.getcwd()
     chng_cwd = cwd_old + '/cloud-copasi/cloud_copasi/web_interface/pools'
     os.chdir(chng_cwd)
 
-    check.debug("$$$$ Changed Working Directory: ")
-    check.debug(os.getcwd())
+    log.debug("$$$$ Changed Working Directory: ")
+    log.debug(os.getcwd())
 
     command=[SCRIPT, slurm_partition, slurm_qos, address]
     process=subprocess.Popen(command,stdout=subprocess.PIPE, shell=False)
     output=process.communicate()
     os.chdir(cwd_old)
 
-    check.debug("$$$$ CWD changed back to: ")
-    check.debug(os.getcwd())
+    log.debug("$$$$ CWD changed back to: ")
+    log.debug(os.getcwd())
 
 #the last two arguments in the following function are added by HB
 def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partition=' ', slurm_qos=' '):
@@ -115,22 +103,22 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
     output = run_bosco_command(command, error=True, shell=True)
 
-    check.debug(output)
+    log.debug(output)
 
     #added by HB
-    check.debug("============ slurm inputs received: ")
-    check.debug(slurm_partition)
-    check.debug(slurm_qos)
+    log.debug("============ slurm inputs received: ")
+    log.debug(slurm_partition)
+    log.debug(slurm_qos)
 
     transfer_file(slurm_partition, slurm_qos, address)
     return output
 
 def remove_bosco_pool(address):
 
-    check.debug('Removing pool %s' %address)
+    log.debug('Removing pool %s' %address)
     output = run_bosco_command([BOSCO_CLUSTER, '--remove', address], error=True)
-    check.debug('Response:')
-    check.debug(output)
+    log.debug('Response:')
+    log.debug(output)
 
     #log.debug('Removing pool from ssh known_hosts')
     #process = subprocess.Popen(['ssh-keygen', '-R', address], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -140,20 +128,20 @@ def remove_bosco_pool(address):
     return output
 
 def test_bosco_pool(address):
-    check.debug('Testing bosco cluster %s', address)
+    log.debug('Testing bosco cluster %s', address)
 
     command = [BOSCO_CLUSTER, '--test', address]
 
     #output =  run_bosco_command(command, error=True, shell=True)
     output =  run_bosco_command(command, error=True)
 
-    check.debug('Test response:')
-    #check.debug(output)
-    check.debug(output[0])
-    check.debug('Errors:')
-    check.debug(output[1])
-    check.debug('Exit status')
-    check.debug(output[2])
+    log.debug('Test response:')
+    #log.debug(output)
+    log.debug(output[0])
+    log.debug('Errors:')
+    log.debug(output[1])
+    log.debug('Exit status')
+    log.debug(output[2])
 
     return output
 
@@ -169,7 +157,7 @@ def add_ec2_pool(ec2_pool):
     pool_type = 'condor' #Condor scheduler
     keypair = ec2_pool.key_pair.path
 
-    check.debug('Adding EC2 pool to bosco')
+    log.debug('Adding EC2 pool to bosco')
 
     output = add_bosco_pool(platform, address, keypair, pool_type)
     return output
@@ -184,7 +172,7 @@ def condor_submit(condor_file):
     (directory, filename) = os.path.split(condor_file)
 
     #added by HB
-    check.debug('submitting job to pool')
+    log.debug('submitting job to pool')
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
 
     #Get condor_process number...
@@ -312,9 +300,9 @@ def remove_task(subtask):
             return output, error, exit_status
 
         except:
-            check.debug('Error removing subtask from condor_q')
+            log.debug('Error removing subtask from condor_q')
             try:
-                check.debug('%s, %s, %s' % (output, error, exit_status))
+                log.debug('%s, %s, %s' % (output, error, exit_status))
             except:
                 pass
 
@@ -382,11 +370,11 @@ def process_condor_q(user=None, subtask=None):
 
 
     if len(condor_jobs) == 0:
-        check.debug('No jobs marked as running. Not checking condor_q')
+        log.debug('No jobs marked as running. Not checking condor_q')
         pass
 
     else:
-        #check.debug('Reading condor_q')
+        #log.debug('Reading condor_q')
         condor_q = read_condor_q()
 
 
@@ -401,7 +389,7 @@ def process_condor_q(user=None, subtask=None):
             if not in_q:
                 #If not in the queue, then the job must have finished running. Change the status accordingly
                 #TODO: At some point we need to validate the job based on the log file
-                #check.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
+                #log.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
 
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
 
@@ -409,7 +397,7 @@ def process_condor_q(user=None, subtask=None):
 
                 if condor_log.has_terminated:
                     if condor_log.termination_status == 0:
-                        check.debug('Log indicates normal termination. Checking output files exist')
+                        log.debug('Log indicates normal termination. Checking output files exist')
 
                         if job.job_output != '' and job.job_output != None:
                             output_filename = os.path.join(job.subtask.task.directory, job.job_output)
@@ -419,8 +407,8 @@ def process_condor_q(user=None, subtask=None):
                                     assert os.path.getsize(output_filename) > 0
                                     try:
                                         run_time =  condor_log.running_time_in_days
-                                        check.debug(" -*-*-*- run_time: ")
-                                        check.debug(run_time)
+                                        log.debug(" -*-*-*- run_time: ")
+                                        log.debug(run_time)
                                         job.run_time = run_time
                                         run_time_minutes = run_time * 24 * 60
                                     except:

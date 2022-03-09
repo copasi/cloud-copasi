@@ -35,16 +35,6 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('parallel_scan', 'Scan in parallel')
 
 class TaskForm(BaseTaskForm):
@@ -71,19 +61,19 @@ class TaskPlugin(BaseTask):
 
 
         #added by HB
-        check.debug("---------> self.directory")
-        check.debug(self.task.directory)
-        check.debug("---------> self.task.original_model")
-        check.debug(self.task.original_model)
+        log.debug("---------> self.directory")
+        log.debug(self.task.directory)
+        log.debug("---------> self.task.original_model")
+        log.debug(self.task.original_model)
 
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
     def validate(self):
         #TODO:Abstract this to a new COPASI class in this plugin package
         valid_result = self.copasi_model.is_valid('PS')
-        check.debug(valid_result)
+        log.debug(valid_result)
         return valid_result
 
 
@@ -190,7 +180,7 @@ class TaskPlugin(BaseTask):
 
     def process_main_subtask(self):
 
-        check.debug("======== Processing Main subtask ========")
+        log.debug("======== Processing Main subtask ========")
         #Get the correct subtask
         if self.use_load_balancing:
             subtask = self.get_subtask(2)
@@ -209,7 +199,7 @@ class TaskPlugin(BaseTask):
                     lb_repeats = int(repeats_str)
                     time = float(time_str)
                 except Exception as e:
-                    check.debug("XXXXXXXXX Raised exception")
+                    log.debug("XXXXXXXXX Raised exception")
                     log.exception(e)
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
@@ -239,7 +229,7 @@ class TaskPlugin(BaseTask):
 
     def process_results_subtask(self):
         #added by HB
-        check.debug('======== Now processing results. ========')
+        log.debug('======== Now processing results. ========')
 
         if self.use_load_balancing:
             main_subtask = self.get_subtask(2)
@@ -274,8 +264,8 @@ class TaskPlugin(BaseTask):
         #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        check.debug("---------> Time Delta: ")
-        check.debug(time_delta)
+        log.debug("---------> Time Delta: ")
+        log.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         self.task.result_view = False
@@ -300,19 +290,19 @@ class TaskPlugin(BaseTask):
             filename = os.path.join(self.task.directory, 'results.txt')
 
             #added by HB
-            check.debug("Directory: %s" %self.task.directory)
+            log.debug("Directory: %s" %self.task.directory)
 
             if not os.path.isfile(filename):
                 request.session['errors'] = [('Cannot Return Output', 'There was an internal error processing the results file')]
 
                 #added by HB
-                check.debug("@$@$@ File doesn't exist!")
+                log.debug("@$@$@ File doesn't exist!")
 
                 return HttpResponseRedirect(reverse_lazy('task_details', kwargs={'task_id':self.task.id}))
 
             result_file = open(filename, 'r')
             #added by HB
-            check.debug("@$@$@ file exist")
+            log.debug("@$@$@ file exist")
             response = HttpResponse(result_file, content_type='text/tab-separated-values')
             response['Content-Disposition'] = 'attachment; filename=%s_results.txt' % (self.task.name.replace(' ', '_'))
             response['Content-Length'] = os.path.getsize(filename)

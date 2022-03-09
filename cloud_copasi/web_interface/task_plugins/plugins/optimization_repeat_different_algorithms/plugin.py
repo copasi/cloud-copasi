@@ -259,7 +259,7 @@ class TaskPlugin(BaseTask):
         self.subtasks = 2
 
         super(TaskPlugin, self).__init__(task)
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = ODCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
@@ -303,8 +303,8 @@ class TaskPlugin(BaseTask):
                                              'params': params
                                              })
         #added by HB
-        check.debug('submitted_algorithms: ')
-        check.debug(submitted_algorithms)
+        log.debug('submitted_algorithms: ')
+        log.debug(submitted_algorithms)
 
         #If no load balancing step required:
         model_files, output_files = self.copasi_model.prepare_od_jobs(submitted_algorithms)
@@ -316,8 +316,8 @@ class TaskPlugin(BaseTask):
                                                                   len(model_files),
                                                                   rank='')
 
-        check.debug('Prepared copasi files %s'%model_files)
-        check.debug('Prepared condor job %s' %condor_job_file)
+        log.debug('Prepared copasi files %s'%model_files)
+        log.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -365,8 +365,8 @@ class TaskPlugin(BaseTask):
 
         time_delta = temp_finish_time - temp_start_time
 
-        check.debug("Time Delta: ")
-        check.debug(time_delta)
+        log.debug("Time Delta: ")
+        log.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()

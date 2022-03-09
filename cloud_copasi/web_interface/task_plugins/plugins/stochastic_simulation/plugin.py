@@ -38,16 +38,6 @@ import matplotlib.pyplot as plt
 import io #added by HB
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('stochastic_simulation', 'Stochastic simulation')
 
 
@@ -72,7 +62,7 @@ class TaskPlugin(BaseTask):
             task.save()
 
         super(TaskPlugin, self).__init__(task)
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = SSCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
         self.repeats = self.task.get_custom_field('repeats')
@@ -224,8 +214,8 @@ class TaskPlugin(BaseTask):
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address,
                                                                   len(model_files), subtask.index, rank='')
 
-        check.debug('Prepared copasi files %s' % model_files)
-        check.debug('Prepared condor job %s' % condor_job_file)
+        log.debug('Prepared copasi files %s' % model_files)
+        log.debug('Prepared condor job %s' % condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)

@@ -36,16 +36,6 @@ import matplotlib.pyplot as plt
 import io #added by HB
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('raw_mode', 'Raw mode')
 
 class TaskForm(BaseTaskForm):
@@ -122,8 +112,8 @@ class TaskPlugin(BaseTask):
 
         condor_job_file = self.copasi_model.prepare_rw_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), self.raw_mode_args, self.data_files, output_files, rank='0')
 
-        check.debug('Prepared copasi files %s'%model_files)
-        check.debug('Prepared condor job %s' %condor_job_file)
+        log.debug('Prepared copasi files %s'%model_files)
+        log.debug('Prepared condor job %s' %condor_job_file)
 
 
 
@@ -143,9 +133,9 @@ class TaskPlugin(BaseTask):
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
         #added by HB
-        check.debug("============== temp_start_time: ")
-        check.debug(subtask.start_time)
-        check.debug(temp_start_time)
+        log.debug("============== temp_start_time: ")
+        log.debug(subtask.start_time)
+        log.debug(temp_start_time)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
@@ -153,20 +143,20 @@ class TaskPlugin(BaseTask):
 
 
         output_files = self.task.get_custom_field('output_files')
-        check.debug("output_files: ")
-        check.debug(output_files)
+        log.debug("output_files: ")
+        log.debug(output_files)
 
         model_count = self.task.get_custom_field('model_count')
-        check.debug("model_count: ")
-        check.debug(model_count)
+        log.debug("model_count: ")
+        log.debug(model_count)
 
         collated_output_files = []
         #Collate the output files back into their original name
         for output_filename in output_files:
             try:
                 output_file = open(os.path.join(directory, output_filename), 'w')
-                check.debug(" ---------- output_file")
-                check.debug(output_file)
+                log.debug(" ---------- output_file")
+                log.debug(output_file)
 
                 for partial_output in ['%d_%s' % (i, output_filename) for i in range(model_count)]:
                     partial_output_file = open(os.path.join(directory, partial_output), 'r')
@@ -192,13 +182,13 @@ class TaskPlugin(BaseTask):
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
         #added by HB
-        check.debug("============== temp_finish_time: ")
-        check.debug(temp_finish_time)
+        log.debug("============== temp_finish_time: ")
+        log.debug(temp_finish_time)
 
         time_delta = temp_finish_time - temp_start_time
 
-        check.debug("Time Delta: ")
-        check.debug(time_delta)
+        log.debug("Time Delta: ")
+        log.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()

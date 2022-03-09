@@ -17,15 +17,6 @@ from string import Template
 import logging
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
 log =  ${copasiFile}.log
@@ -51,19 +42,19 @@ def get_time_per_job(job):
 class CopasiModel_BasiCO(object):
     """Class representing a Copasi model using BasiCO library"""
     def __init__(self, filename, binary=settings.COPASI_LOCAL_BINARY, binary_dir=None, job=None):
-        check.debug('in __init__ method of CopasiModel_BasiCO class')
+        log.debug('in __init__ method of CopasiModel_BasiCO class')
         if binary_dir == None:
             binary_dir, binary_path = os.path.split(settings.COPASI_LOCAL_BINARY)
 
         #loading the copasi model file using BasiCO
-        check.debug('Model File: %s' %filename)
+        log.debug('Model File: %s' %filename)
         self.model = load_model(filename)
         self.scan_settings = get_scan_settings()
         self.scan_items = get_scan_items()
         self.listOfReports = get_reports()
         self.metabolites = get_species()
-        check.debug('List of species: ')
-        check.debug(self.metabolites)
+        log.debug('List of species: ')
+        log.debug(self.metabolites)
         self.timeTask = get_task_settings(T.TIME_COURSE)
 
         self.binary = binary
@@ -255,15 +246,15 @@ class CopasiModel_BasiCO(object):
             time_object = 'Time'
             # objects.append(time_object)
             objects = self.get_variables()
-            check.debug("Objects list before inserting time_object:")
-            check.debug(objects)
+            log.debug("Objects list before inserting time_object:")
+            log.debug(objects)
             objects.insert(0, time_object)
-            check.debug("Objects list AFTER inserting time_object:")
-            check.debug(objects)
+            log.debug("Objects list AFTER inserting time_object:")
+            log.debug(objects)
 
             #to avoid having error of "report already exist", create report only if it does not exist
             if get_report_dict(report_name) == None:
-                check.debug("Report does not already exist. So creating it now.")
+                log.debug("Report does not already exist. So creating it now.")
                 add_report(key=report_key,
                            name=report_name,
                            task=T.TIME_COURSE,
@@ -274,7 +265,7 @@ class CopasiModel_BasiCO(object):
         elif(report_type == 'OR'):
             # table_content =
             if get_report_dict(report_name) == None:
-                check.debug('Report does not exist. Creating one.')
+                log.debug('Report does not exist. Creating one.')
                 add_report(
                             name=report_name,
                             task=T.OPTIMIZATION,
@@ -286,7 +277,7 @@ class CopasiModel_BasiCO(object):
                           )
         elif report_type == 'PR':
             if get_report_dict(report_name) == None:
-                check.debug('Report does not exist. Creating one.')
+                log.debug('Report does not exist. Creating one.')
                 add_report(
                             name=report_name,
                             task=T.PARAMETER_ESTIMATION,
@@ -496,7 +487,7 @@ class CopasiModel_BasiCO(object):
         """
         #Create a new report for the ss task
         #report_key is not needed in basico because we cannot change the reference/key in basico. Use direct assignment of report to the relevant tasks
-        check.debug("+++++++++++ BasiCO prepare_ss_task runnnig")
+        log.debug("+++++++++++ BasiCO prepare_ss_task runnnig")
         report_key = 'condor_copasi_stochastic_simulation_report'
         self._create_report('SS', report_key, 'auto_ss_report')
 
@@ -563,7 +554,7 @@ class CopasiModel_BasiCO(object):
 
     def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the relevant task"""
-        check.debug("+++++++++++ BasiCO prepare_ss_condor_job runnnig")
+        log.debug("+++++++++++ BasiCO prepare_ss_condor_job runnnig")
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
         condor_jobs = []
 
@@ -1339,7 +1330,7 @@ class CopasiModel_BasiCO(object):
         self._clear_tasks()
 
         task_settings = get_task_settings(T.PARAMETER_ESTIMATION)
-        check.debug(task_settings)
+        log.debug(task_settings)
 
         if not custom_report:
             #Create a new report for the or task
@@ -1369,17 +1360,17 @@ class CopasiModel_BasiCO(object):
 
         #Step 2 - go through the parameter fitting task, and update the parameter start values
         best_parameter_values = self.get_pr_best_value()
-        check.debug("Best parameter values: ")
-        check.debug(best_parameter_values)
+        log.debug("Best parameter values: ")
+        log.debug(best_parameter_values)
 
         #checking if optimizaiton item list is present
         if len(get_fit_parameters()) != 0:
-            check.debug("Optimization item list is not empty.")
+            log.debug("Optimization item list is not empty.")
             fit_parameters = get_fit_parameters()       #extracting fit parameters
             start = fit_parameters.to_dict()['start']   #extracting start column values
             set_fit_param = True
         else:
-            check.debug("Optimization item list empty.")
+            log.debug("Optimization item list empty.")
             set_fit_param = False
 
         #In results.txt, Index 0 = best value, 1 = CPU time, 2 = Function Evals, 3...n+3 = parameter values

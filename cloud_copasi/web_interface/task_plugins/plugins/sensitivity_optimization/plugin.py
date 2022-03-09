@@ -31,16 +31,6 @@ import matplotlib.pyplot as plt
 import io   #added by HB
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('sensitivity_optimization', 'Sensitivity optimization')
 
 class TaskForm(BaseTaskForm):
@@ -54,7 +44,7 @@ class TaskPlugin(BaseTask):
 
     def __init__(self, *args, **kwargs):
         super(TaskPlugin, self).__init__(*args, **kwargs)
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = CopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
 
@@ -91,16 +81,16 @@ class TaskPlugin(BaseTask):
         model_path, model_filename = os.path.split(self.task.original_model)
 
         #If no load balancing step required:
-        check.debug("initializing prepare_so_task()")
+        log.debug("initializing prepare_so_task()")
         model_files = self.copasi_model.prepare_so_task()
-        check.debug("returned back from prepare_so_task()")
+        log.debug("returned back from prepare_so_task()")
 
         condor_pool = self.task.condor_pool
 
         condor_job_file = self.copasi_model.prepare_so_condor_job(condor_pool.pool_type, condor_pool.address, subtask_index=1, rank='')
 
-        check.debug('Prepared copasi files %s'%model_files)
-        check.debug('Prepared condor job %s' %condor_job_file)
+        log.debug('Prepared copasi files %s'%model_files)
+        log.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -117,7 +107,7 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
         assert isinstance(subtask, Subtask)
 
-        check.debug("+++++++++++ process_second_subtask() executed")
+        log.debug("+++++++++++ process_second_subtask() executed")
         #subtask.start_time = now()
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
@@ -136,14 +126,14 @@ class TaskPlugin(BaseTask):
 
         subtask.task.set_custom_field('results_file', 'results.txt')
 
-        check.debug('Setting subtask as finished')
+        log.debug('Setting subtask as finished')
         subtask.status = 'finished'
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
 
         time_delta = temp_finish_time - temp_start_time
-        check.debug("Time Delta: ")
-        check.debug(time_delta)
+        log.debug("Time Delta: ")
+        log.debug(time_delta)
 
         subtask.save()
 
@@ -286,7 +276,7 @@ class TaskPlugin(BaseTask):
             #Check if we're plotting a min or a max. Min will be all even numbers, max all odd
             file_index = int(math.floor(i/2))
             filename = os.path.join(self.task.directory, jobs.get(process_id=i).job_output)
-            check.debug("filename: %s"%filename)
+            log.debug("filename: %s"%filename)
             all_evals=[]
             all_values=[]
             linenumber=0

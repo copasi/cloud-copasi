@@ -12,15 +12,6 @@ from cloud_copasi.web_interface.task_plugins import plugins as task_plugins
 import logging
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 #Get a list of the subpackages in the module path
 #Must contain plugin.py
@@ -35,8 +26,8 @@ def get_subpackages(path):
 #Go through the list of packages and get the task_type tuple
 def get_task_types(subpackages=None):
     if not subpackages:
-        check.debug('get_task_types() in tools.py -------|')
-        check.debug(task_plugins.__path__)
+        log.debug('get_task_types() in tools.py -------|')
+        log.debug(task_plugins.__path__)
         subpackages = get_subpackages(task_plugins.__path__)
 
     output = []

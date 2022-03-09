@@ -67,7 +67,7 @@ class TaskPlugin(BaseTask):
 
         super(TaskPlugin, self).__init__(task)
 
-        check.debug("+++++++++++ Running BasiCO implementation.")
+        log.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = ORCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
         self.repeats = self.task.get_custom_field('repeats')
         repeats = self.repeats
@@ -227,8 +227,8 @@ class TaskPlugin(BaseTask):
                                                                   subtask.index,
                                                                   rank='')
 
-        check.debug('Prepared copasi files %s'%model_files)
-        check.debug('Prepared condor job %s' %condor_job_file)
+        log.debug('Prepared copasi files %s'%model_files)
+        log.debug('Prepared condor job %s' %condor_job_file)
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
@@ -275,8 +275,8 @@ class TaskPlugin(BaseTask):
 
         time_delta = temp_finish_time - temp_start_time
 
-        check.debug("Time Delta: ")
-        check.debug(time_delta)
+        log.debug("Time Delta: ")
+        log.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()

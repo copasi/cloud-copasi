@@ -19,15 +19,6 @@ import logging
 
 #log = getLogger(__name__)
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 message_header = """Dear %s,
 
@@ -50,7 +41,7 @@ def send_message(user, notify_type, subject, message_body):
     #And check we have an email address set for the user
     if user.email == None or user.email == '':
         return
-    check.debug('Sending email ++')
+    log.debug('Sending email ++')
     if user.first_name:
         name = user.first_name
     else:

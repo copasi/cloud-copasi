@@ -15,15 +15,6 @@ import itertools
 import logging
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 #===============================================================================
 # Base task plugin structure
@@ -99,10 +90,10 @@ class BaseTask(object):
     def get_subtask(self, index):
         #Get a particular subtask by index
         subtasks = Subtask.objects.filter(task=self.task)
-        
+
         if index == 2 or index == 3:
-            check.debug("Subtask got: ")
-            check.debug(subtasks)
+            log.debug("Subtask got: ")
+            log.debug(subtasks)
 
         return subtasks.get(index=index)
 
@@ -114,9 +105,9 @@ class BaseTask(object):
     def get_template_name(self, name):
         """Return the full path of the template with given name
         """
-        check.debug("task_type: ")
-        check.debug(self.task.task_type)
-        check.debug("name: %s" %name)
+        log.debug("task_type: ")
+        log.debug(self.task.task_type)
+        log.debug("name: %s" %name)
         return '%s/%s.html' % (self.task.task_type, name)
 
     def get_results_view_template_name(self, request):

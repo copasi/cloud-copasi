@@ -43,15 +43,6 @@ import json
 
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_newN.html'
@@ -100,7 +91,7 @@ class NewTaskView(RestrictedFormView):
         assert isinstance(compute_pool, CondorPool)
         assert compute_pool.user == request.user
 
-        check.debug('@ 6a. Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
+        log.debug('@ 6a. Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
 
         ########################################################################
         #Process the uploaded copasi file (and other files?)
@@ -109,7 +100,7 @@ class NewTaskView(RestrictedFormView):
         #Handle uploaded files...
         #Ensure the directory we're adding the file to exists
         if not os.path.exists(settings.STORAGE_DIR):
-            check.debug("directory did not exist... creating one now...")
+            log.debug("directory did not exist... creating one now...")
             os.mkdir(settings.STORAGE_DIR)
 
         #And the directory for the user
@@ -122,7 +113,7 @@ class NewTaskView(RestrictedFormView):
 
         task = Task()
         task.name = form.cleaned_data['name']
-        check.debug("task.name: %s"%task.name)
+        log.debug("task.name: %s"%task.name)
         task.condor_pool = form.cleaned_data['compute_pool']
         task.user = request.user
         task.task_type = form.cleaned_data['task_type']
@@ -280,11 +271,11 @@ class NewTaskView(RestrictedFormView):
 
         try:
             #added by HB
-            check.debug("calling initialize_subtasks() method ")
+            log.debug("calling initialize_subtasks() method ")
             task_instance.initialize_subtasks()
             subtask = task_instance.prepare_subtask(1)
             condor_tools.submit_task(subtask)
-            check.debug("------> (task_views.py) condor job submitted")
+            log.debug("------> (task_views.py) condor job submitted")
 
             task.status = 'running'
             task.save()
@@ -378,8 +369,8 @@ class TaskDetailsView(RestrictedView):
             #Try and determine the cause of the error
             kwargs['was_submitted'] = (CondorJob.objects.filter(subtask__task=task).count() > 0)
             kwargs['error_message'] = task.get_custom_field('error')
-            check.debug("----------> error_message: ")
-            check.debug(task.get_custom_field('error'))
+            log.debug("----------> error_message: ")
+            log.debug(task.get_custom_field('error'))
             check.exception("******** more details: ")
         return super(TaskDetailsView, self).dispatch(request, *args, **kwargs)
 

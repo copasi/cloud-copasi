@@ -23,7 +23,7 @@ class PSCopasiModel_BasiCO(CopasiModel_BasiCO):
 
     def prepare_ps_load_balancing(self, repeats=None):
 
-        check.debug("Entered into prepare_ps_load_balancing method.")
+        log.debug("Entered into prepare_ps_load_balancing method.")
 
         if not repeats:
             repeats = [1, 10, 100, 1000]

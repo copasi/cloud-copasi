@@ -1,4 +1,5 @@
 #!/bin/bash
+# Hasan Baig
 
 SAMPLE_FILENAME='sample_slurm_submit.sh'
 FILE_TO_TRANSFER='slurm_submit.sh'
@@ -11,7 +12,7 @@ NEW_QSTRING=$2
 
 REMOTE_HOST=$3
 
-cp $SAMPLE_FILENAME $FILE_TO_TRANSFER 
+cp $SAMPLE_FILENAME $FILE_TO_TRANSFER
 sed -i "s/${ORIGINAL_PSTRING}/${NEW_PSTRING}/;s/${ORIGINAL_QSTRING}/${NEW_QSTRING}/" $FILE_TO_TRANSFER
 scp $FILE_TO_TRANSFER $REMOTE_HOST:bosco/glite/bin/
 

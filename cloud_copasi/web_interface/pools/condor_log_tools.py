@@ -11,15 +11,6 @@ import re, datetime
 import logging
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 class Log:
     """Class for reading and processing condor log files using regex patterns"""
@@ -131,16 +122,16 @@ class Log:
                 minute = int(g('minute'))
                 second = int(g('second'))
 
-                check.debug("**** termination_match: day=%d, month=%d, hour=%d, minute=%d, second=%d" %(day, month, hour, minute, second))
+                log.debug("**** termination_match: day=%d, month=%d, hour=%d, minute=%d, second=%d" %(day, month, hour, minute, second))
 
                 #Again, guess the year
                 year=datetime.datetime.today().year
-                check.debug("**** guessing the year: ")
-                check.debug(year)
+                log.debug("**** guessing the year: ")
+                log.debug(year)
 
-                check.debug("**** guessing the termination_time: ")
+                log.debug("**** guessing the termination_time: ")
                 self.termination_time = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
-                check.debug(self.termination_time)
+                log.debug(self.termination_time)
 
 
             #For some reason, the remote usage time sometimes appears as zero. In this case, set running time as follows:

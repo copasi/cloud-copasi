@@ -18,8 +18,7 @@ class ORCopasiModel_BasiCO(CopasiModel_BasiCO):
     """ Implementation using BasiCO library"""
 
     def prepare_or_load_balancing(self, repeats=None):
-        # check.debug("+++++++++++ Entered into prepare_ps_load_balancing method.")
-
+        
         if not repeats:
             repeats = [1, 10, 100, 1000]
 

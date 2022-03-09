@@ -28,15 +28,6 @@ import logging
 
 
 log = logging.getLogger(__name__)
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
 
 PLATFORM_CHOICES = (
     ('DEB6', 'Debian 6'),
@@ -721,24 +712,24 @@ class Subtask(models.Model):
 
     def set_run_time(self, time_delta=None):
         if not time_delta:
-            check.debug("Entered in set_run_time: ")
-            check.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")             
+            log.debug("Entered in set_run_time: ")
+            log.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")
 
-            check.debug("time_delta: ")
-            check.debug(time_delta)
+            log.debug("time_delta: ")
+            log.debug(time_delta)
 
             self.run_time = self.get_run_time()
-            check.debug("self.run_time")
-            check.debug(self.run_time)
+            log.debug("self.run_time")
+            log.debug(self.run_time)
 
         else:
             assert isinstance(time_delta, datetime.timedelta)
-            check.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
-            check.debug(time_delta)
+            log.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
+            log.debug(time_delta)
             #Calculate run time in days
             self.run_time = time_delta.days + (float(time_delta.seconds) / 86400.00)
-            check.debug("self.run_time")
-            check.debug(self.run_time)
+            log.debug("self.run_time")
+            log.debug(self.run_time)
         self.save()
 
     def get_run_time_timedelta(self): return datetime.timedelta(days=self.get_run_time())
