@@ -47,7 +47,7 @@ RUN mkdir log user-files instance_keypairs
 # Copy over the relevant webserver stuff.
 RUN mkdir /home/cloudcopasi/cloud-copasi
 WORKDIR /home/cloudcopasi/cloud-copasi
-COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py requirements.txt ./
+COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py requirements.txt cloud-copasi-daemon.sh ./
 COPY --chown=cloudcopasi:cloudcopasi client_scripts client_scripts
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
 
@@ -57,3 +57,6 @@ RUN python3 -m pip install --upgrade pip && \
     pip install -r requirements.txt
 USER cloudcopasi
 WORKDIR /home/cloudcopasi
+
+CMD ./cloud-copasi/cloud-copasi-daemon.sh
+
