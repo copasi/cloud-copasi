@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 
 import os, glob, sys, importlib
-from cloud_copasi.web_interface.task_plugins import plugins as task_plugins
+from web_interface.task_plugins import plugins as task_plugins
 import logging
 
 log = logging.getLogger(__name__)

@@ -10,7 +10,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # Create your models here.
 from django.core.validators import RegexValidator, MinValueValidator
-from cloud_copasi.web_interface.aws import aws_tools, ec2_config
+from web_interface.aws import aws_tools, ec2_config
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
 import sys, os, random, string
@@ -18,11 +18,11 @@ from cloud_copasi import copasi
 import pickle
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
-from cloud_copasi.web_interface.fields import UUIDField
+from web_interface.fields import UUIDField
 import json
 import datetime
 import shutil
-from cloud_copasi.web_interface.task_plugins import tools
+from web_interface.task_plugins import tools
 
 import logging
 

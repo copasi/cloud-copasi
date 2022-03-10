@@ -7,19 +7,19 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 import json, os, sys
-from cloud_copasi.web_interface.models import Task, CondorJob, Subtask
-from cloud_copasi.web_interface.aws import aws_tools
+from web_interface.models import Task, CondorJob, Subtask
+from web_interface.aws import aws_tools
 from boto.sqs.message import Message
-from cloud_copasi.web_interface.task_plugins import tools
+from web_interface.task_plugins import tools
 import logging
-from cloud_copasi.web_interface.pools import condor_tools
+from web_interface.pools import condor_tools
 #import tarfile
 import zipfile #added by HB
 
 import datetime
 from django.utils import timezone   #added by HB
 from django.utils.timezone import now
-from cloud_copasi.web_interface.email import email_tools
+from web_interface.email import email_tools
 import traceback
 
 log = logging.getLogger(__name__)

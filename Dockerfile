@@ -11,14 +11,20 @@ RUN apt-get update --assume-yes && \
     htop \
     && rm -rf /var/lib/apt/lists/*
 
+RUN useradd --create-home --shell /bin/bash cloudcopasi
+COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
+
+# Install the Python dependencies.
+RUN python3 -m pip install --upgrade pip && \
+    pip install -r /home/cloudcopasi/requirements.txt
+
+USER cloudcopasi
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     CONDOR_CONFIG="/home/cloudcopasi/condor/etc/condor_config" \
     PYTHONPATH="/home/cloudcopasi/condor/lib/python3:/home/cloudcopasi/cloud-copasi" \
     DJANGO_SETTINGS_MODULE=cloud_copasi.settings
-
-RUN useradd --create-home --shell /bin/bash cloudcopasi
-USER cloudcopasi
 
 # Download the CopasiSE binaries.
 RUN mkdir /home/cloudcopasi/copasi
@@ -47,16 +53,17 @@ RUN mkdir log user-files instance_keypairs
 # Copy over the relevant webserver stuff.
 RUN mkdir /home/cloudcopasi/cloud-copasi
 WORKDIR /home/cloudcopasi/cloud-copasi
-COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py requirements.txt cloud-copasi-daemon.sh ./
+COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py cloud-copasi-daemon.sh ./
 COPY --chown=cloudcopasi:cloudcopasi client_scripts client_scripts
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
+COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface
+COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings.py.EXAMPLE cloud_copasi/settings.py
 
-# Install the Python dependencies.
-USER root
-RUN python3 -m pip install --upgrade pip && \
-    pip install -r requirements.txt
-USER cloudcopasi
-WORKDIR /home/cloudcopasi
+# Set up Django
+RUN python manage.py migrate
+#RUN python manage.py collectstatic
 
-CMD ./cloud-copasi/cloud-copasi-daemon.sh
+#WORKDIR /home/cloudcopasi
+
+#CMD ./cloud-copasi/cloud-copasi-daemon.sh
 

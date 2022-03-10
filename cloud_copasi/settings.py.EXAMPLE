@@ -200,7 +200,8 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
-    'cloud_copasi.web_interface',
+    #'cloud_copasi.web_interface',
+    'web_interface.apps.WebInterfaceConfig',
     #'cloud_copasi.django_recaptcha',       #This app is currently not a part of CC upgraded version 2022
     'django_extensions',
 ]

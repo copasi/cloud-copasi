@@ -23,8 +23,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 #===============================================================================
-from django.utils.translation import ugettext as _
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 
 # Nicely titled (and translatable) country names.
