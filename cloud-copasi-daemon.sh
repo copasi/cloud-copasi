@@ -20,14 +20,8 @@ if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.p
 fi
 python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
 
-# Start the server
-python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000 &
-
 # Start the daemon
-python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"
+python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py start #"$@"
 
-# Wait for any process to exit
-wait -n
-
-# Exit with status of process that exited first
-exit $?
+# Start the server
+python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000
