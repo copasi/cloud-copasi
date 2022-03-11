@@ -10,8 +10,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
   web:
-    build: .
-    command: /home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh start
+    image: ghcr.io/copasi/cloud-copasi:latest
+    command: /home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh
     volumes:
       - .:/code
     ports:
@@ -22,5 +22,3 @@ services:
       - POSTGRES_PASSWORD=postgres
     depends_on:
       - db
-
-
