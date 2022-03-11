@@ -12,6 +12,13 @@ RUN apt-get update --assume-yes && \
     htop \
     && rm -rf /var/lib/apt/lists/*
 
+# Add Tini to deal with all the orphaned processes cloud-copasi-daemon.sh
+# seems to be creating.
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+ENTRYPOINT ["/tini", "--"]
+
 RUN useradd --create-home --shell /bin/bash cloudcopasi
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
 
