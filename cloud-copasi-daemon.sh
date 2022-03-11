@@ -14,6 +14,10 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-'cloud_copasi.settings'}
 condor_master &
 
 # Run any migrations to update models and/or schema
+if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.py ]
+  then
+    python /home/cloudcopasi/cloud-copasi/manage.py makemigrations /home/cloudcopasi/cloud-copasi/web_interface
+fi
 python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
 
 # Start the server
