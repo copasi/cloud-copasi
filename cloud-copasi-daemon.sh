@@ -13,11 +13,8 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-'cloud_copasi.settings'}
 . /home/cloudcopasi/condor/condor.sh &&
 condor_master &
 
-# Make sure the db is up
-until PGPASSWORD=$POSTGRES_PASSWORD psql -h "$HOST" -U "$POSTGRES_USER" -c '\q'; do
-  >&2 echo "Postgres is unavailable - sleeping"
-  sleep 1
-done
+# temporary "fix" to mitigate db not being up before the webapp needs it
+sleep 18 &&
 
 # Run any migrations to update models and/or schema
 if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.py ]
