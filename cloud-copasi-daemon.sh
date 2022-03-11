@@ -21,6 +21,10 @@ if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.p
   then
     python /home/cloudcopasi/cloud-copasi/manage.py makemigrations /home/cloudcopasi/cloud-copasi/web_interface
 fi
+
+# Do we also have to wait for the db tables to be made?
+sleep 18 &&
+
 python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
 
 # Start the daemon
