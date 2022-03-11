@@ -10,8 +10,14 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-'cloud_copasi.settings'}
 [ -d 'venv' ] && source venv/bin/activate
 
 # Start condor
-. /home/cloudcopasi/condor/condor.sh &
+. /home/cloudcopasi/condor/condor.sh &&
 condor_master &
+
+# Run any migrations to update models and/or schema
+python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
+
+# Start the server
+python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000 &
 
 # Start the daemon
 python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"

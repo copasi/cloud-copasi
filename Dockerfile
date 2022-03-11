@@ -60,10 +60,9 @@ COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings.py.EXAMPLE cloud_copasi/settings.py
 
 # Set up Django
-RUN python manage.py migrate
-#RUN python manage.py collectstatic
+RUN python manage.py collectstatic --noinput
 
-#WORKDIR /home/cloudcopasi
+WORKDIR /home/cloudcopasi
 
-#CMD ./cloud-copasi/cloud-copasi-daemon.sh
+CMD ./cloud-copasi/cloud-copasi-daemon.sh
 
