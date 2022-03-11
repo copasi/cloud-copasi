@@ -19,13 +19,16 @@ sleep 18 &&
 # Run any migrations to update models and/or schema
 if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.py ]
   then
-    python /home/cloudcopasi/cloud-copasi/manage.py makemigrations /home/cloudcopasi/cloud-copasi/web_interface
+    echo making migrations for web_interface
+    python /home/cloudcopasi/cloud-copasi/manage.py makemigrations
 fi
 
 # Do we also have to wait for the db tables to be made?
 sleep 18 &&
 
 python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
+
+sleep 33 &&
 
 # Start the daemon
 python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py start #"$@"
