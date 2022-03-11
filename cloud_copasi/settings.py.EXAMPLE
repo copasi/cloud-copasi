@@ -15,8 +15,8 @@ import os
 #The directory where the cloud-copasi source code has been installed
 CLOUD_COPASI_DIR = '/home/cloudcopasi/cloud-copasi/'
 
-TEMPLATES_DIR = os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/templates/')
-PLUGINS_DIR = os.path.join(CLOUD_COPASI_DIR, 'cloud_copasi/web_interface/task_plugins/plugins')
+TEMPLATES_DIR = os.path.join(CLOUD_COPASI_DIR, 'web_interface/templates/')
+PLUGINS_DIR = os.path.join(CLOUD_COPASI_DIR, 'web_interface/task_plugins/plugins')
 STATIC_DIR = os.path.join(TEMPLATES_DIR, 'static')
 
 DATABASES = {
