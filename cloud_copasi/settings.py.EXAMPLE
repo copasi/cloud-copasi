@@ -205,6 +205,7 @@ INSTALLED_APPS = [
     'web_interface'
     #'cloud_copasi.django_recaptcha',       #This app is currently not a part of CC upgraded version 2022
     'django_extensions',
+    'django_webserver',
 ]
 
 LOGIN_REDIRECT_URL = '/'
