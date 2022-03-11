@@ -33,7 +33,7 @@ jobs:
           context: .
           push: true
           no-cache: true
-          tags: ghcr.io/copasi/cloud-copasi:0.0.1, ghcr.io/copasi/cloud-copasi:latest
+          tags: ghcr.io/copasi/cloud-copasi:0.0.2, ghcr.io/copasi/cloud-copasi:latest
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
