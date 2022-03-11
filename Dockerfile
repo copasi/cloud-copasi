@@ -5,6 +5,7 @@ FROM python:3.8
 # just some niceties . . .
 RUN apt-get update --assume-yes && \
     apt-get install --assume-yes \
+    postgresql-client \
     less \
     nano \
     vim \
