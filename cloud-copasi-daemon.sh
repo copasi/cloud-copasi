@@ -33,4 +33,4 @@ python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copas
 python /home/cloudcopasi/cloud-copasi/manage.py uvicorn
 
 # Start the server
-#python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000
+python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000
