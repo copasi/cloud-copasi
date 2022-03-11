@@ -1,9 +1,9 @@
 from django.urls import path, re_path
-from cloud_copasi.web_interface import views
-from cloud_copasi.web_interface.account import account_viewsN
-from cloud_copasi.web_interface.aws import resource_views
-from cloud_copasi.web_interface.pools import pool_views, task_views
-from cloud_copasi.web_interface.client_api import api_views
+from web_interface import views
+from web_interface.account import account_viewsN
+from web_interface.aws import resource_views
+from web_interface.pools import pool_views, task_views
+from web_interface.client_api import api_views
 
 # app_name = 'web_interface'
 

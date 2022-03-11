@@ -17,7 +17,7 @@ from cloud_copasi import settings
 
 import logging
 
-from cloud_copasi.web_interface.pools import condor_tools, task_tools
+from web_interface.pools import condor_tools, task_tools
 from cloud_copasi.background_daemon.tools import pool_tools
 
 log = logging.getLogger("daemon")

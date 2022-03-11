@@ -1,5 +1,5 @@
 from django.contrib import admin
-from cloud_copasi.web_interface.models import *
+from web_interface.models import *
 
 # Register your models here.
 admin.site.register(AWSAccessKey)

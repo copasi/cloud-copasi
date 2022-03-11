@@ -14,8 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from cloud_copasi.web_interface import views
-from cloud_copasi.web_interface.account import account_viewsN
+from web_interface import views
+from web_interface.account import account_viewsN
 #from cloud_copasi.web_interface.aws import resource_views
 #from cloud_copasi.web_interface.pools import pool_views, task_views
 #from cloud_copasi.web_interface.client_api import api_views
@@ -32,6 +32,6 @@ urlpatterns = [
     #path('home/', views.HomeView.as_view(), name='home'),
     # path('', views.index, name = 'index'),
     # path('home/', include('web_interface.urls')),
-    path('', include('cloud_copasi.web_interface.urls')),
+    path('', include('web_interface.urls')),
     path('admin/', admin.site.urls),
 ]

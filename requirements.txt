@@ -1,12 +1,14 @@
-boto3==1.21.10
+boto==2.49.0 
+#boto3==1.21.10
 copasi-basico==0.16
 cycler==0.11.0
 Django==4.0.2
 django-extensions==3.1.5
-basico==0.16 #check the updated version
+django-webserver==1.2.0
 matplotlib==3.5.1
 numpy==1.22.2
-psycopg==3.0.9
+#psycopg==3.0.9
+psycopg2==2.9.3
 # pyparsing==2.2.0
 python-dateutil==2.8.2
 #pytz==2017.2

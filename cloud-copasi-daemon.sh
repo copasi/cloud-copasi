@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 
-# Fill in the appropriate locations forPYTHONPATH and
-# PYTHONHOME below.
+# Set needed env variables, unless they are already set (e.g. via the Dockerfile)
+# Both the condor and our own Python modules need to be seen (in addition to system site packages).
+export CONDOR_CONFIG=${CONDOR_CONFIG:-'/home/cloudcopasi/condor/etc/condor_config'}
+export PYTHONPATH=${PYTHONPATH:-'/home/cloudcopasi/condor/lib/python3:/home/cloudcopasi/cloud-copasi'}
+export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-'cloud_copasi.settings'}
 
-export PYTHONPATH=$PYTHONPATH:/home/cloudcopasi/cloud-copasi
-#export PYTHONPATH=/home/cloudcopasi/cloud-copasi/cloud_copasi
-export PYTHONHOME=/home/cloudcopasi/cloud-copasi/venv
-export DJANGO_SETTINGS_MODULE=cloud_copasi.settings
+# In case legacy Deployment instructions (not Docker), prepend local venv modules to PYTHONPATH . . .
+[ -d 'venv' ] && source venv/bin/activate
 
-# First start bosco
-#source /home/cloudcopasi/bosco/bosco_setenv
-#bosco_start
+# Start condor
+. /home/cloudcopasi/condor/condor.sh &&
+condor_master &
 
-#above two lines are modified by HB for Condor v9.1.2 as follows
-. /home/cloudcopasi/condor/condor.sh
-condor_master
-
-# The daemon needs to use the virtual environment
-source /home/cloudcopasi/cloud-copasi/venv/bin/activate
+# Run any migrations to update models and/or schema
+if [ ! -f /home/cloudcopasi/cloud-copasi/web_interface/migrations/0001_initial.py ]
+  then
+    python /home/cloudcopasi/cloud-copasi/manage.py makemigrations /home/cloudcopasi/cloud-copasi/web_interface
+fi
+python /home/cloudcopasi/cloud-copasi/manage.py migrate &&
 
 # Start the daemon
-#python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"
+python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py start #"$@"
 
-#modified above line as follows by HB
-python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"
+# Start the server
+python /home/cloudcopasi/cloud-copasi/manage.py runserver 0.0.0.0:8000

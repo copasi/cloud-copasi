@@ -12,26 +12,26 @@ from django.views.generic.edit import FormMixin, ProcessFormView
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django import forms
-from cloud_copasi.web_interface.views import RestrictedView, DefaultView, RestrictedFormView
-from cloud_copasi.web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task, Subtask
-from cloud_copasi.web_interface import models, aws
+from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
+from web_interface.models import AWSAccessKey, VPC, CondorPool, CondorJob, Task, Subtask
+from web_interface import models, aws
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 import sys
-from cloud_copasi.web_interface.account.account_viewsN import MyAccountView
+from web_interface.account.account_viewsN import MyAccountView
 from django.contrib.auth.forms import PasswordChangeForm
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
-from cloud_copasi.web_interface.aws import vpc_tools, ec2_tools
+from web_interface.aws import vpc_tools, ec2_tools
 #import task_tools, condor_tools
-from cloud_copasi.web_interface.pools import task_tools, condor_tools
-from cloud_copasi.web_interface import form_tools
+from web_interface.pools import task_tools, condor_tools
+from web_interface import form_tools
 import tempfile, os
 from cloud_copasi import settings, copasi
 # from . import copasi
 #from cloud_copasi.copasi.model import CopasiModel
-from cloud_copasi.web_interface import task_plugins
-from cloud_copasi.web_interface.task_plugins import base, tools, plugins
+from web_interface import task_plugins
+from web_interface.task_plugins import base, tools, plugins
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
 from datetime import timedelta

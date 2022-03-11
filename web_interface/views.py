@@ -13,8 +13,8 @@ from django.urls import reverse_lazy
 from django import forms
 import sys
 #from boto.exception import BotoServerError
-from cloud_copasi.web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
-from cloud_copasi.web_interface.aws import resource_management_tools
+from web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
+from web_interface.aws import resource_management_tools
 import logging
 from cloud_copasi import settings
 
