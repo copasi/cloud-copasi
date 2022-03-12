@@ -73,8 +73,8 @@ COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings.py.EXAMPLE cloud_copa
 
 # Set up Django
 RUN . venv/bin/activate && \
-    python manage.py collectstatic --noinput # && \
-    #python manage.py makemigrations web_interface --noinput
+    python manage.py collectstatic --noinput  && \
+    python manage.py makemigrations web_interface --noinput
 
 # Note: The daemon script is handling setting up the
 # condor env and using the venv
@@ -82,3 +82,5 @@ ENTRYPOINT ["/tini", "--", "./cloud-copasi-daemon.sh", "start"]
 
 # maybe a logical place to end up if attaching interactively?
 WORKDIR /home/cloudcopasi
+
+CMD /bin/bash
