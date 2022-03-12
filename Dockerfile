@@ -78,7 +78,7 @@ RUN . venv/bin/activate && \
 
 # Note: The daemon script is handling setting up the
 # condor env and using the venv
-ENTRYPOINT ["/tini", "--", "/bin/bash", "-c", "./cloud-copasi-daemon.sh restart", "--"]
+ENTRYPOINT ["/tini", "--", "/bin/bash", "-c", "/home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh restart", "--"]
 
 # maybe a logical place to end up if attaching interactively?
 WORKDIR /home/cloudcopasi
