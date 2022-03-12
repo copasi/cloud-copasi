@@ -47,7 +47,7 @@ function getExtraFormData(task_type){
                 field.label === "Genetic Algorithm" |
                 field.label === "Genetic Algorithm SR" |
                 field.label === "Hooke & Jeeves" |
-                field.label === "Lavenberg-Marquardt" |
+                field.label === "Levenberg-Marquardt" |
                 field.label === "Evolutionary Programming" |
                 field.label === "Random Search" |
                 field.label === "Nelder-Mead" |
