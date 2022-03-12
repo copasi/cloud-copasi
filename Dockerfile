@@ -71,5 +71,5 @@ RUN python manage.py collectstatic --noinput
 
 WORKDIR /home/cloudcopasi
 
-CMD ./cloud-copasi/cloud-copasi-daemon.sh
+CMD ./cloud-copasi/cloud-copasi-daemon.sh start
 
