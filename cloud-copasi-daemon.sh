@@ -21,7 +21,7 @@ export PYTHONHOME=/home/cloudcopasi/cloud-copasi/venv
 source /home/cloudcopasi/cloud-copasi/venv/bin/activate
 
 # Run the daemon.
-python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "${1:=start}"
+python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$1"
 
 # Execute another CMD, if present, when used as Docker ENTRYPOINT
 shift
