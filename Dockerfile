@@ -26,13 +26,13 @@ USER cloudcopasi
 # Install the Python dependencies similar to the current Deployment guide
 # (to drop-in re-use cloud-copasi-daemon.sh in ENTRYPOINT).
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
-RUN python3 -m pip install --upgrade pip && \
-    mkdir /home/cloudcopasi/cloud-copasi && \
+RUN mkdir /home/cloudcopasi/cloud-copasi && \
     cd /home/cloudcopasi/cloud-copasi && \
     python3 -m venv venv && \
     . venv/bin/activate && \
+    pip install --upgrade pip && \
     pip install -r /home/cloudcopasi/requirements.txt
-   # Note: The modified PYTHONPATH from that actvivated
+   # Note: The modified PATH from that activated
    # venv will not persist past this build stage. It
    # is only used so the 'pip' path for the install
    # implicitly installs things in the venv, vs. system.
@@ -78,7 +78,7 @@ RUN . venv/bin/activate && \
 
 # Note: The daemon script is handling setting up the
 # condor env and using the venv
-ENTRYPOINT ["/tini", "--", "/home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh"]
+ENTRYPOINT ["/tini", "--"]
 
 # maybe a logical place to end up if attaching interactively?
 WORKDIR /home/cloudcopasi
