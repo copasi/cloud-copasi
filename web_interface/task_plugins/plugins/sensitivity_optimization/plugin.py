@@ -276,7 +276,7 @@ class TaskPlugin(BaseTask):
             #Check if we're plotting a min or a max. Min will be all even numbers, max all odd
             file_index = int(math.floor(i/2))
             filename = os.path.join(self.task.directory, jobs.get(process_id=i).job_output)
-            log.debug("filename: %s"%filename)
+            #log.debug("filename: %s"%filename)
             all_evals=[]
             all_values=[]
             linenumber=0
