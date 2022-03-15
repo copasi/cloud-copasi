@@ -707,6 +707,8 @@ class Subtask(models.Model):
             jobs = self.condorjob_set.all()
             count = 0
             for job in jobs:
+                log.debug("+++++++00000 job.run_time: ")
+                log.debug(job.run_time)
                 count += job.run_time
             return count
 

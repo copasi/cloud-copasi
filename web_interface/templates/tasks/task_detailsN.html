@@ -216,7 +216,7 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{{ subtask.get_type_display }}</td>
                           <td>{{subtask.get_status_display }}</td>
                           <td>{% if subtask.local %}<span style="font-style:italic">Local</span>{% else %}{{subtask.get_job_count}}{% endif %}</td>
-                          <td>{% if subtask.status == 'finished' or stubtask.status == 'error'%}{{ subtask.get_run_time_timedelta| default_if_none:''}}{% endif %}</td>
+                          <td>{% if subtask.status == 'finished' or subtask.status == 'error'%}{{ subtask.get_run_time_timedelta| default_if_none:''}}{% endif %}</td>
                           <td>{{subtask.start_time|default:''}}</td>
                           <td>{{subtask.finish_time|default:''}}</td>
 
