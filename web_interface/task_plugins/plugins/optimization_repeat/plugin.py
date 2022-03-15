@@ -271,6 +271,7 @@ class TaskPlugin(BaseTask):
 
         subtask.status = 'finished'
         subtask.finish_time = timezone.localtime()
+        #subtask.finish_time = now()
         temp_finish_time = subtask.finish_time
 
         time_delta = temp_finish_time - temp_start_time
