@@ -310,7 +310,7 @@ def remove_task(subtask):
             for job in subtask.condorjob_set.all():
                 job.delete()
         except Exception as e:
-            check.exception(e)
+            log.exception(e)
     else:
         return (None, None, None)
 

@@ -458,7 +458,7 @@ class TaskPlugin(BaseTask):
             return response
 
         except Exception as e:
-            check.exception(e)
+            log.exception(e)
             raise e
 
 
