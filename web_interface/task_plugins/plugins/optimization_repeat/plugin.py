@@ -35,16 +35,6 @@ matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import annotate
 
-########### following lines are set by HB for debugging
-logging.basicConfig(
-        filename='/home/cloudcopasi/log/debug.log',
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt='%m/%d/%y %I:%M:%S %p',
-        level=logging.DEBUG
-    )
-check = logging.getLogger(__name__)
-######################################################
-
 internal_type = ('optimization_repeat', 'Optimization repeat')
 
 class TaskForm(BaseTaskForm):
