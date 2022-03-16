@@ -339,6 +339,8 @@ class CheckResourceView(APIView):
 
     def get(self, request, *args, **kwargs):
 
+        log.debug("user_id=")
+        log.debug(request.GET['user_id'])
         user_id = int(float(request.GET['user_id']))
         user = User.objects.get(id=user_id)
         log.debug('Checking status for user %s'%user)
