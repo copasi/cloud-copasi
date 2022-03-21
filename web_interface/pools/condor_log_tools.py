@@ -11,6 +11,7 @@ import re, datetime
 import logging
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 class Log:
     """Class for reading and processing condor log files using regex patterns"""
@@ -21,26 +22,35 @@ class Log:
         #First, define some regexes
 
         #Job execution string will be of the format:
-        #001 (20949.000.000) 02/07 11:27:10 Job executing on host: <130.88.110.118:60608>
-        execution_string = r'\d+\s\S+\s(?P<month>\d\d)\/(?P<day>\d\d)\s(?P<hour>\d+)\:(?P<minute>\d+)\:(?P<second>\d+)\sJob executing on host\:\s\<(?P<host>.+)\>.*'
+        # 001 (20949.000.000) 02/07 11:27:10 Job executing on host: <130.88.110.118:60608>
+        # execution_string = r'\d+\s\S+\s(?P<month>\d\d)\/(?P<day>\d\d)\s(?P<hour>\d+)\:(?P<minute>\d+)\:(?P<second>\d+)\sJob executing on host\:\s\<(?P<host>.+)\>.*'
+        #above lines are updated by HB as follows
+        # 001 (705.004.000) 2022-03-16 17:23:13 Job executing on host: batch slurm hbaig@copasi-submit.cam.uchc.edu
+        execution_string = r'\d+\s\S+\s(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})\s(?P<hour>\d{1,2}):(?P<minute>\d{1,2}):(?P<second>\d{1,2})\sJob executing on host\:\s(?P<host>.+).*'
         execution_re = re.compile(execution_string)
         execution_match = False
 
         #Job termination string:
-        #005 (20949.000.000) 02/07 11:28:10 Job terminated.
-        termination_string = r'\d+\s\S+\s(?P<month>\d\d)\/(?P<day>\d\d)\s(?P<hour>\d+)\:(?P<minute>\d+)\:(?P<second>\d+)\sJob terminated\..*'
+        # 005 (20949.000.000) 02/07 11:28:10 Job terminated.
+        # termination_string = r'\d+\s\S+\s(?P<month>\d\d)\/(?P<day>\d\d)\s(?P<hour>\d+)\:(?P<minute>\d+)\:(?P<second>\d+)\sJob terminated\..*'
+        #above lines are updated by HB as follows
+        # 005 (705.004.000) 2022-03-16 17:29:21 Job terminated.
+        termination_string = r'\d+\s\S+\s(?P<year>\d{4})-(?P<month>\d{1,2})-(?P<day>\d{1,2})\s(?P<hour>\d{1,2}):(?P<minute>\d{1,2}):(?P<second>\d{1,2})\sJob terminated\..*'
         termination_re = re.compile(termination_string)
         termination_match = False
+
         #Termination status:
         #       (1) Normal termination (return value 0) #TODO:this only works for normal termination, so status will always be 0
         termination_status_string = r'\s+\(\d+\)\s(Normal|Abnormal) termination\s\((return value|signal) (?P<return_value>\d+)\).*'
         termination_status_re = re.compile(termination_status_string)
         termination_status_match = False
+
         #Remote usage time
         #               Usr 0 00:00:54, Sys 0 00:00:00  -  Total Remote Usage
         remote_usage_string = r'\s+Usr\s(?P<usr_days>\d+)\s(?P<usr_hours>\d+)\:(?P<usr_minutes>\d+)\:(?P<usr_seconds>\d+)\,\sSys\s(?P<sys_days>\d+)\s(?P<sys_hours>\d+)\:(?P<sys_minutes>\d+)\:(?P<sys_seconds>\d+)\s+\-\s+Total Remote Usage.*'
         remote_usage_re = re.compile(remote_usage_string)
         remote_usage_match = False
+
         #We'll use this string to search for the phrase 'Job terminated'. We'll then use this to decide whether or not the job has finished running yet. If not, then don't try and match anything else yet - there's no point
         termination_confirmation_string = r'.*Job terminated.'
         termination_confirmation_re = re.compile(termination_confirmation_string)
@@ -139,9 +149,14 @@ class Log:
                 self.running_time = self.termination_time - self.execution_start
             else:
                 self.running_time = self.remote_usage_time
+
+            slog.debug("self.running_time: ")
+            slog.debug(self.running_time)
             self.running_time_in_days = float(self.running_time.days) + (float(self.running_time.seconds) / 86400.00)
 
-
+            slog.debug("self.running_time_in_days: ")
+            slog.debug(self.running_time_in_days)
 
         except:
+            slog.debug("Except blog executed while reading condor log file.")
             raise
