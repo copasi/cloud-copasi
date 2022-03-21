@@ -21,4 +21,4 @@ sleep 27
 sleep 9
 
 # Start the web server
-python3 /home/cloudcopasi/cloud-copasi/manage.py runserver "${1:-0.0.0.0}:${1:-8000}"
+python3 /home/cloudcopasi/cloud-copasi/manage.py runserver "${1:-0.0.0.0}:${2:-8000}"
