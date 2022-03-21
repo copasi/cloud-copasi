@@ -386,7 +386,7 @@ def process_condor_q(user=None, subtask=None):
             for cluster_id, process_id, status in condor_q:
                 if (status != 'C' and status != 'X') and process_id == job.process_id and cluster_id == job.subtask.cluster_id:
                     #Skip if state == 'C' -- means complete, so just assume not in the queue
-                    slog.debug("Job %d.%d has status %s, and it is in queue." % (job.subtask.cluster_id, job.process_id, job.status))
+                    # slog.debug("Job %d.%d has status %s, and it is in queue." % (job.subtask.cluster_id, job.process_id, job.status))
                     in_q = True
                     job.status = status
                     job.save()
@@ -404,8 +404,6 @@ def process_condor_q(user=None, subtask=None):
 
                 condor_log = condor_log_tools.Log(log_path)
 
-                slog.debug("The condor_log contents: ")
-                slog.debug(condor_log)
 
                 if condor_log.has_terminated:
                     if condor_log.termination_status == 0:
