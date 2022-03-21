@@ -17,7 +17,7 @@ import datetime
 from django.utils import timezone   #added by HB
 
 log = logging.getLogger(__name__)
-
+slog = logging.getLogger("special")
 CONDOR_Q = 'condor_q'
 CONDOR_SUBMIT = 'condor_submit'
 CONDOR_RM = 'condor_rm'
@@ -360,8 +360,11 @@ def process_condor_q(user=None, subtask=None):
 
     Note: this method only updates the status of CondorJob objects. It does not update any upstream subtask or task changes. this is performed in task_tools
     """
-
+    slog.debug("Reading if condor job is either I, R or H")
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
+
+    slog.debug("condor_jobs: ")
+    slog.debug(condor_jobs)
 
     if user:
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
@@ -374,7 +377,7 @@ def process_condor_q(user=None, subtask=None):
         pass
 
     else:
-        #log.debug('Reading condor_q')
+        slog.debug('Reading condor_q')
         condor_q = read_condor_q()
 
 
