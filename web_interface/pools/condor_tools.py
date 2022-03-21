@@ -364,7 +364,7 @@ def process_condor_q(user=None, subtask=None):
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
 
     slog.debug("condor_jobs: ")
-    slog.debug(condor_jobs)
+    # slog.debug(condor_jobs)
 
     if user:
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
@@ -377,15 +377,16 @@ def process_condor_q(user=None, subtask=None):
         pass
 
     else:
-        slog.debug('Reading condor_q')
+        slog.debug('Reading condor_q: ')
         condor_q = read_condor_q()
-
+        slog.debug(condor_q)
 
         for job in condor_jobs:
             in_q = False
             for cluster_id, process_id, status in condor_q:
                 if (status != 'C' and status != 'X') and process_id == job.process_id and cluster_id == job.subtask.cluster_id:
                     #Skip if state == 'C' -- means complete, so just assume not in the queue
+                    slog.debug("Job %d.%d has status %s, and it is in queue." % (job.subtask.cluster_id, job.process_id, job.status))
                     in_q = True
                     job.status = status
                     job.save()
@@ -394,9 +395,17 @@ def process_condor_q(user=None, subtask=None):
                 #TODO: At some point we need to validate the job based on the log file
                 #log.debug('Job %d.%d (Task %s) not in queue. Checking log' % (job.subtask.cluster_id, job.process_id, job.subtask.task.name))
 
+                slog.debug("Job %d.%d has status %s, and it is NOT in queue." % (job.subtask.cluster_id, job.process_id, job.status))
+                slog.debug("Checking the Job %d.%d log at:" % (job.subtask.cluster_id, job.process_id))
+
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
 
+                slog.debug(log_path)
+
                 condor_log = condor_log_tools.Log(log_path)
+
+                slog.debug("The condor_log contents: ")
+                slog.debug(condor_log)
 
                 if condor_log.has_terminated:
                     if condor_log.termination_status == 0:
@@ -431,6 +440,7 @@ def process_condor_q(user=None, subtask=None):
                         job.status = 'E'
                 else:
                     #log.debug('Log indicates job not terminated. Leaving status as running')
+                    slog.debug("Log does not have a TERMINATED statement.")
                     pass
                 job.save()
 
