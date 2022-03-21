@@ -65,7 +65,7 @@ RUN mkdir log user-files instance_keypairs
 # (placing this near the bottom, assuming these may be more likely to change 
 # during development, vs. stuff above.)
 WORKDIR /home/cloudcopasi/cloud-copasi
-COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py cloud-copasi-daemon.sh ./
+COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py cloud-copasi-daemon.sh start_service.sh ./
 COPY --chown=cloudcopasi:cloudcopasi client_scripts client_scripts
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
 COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface

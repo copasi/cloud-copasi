@@ -11,7 +11,7 @@ services:
       - POSTGRES_PASSWORD=postgres
   web:
     image: ghcr.io/copasi/cloud-copasi:latest
-    command: /home/cloudcopasi/cloud-copasi/cloud-copasi-daemon.sh
+    command: start_service.sh 0.0.0.0 8000
     volumes:
       - .:/code
     ports:
