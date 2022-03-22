@@ -441,6 +441,15 @@ def process_condor_q(user=None, subtask=None):
                         slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
                         slog.debug("Directory to be deleted: ")
                         slog.debug(job.subtask.task.directory)
+                        slog.debug("Deleting above job from database and from file system.")
+
+                        task = job.subtask.task
+                        slog.debug(task)
+                        slog.debug(task.subtask_set.all())
+
+                        task = Task.objects.get(id=kwargs['task_id'])
+                        slog.debug(task)
+
                         #shutil.rmtree(dir)
 
                     else:
