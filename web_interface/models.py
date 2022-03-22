@@ -794,5 +794,8 @@ class CondorJob(models.Model):
     def getDirectory(self):
         return os.path.dirname(self.spec_file)
 
+    def __str__(self):
+        return str(self.name)    
+
     class Meta:
         app_label = 'web_interface'
