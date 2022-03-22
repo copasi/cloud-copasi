@@ -438,11 +438,12 @@ def process_condor_q(user=None, subtask=None):
                         log.debug('Log indicates abnormal termination. Marking job as error')
                         job.status = 'E'
 
-                elif condor_log.job_aborted:
-                    slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
-                    slog.debug("Directory to be deleted: ")
-                    slog.debug(job.subtask.task.directory)
-                    # shutil.rmtree(dir)
+
+                # elif condor_log.job_aborted:
+                #     slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
+                #     slog.debug("Directory to be deleted: ")
+                #     slog.debug(job.subtask.task.directory)
+                #     # shutil.rmtree(dir)
 
                 else:
                     #log.debug('Log indicates job not terminated. Leaving status as running')
