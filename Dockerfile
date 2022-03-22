@@ -1,5 +1,3 @@
-# WORK IN PROGRESS!
-# This does not support the full condor-copasi service yet.
 # syntax=docker/dockerfile:1
 FROM python:3.8
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -15,7 +13,7 @@ RUN apt-get update --assume-yes && \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Tini to deal with any orphaned processes
-# cloud-copasi-daemon.sh might create.
+# CMD override scripts might create.
 ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
@@ -24,7 +22,7 @@ RUN useradd --create-home --shell /bin/bash cloudcopasi
 USER cloudcopasi
 
 # Install the Python dependencies similar to the current Deployment guide
-# (to drop-in re-use cloud-copasi-daemon.sh in ENTRYPOINT).
+# (to drop-in re-use cloud-copasi-daemon.sh for now).
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
 RUN mkdir /home/cloudcopasi/cloud-copasi && \
     cd /home/cloudcopasi/cloud-copasi && \
@@ -76,7 +74,7 @@ RUN . venv/bin/activate && \
     python manage.py collectstatic --noinput  && \
     python manage.py makemigrations web_interface --noinput
 
-# Note: The daemon script is handling setting up the
+# Note: The CMD override scripts are handling setting up the
 # condor env and using the venv
 ENTRYPOINT ["/tini", "--"]
 
