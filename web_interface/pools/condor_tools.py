@@ -451,11 +451,12 @@ def process_condor_q(user=None, subtask=None):
                         slog.debug("looping through subtasks in task")
                         for subtask in task.subtask_set.all():
                             try:
-                                #self.remove_task(subtask)
                                 slog.debug(subtask)
+                                self.remove_task(subtask)
                             except:
                                 slog.debug("Problem in reading subtasks")
                                 pass
+                        # task.delete()        
 
 
                         #shutil.rmtree(dir)
