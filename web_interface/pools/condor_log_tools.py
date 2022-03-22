@@ -67,6 +67,7 @@ class Log:
             if termination_confirmation_re.match(line):
                 self.has_terminated = True
                 break
+                
             elif job_aborted_re.match(line):
                 self.job_aborted = True
                 slog.debug("Job aborted?: ")
