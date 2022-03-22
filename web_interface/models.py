@@ -593,6 +593,8 @@ class Task(models.Model):
 
     def delete(self, *args, **kwargs):
         #Mark the task as deleted, update the run time from any associated subtasks, remove the subtasks and associated condor jobs
+        slog.debug(" ---------- Deleting the task:")
+        slog.debug(self.directory)
         subtasks = self.subtask_set.all()
         for subtask in subtasks:
             subtask.set_job_count()
