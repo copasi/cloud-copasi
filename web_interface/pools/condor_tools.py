@@ -8,6 +8,7 @@
 #-------------------------------------------------------------------------------
 import subprocess, re, os
 import os.path, time
+import shutil
 from cloud_copasi import settings
 import logging
 from web_interface.models import EC2Pool, Subtask, CondorJob
@@ -439,7 +440,8 @@ def process_condor_q(user=None, subtask=None):
 
                 elif condor_log.job_aborted:
                     slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
-                    slog.debug("Directory to be deleted: " %job.subtask.task.directory)
+                    slog.debug("Directory to be deleted: ")
+                    slog.debug(job.subtask.task.directory)
                     # shutil.rmtree(dir)
 
                 else:
