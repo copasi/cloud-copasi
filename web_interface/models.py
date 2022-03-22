@@ -557,8 +557,15 @@ class Task(models.Model):
             count = 0
             for subtask in subtasks:
                 count += subtask.get_run_time()
+
+            slog.debug("count: ")
+            slog.debug(count)
             return count
+
+
     def set_run_time(self):
+        slog.debug("Executing task set_run_time: ")
+        slog.debug("Called from %s" %__name__)
         self.run_time = self.get_run_time()
         self.save()
 
@@ -694,8 +701,8 @@ class Subtask(models.Model):
 
     def set_job_count(self):
         self.job_count = self.get_job_count()
-        print("self.job_count")
-        print(self.job_count)
+        slog("self.job_count: ")
+        slog(self.job_count)
         self.save()
     job_count = models.IntegerField(default=-1, help_text = 'The count of the number of condor jobs. Only set after the subtask has finished. Use get_job_count() instead to find out job count')
 
@@ -710,27 +717,25 @@ class Subtask(models.Model):
             jobs = self.condorjob_set.all()
             count = 0
             for job in jobs:
-                slog.debug("+++++++00000 job.run_time: ")
-                slog.debug(job.run_time)
                 count += job.run_time
+
+            slog.debug("count: ")
+            slog.debug(count)
             return count
 
     def set_run_time(self, time_delta=None):
+        slog.debug("Executing set_run_time: ")
+        slog.debug("Called from %s" %__name__)
+        slog.debug("time_delta: ")
+        slog.debug(time_delta)
+
         if not time_delta:
-            slog.debug("Entered in set_run_time: ")
-            slog.debug(" *@*@*@ (models.py - set_run_time) time_delta is NOT")
-
-            slog.debug("time_delta: ")
-            slog.debug(time_delta)
-
             self.run_time = self.get_run_time()
             slog.debug("self.run_time")
             slog.debug(self.run_time)
 
         else:
             assert isinstance(time_delta, datetime.timedelta)
-            slog.debug(" *@*@*@ (models.py - set_run_time) time_delta has a value: ")
-            slog.debug(time_delta)
             #Calculate run time in days
             self.run_time = time_delta.days + (float(time_delta.seconds) / 86400.00)
             slog.debug("self.run_time")

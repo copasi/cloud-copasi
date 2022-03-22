@@ -399,7 +399,6 @@ def process_condor_q(user=None, subtask=None):
 
                 slog.debug(log_path)
 
-                #add try except block here.
                 try:
                     condor_log = condor_log_tools.Log(log_path)
 

@@ -31,6 +31,7 @@ def update_tasks(user=None, task=None):
     If requested, can filter by a specific user or subtask
     """
     slog.debug("Running update_tasks function")
+    slog.debug("Called from: %s" %__name__)
     slog.debug("user: ")
     slog.debug(user)
     slog.debug("task: ")
@@ -71,13 +72,13 @@ def update_tasks(user=None, task=None):
             finished = jobs.filter(status='F')
             if finished.count() == jobs.count():
                 #The subtask has finished!
-                log.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
+                slog.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                 subtask.status = 'finished'
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
                 #subtask.finish_time = now()
                 #above line is modified by HB as follows:
-                log.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
+                slog.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
                 subtask.finish_time = timezone.localtime()
                 subtask.save()
 
@@ -102,7 +103,7 @@ def update_tasks(user=None, task=None):
                         #We have a new subtask to submit
                         TaskClass = tools.get_task_class(task.task_type)
                         task_instance = TaskClass(task)
-                        log.debug('Preparing new subtask %d' % (subtask.index))
+                        slog.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
 
                         #If this wasn't a local subtask, submit to condor
@@ -154,6 +155,7 @@ def update_tasks(user=None, task=None):
 
 def delete_task(task):
     task.delete()
+
 def zip_up_task(task):
     """Zip up the task directory and return the filename
     """
