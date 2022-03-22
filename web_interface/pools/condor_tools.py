@@ -361,7 +361,6 @@ def process_condor_q(user=None, subtask=None):
 
     Note: this method only updates the status of CondorJob objects. It does not update any upstream subtask or task changes. this is performed in task_tools
     """
-    slog.debug("Reading if condor job is either I, R or H")
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
 
     if user:
@@ -375,9 +374,9 @@ def process_condor_q(user=None, subtask=None):
         pass
 
     else:
-        slog.debug('Reading condor_q: ')
+        #slog.debug('Reading condor_q: ')
         condor_q = read_condor_q()
-        slog.debug(condor_q)
+        #slog.debug(condor_q)
 
         for job in condor_jobs:
             in_q = False
