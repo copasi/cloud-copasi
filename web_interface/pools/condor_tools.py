@@ -399,10 +399,12 @@ def process_condor_q(user=None, subtask=None):
                 log_path = os.path.join(job.subtask.task.directory, job.log_file)
 
                 slog.debug(log_path)
-
+                
+                #add try except block here. 
                 condor_log = condor_log_tools.Log(log_path)
 
                 slog.debug("This runs")
+                log.debug("This goes in cloud-copasi.log file")
 
                 if condor_log.has_terminated:
                     slog.debug("has_terminated runs")
