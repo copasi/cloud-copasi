@@ -444,11 +444,19 @@ def process_condor_q(user=None, subtask=None):
                         slog.debug("Deleting above job from database and from file system.")
 
                         task = job.subtask.task
+                        slog.debug("Task Name: ")
                         slog.debug(task)
                         slog.debug(task.subtask_set.all())
 
-                        task = Task.objects.get(id=kwargs['task_id'])
-                        slog.debug(task)
+                        slog.debug("looping through subtasks in task")
+                        for subtask in task.subtask_set.all()):
+                            try:
+                                #self.remove_task(subtask)
+                                slog.debug(subtask)
+                            except:
+                                slog.debug("Problem in reading subtasks")
+                                pass
+
 
                         #shutil.rmtree(dir)
 
