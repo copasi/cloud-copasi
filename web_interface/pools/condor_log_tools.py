@@ -55,11 +55,22 @@ class Log:
         termination_confirmation_string = r'.*Job terminated.'
         termination_confirmation_re = re.compile(termination_confirmation_string)
 
+        #checking if job was aborted.
+        # 009 (528.042.000) 2022-03-07 09:32:37 Job was aborted.
+        job_aborted_string = r'.*Job was aborted.'
+        job_aborted_re = re.compile(job_aborted_string)
+        self.job_aborted = False
+
         self.has_terminated = False
         #Search to see if the job has actually terminated. Only continue if it has...
         for line in open(path, 'r'):
             if termination_confirmation_re.match(line):
                 self.has_terminated = True
+                break
+            elif job_aborted_re.match(line):
+                self.job_aborted = True
+                slog.debug("Job aborted?: ")
+                slog.debug(self.job_aborted)
                 break
 
         if not self.has_terminated:
