@@ -795,7 +795,7 @@ class CondorJob(models.Model):
         return os.path.dirname(self.spec_file)
 
     def __str__(self):
-        return str(self.name)    
+        return str(self.subtask.Task.name)    
 
     class Meta:
         app_label = 'web_interface'
