@@ -364,9 +364,6 @@ def process_condor_q(user=None, subtask=None):
     slog.debug("Reading if condor job is either I, R or H")
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
 
-    slog.debug("condor_jobs: ")
-    # slog.debug(condor_jobs)
-
     if user:
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
     if subtask:
@@ -405,10 +402,12 @@ def process_condor_q(user=None, subtask=None):
 
                 condor_log = condor_log_tools.Log(log_path)
 
+                slog.debug("This runs")
 
                 if condor_log.has_terminated:
+                    slog.debug("has_terminated runs")
                     if condor_log.termination_status == 0:
-                        log.debug('Log indicates normal termination. Checking output files exist')
+                        slog.debug('Log indicates normal termination. Checking output files exist')
 
                         if job.job_output != '' and job.job_output != None:
                             output_filename = os.path.join(job.subtask.task.directory, job.job_output)
@@ -424,18 +423,18 @@ def process_condor_q(user=None, subtask=None):
                                         run_time_minutes = run_time * 24 * 60
                                     except:
                                         run_time_minutes = None
-                                    log.debug('Job output exists and is nonempty. Marking job as finished with run time %s minutes' % run_time_minutes)
+                                    slog.debug('Job output exists and is nonempty. Marking job as finished with run time %s minutes' % run_time_minutes)
                                     job.status = 'F'
                                 except:
-                                    log.debug('Job output exists but is empty. Leaving status as running')
+                                    slog.debug('Job output exists but is empty. Leaving status as running')
                             else:
-                                log.debug('Output file does not exist. Leaving status as running')
+                                slog.debug('Output file does not exist. Leaving status as running')
 
                         else:
-                            log.debug('Job has no output specified. Assuming job has finished.')
+                            slog.debug('Job has no output specified. Assuming job has finished.')
                             job.status = 'F'
                     else:
-                        log.debug('Log indicates abnormal termination. Marking job as error')
+                        slog.debug('Log indicates abnormal termination. Marking job as error')
                         job.status = 'E'
 
 
