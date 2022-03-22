@@ -616,7 +616,7 @@ class Task(models.Model):
         #Remove the task directory
         try:
             shutil.rmtree(self.directory)
-        except:
+        except Exception as e:
             log.exception(e)
 
         self.save()
@@ -795,7 +795,7 @@ class CondorJob(models.Model):
         return os.path.dirname(self.spec_file)
 
     def __str__(self):
-        return str(self.subtask.task.name)    
+        return str(self.subtask.task.name)
 
     class Meta:
         app_label = 'web_interface'
