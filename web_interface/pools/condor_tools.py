@@ -294,7 +294,7 @@ def remove_task(subtask):
     """
     assert isinstance(subtask, Subtask)
     if subtask.status == 'running' or subtask.status == 'error':
-        #log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
+        slog.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
         try:
             output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
             #assert exit_status == 0
@@ -456,7 +456,7 @@ def process_condor_q(user=None, subtask=None):
                             except:
                                 slog.debug("Problem in reading subtasks")
                                 pass
-                        # task.delete()        
+                        # task.delete()
 
 
                         #shutil.rmtree(dir)
