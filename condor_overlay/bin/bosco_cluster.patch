@@ -1,0 +1,108 @@
+--- /home/FCAM/pmendes/src/htcondor/src/condor_contrib/bosco/bosco_cluster	2022-03-22 19:42:55.283745059 -0400
++++ /home/FCAM/pmendes/src/cloud-copasi/condor_overlay/bin/bosco_cluster	2022-03-22 21:58:50.892043871 -0400
+@@ -5,6 +5,17 @@
+ # as function exit code (by return) and this is modulo 256
+ # see cluster_list_iterator, list
+ 
++# This version was patched to work with cloud-copasi
++# https://github.com/copasi/cloud-copasi/
++
++unset PYTHONHOME
++export PYTHONHOME
++
++# CopasiSE binary location
++copasise=$HOME/copasi/bin/CopasiSE
++
++# Copasi test model location
++copasi_test_model_path=$HOME/copasi/brusselator_scan_test.cps
+ 
+ # Bosco key location
+ bosco_key=$HOME/.ssh/bosco_key.rsa
+@@ -587,16 +601,21 @@
+     test_stdout=$submit_dir/test.stdout
+     test_stderr=$submit_dir/test.stderr
+     test_id=bosco-test.$RANDOM
++
++# The following currently assumes the test model
++# is in the same directory as the created work directory is in.
+     cat > $submit_file << End_of_Submit
+ universe = grid
+ grid_resource = batch $cluster_type $remote_host
++input = $copasi_test_model_path
+ output = $test_stdout
+ error = $test_stderr
+-transfer_executable=false
+-executable = /bin/echo
+-arguments = Hello
++transfer_executable=true
++executable = $copasise
++arguments = --home . ../$(basename $copasi_test_model_path)
+ log = $log_file
+-notification = NEVER
++notification = error
++notify_user = change-me@mailinator.com
+ +bosco_test_id = "$test_id"
+ queue
+ End_of_Submit
+@@ -671,20 +690,20 @@
+     # NOTE: We will probably never see the job in running status, as it will
+     #   finish immediately and Condor only polls its status periodically.
+     # Check for job to run
+-    #echo -n "Waiting for job to run... this could take a while (waiting 60 seconds)..."
+-    #check_condor_q_classad "(ClusterId == $condor_jobid) && (JobStatus == 2)" 60
+-    #if [ $? -eq 0 ]; then
+-    #    echo "Failed"
+-    #    echo "The job did not start in the 60 seconds we waited."
+-    #    echo "This doesn't always mean there is something wrong, maybe the remote queue is long..."
+-    #    echo "Here is the current status of the job:"
+-    #    condor_q $condor_jobid
+-    #    echo "You can look at job's log file at $log_file"
+-    #    echo "for the job's current status"
+-    #    exit 1
+-    #else
+-    #    echo "Passed!"
+-    #fi
++    echo -n "Waiting for job to run... this could take a while (waiting 250 seconds)..."
++    check_condor_q_classad "(ClusterId == $condor_jobid) && ((GridJobStatus==\"COMPLETED\") || (JobStatus == 2))" 250
++    if [ $? -eq 0 ]; then
++        echo "Failed"
++        echo "The job did not start in the 250 seconds we waited."
++        echo "This doesn't always mean there is something wrong, maybe the remote queue is long..."
++        echo "Here is the current status of the job:"
++        condor_q $condor_jobid
++        echo "You can look at job's log file at $log_file"
++        echo "for the job's current status"
++        exit 1
++    else
++        echo "Passed!"
++    fi
+     
+     echo -n "Waiting for job to exit... this could take a while (waiting 60 seconds)..."
+     check_condor_q_classad "(ClusterId == $condor_jobid) && (GridJobStatus==\"COMPLETED\") " 60
+@@ -732,12 +751,15 @@
+     fi
+ 
+     echo -n "Checking for job output..."
+-    output=`cat $test_stdout`
+-    if [ "$output" == "Hello" ] ; then
++    output=`head -n 1 $test_stdout`
++    expected_output='^COPASI [0-9]\+.[0-9]\+ (Build [0-9]\+)$'
++     if echo $output | grep "$expected_output" ; then
+ 	echo "Passed!"
+     else
+ 	echo "Failed"
+-	echo "Job output should be 'Hello', but isn't"
++      echo "Job output should be:"
++      echo $expected_output
++      echo "but isn't"
+ 	echo "Showing contents of job stdout:"
+ 	cat $test_stdout
+ 	echo "Showing contents of job stderr:"
+@@ -986,6 +1027,7 @@
+ fi
+ if [ $rc -ne 0 ] ; then
+     show_progress "Downloading release build for $remote_host" curl -f -s -o $tmp_dir/bosco-download.tar.gz $release_url
++    echo $release_url
+     rc=$?
+     if [ $rc -ne 0 ] ; then
+         echo "Failed to download release build."
