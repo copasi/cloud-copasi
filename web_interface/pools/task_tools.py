@@ -8,6 +8,7 @@
 #-------------------------------------------------------------------------------
 import json, os, sys
 from web_interface.models import Task, CondorJob, Subtask
+from cloud_copasi import settings
 from web_interface.aws import aws_tools
 from boto.sqs.message import Message
 from web_interface.task_plugins import tools
@@ -23,11 +24,17 @@ from web_interface.email import email_tools
 import traceback
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 def update_tasks(user=None, task=None):
     """Examines the status of all CondorJob objects. If the status of upstream subtasks and tasks need changing, then this is done.
     If requested, can filter by a specific user or subtask
     """
+    slog.debug("Running update_tasks function")
+    slog.debug("user: ")
+    slog.debug(user)
+    slog.debug("task: ")
+    slog.debug(task)
 
     #Step 1: Get a list of running tasks
     tasks = Task.objects.filter(status='running')

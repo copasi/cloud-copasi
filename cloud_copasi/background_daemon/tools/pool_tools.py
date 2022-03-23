@@ -67,7 +67,7 @@ def terminate_idle_pools():
                         error_list += ['Error removing pool from bosco', str(e)]
                     try:
                         email_tools.send_pool_auto_termination_email(ec2_pool)
-                    except:
+                    except Exception as e:
                         log.exception(e)
                     ec2_tools.terminate_pool(ec2_pool)
 

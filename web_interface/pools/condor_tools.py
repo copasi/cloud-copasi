@@ -294,7 +294,7 @@ def remove_task(subtask):
     """
     assert isinstance(subtask, Subtask)
     if subtask.status == 'running' or subtask.status == 'error':
-        #log.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
+        slog.debug('Removing subtask with cluster id %s from condor_q' % subtask.cluster_id)
         try:
             output, error, exit_status = run_bosco_command([CONDOR_RM, str(subtask.cluster_id)], error=True)
             #assert exit_status == 0
@@ -364,9 +364,6 @@ def process_condor_q(user=None, subtask=None):
     slog.debug("Reading if condor job is either I, R or H")
     condor_jobs = CondorJob.objects.filter(status='I') | CondorJob.objects.filter(status='R') | CondorJob.objects.filter(status='H')
 
-    slog.debug("condor_jobs: ")
-    # slog.debug(condor_jobs)
-
     if user:
         condor_jobs = condor_jobs.filter(subtask__task__user=user)
     if subtask:
@@ -403,52 +400,58 @@ def process_condor_q(user=None, subtask=None):
 
                 slog.debug(log_path)
 
-                condor_log = condor_log_tools.Log(log_path)
+                #add try except block here.
+                try:
+                    condor_log = condor_log_tools.Log(log_path)
 
+                    if condor_log.has_terminated:
+                        slog.debug("has_terminated runs")
+                        if condor_log.termination_status == 0:
+                            slog.debug('Log indicates normal termination. Checking output files exist')
 
-                if condor_log.has_terminated:
-                    if condor_log.termination_status == 0:
-                        log.debug('Log indicates normal termination. Checking output files exist')
+                            if job.job_output != '' and job.job_output != None:
+                                output_filename = os.path.join(job.subtask.task.directory, job.job_output)
 
-                        if job.job_output != '' and job.job_output != None:
-                            output_filename = os.path.join(job.subtask.task.directory, job.job_output)
-
-                            if os.path.isfile(output_filename):
-                                try:
-                                    assert os.path.getsize(output_filename) > 0
+                                if os.path.isfile(output_filename):
                                     try:
-                                        run_time =  condor_log.running_time_in_days
-                                        log.debug(" -*-*-*- run_time: ")
-                                        log.debug(run_time)
-                                        job.run_time = run_time
-                                        run_time_minutes = run_time * 24 * 60
+                                        assert os.path.getsize(output_filename) > 0
+                                        try:
+                                            run_time =  condor_log.running_time_in_days
+                                            log.debug(" -*-*-*- run_time: ")
+                                            log.debug(run_time)
+                                            job.run_time = run_time
+                                            run_time_minutes = run_time * 24 * 60
+                                        except:
+                                            run_time_minutes = None
+                                        slog.debug('Job output exists and is nonempty. Marking job as finished with run time %s minutes' % run_time_minutes)
+                                        job.status = 'F'
                                     except:
-                                        run_time_minutes = None
-                                    log.debug('Job output exists and is nonempty. Marking job as finished with run time %s minutes' % run_time_minutes)
-                                    job.status = 'F'
-                                except:
-                                    log.debug('Job output exists but is empty. Leaving status as running')
+                                        slog.debug('Job output exists but is empty. Leaving status as running')
+                                else:
+                                    slog.debug('Output file does not exist. Leaving status as running')
+
                             else:
-                                log.debug('Output file does not exist. Leaving status as running')
-
+                                slog.debug('Job has no output specified. Assuming job has finished.')
+                                job.status = 'F'
                         else:
-                            log.debug('Job has no output specified. Assuming job has finished.')
-                            job.status = 'F'
+                            slog.debug('Log indicates abnormal termination. Marking job as error')
+                            job.status = 'E'
+
+                    elif condor_log.job_aborted:
+                        slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
+                        slog.debug("Directory to be deleted: ")
+                        slog.debug(job.subtask.task.directory)
+                        slog.debug("Deleting above job from database and from file system.")
+
+                        job.subtask.task.delete()
+
                     else:
-                        log.debug('Log indicates abnormal termination. Marking job as error')
-                        job.status = 'E'
-
-                elif condor_log.job_aborted:
-                    slog.debug("Job %d has aborted, and must be deleted." %job.subtask.cluster_id)
-                    slog.debug("Directory to be deleted: ")
-                    slog.debug(job.subtask.task.directory)
-                    # shutil.rmtree(dir)
-
-                else:
-                    #log.debug('Log indicates job not terminated. Leaving status as running')
-                    slog.debug("Log does not have a TERMINATED statement.")
-                    pass
-                job.save()
+                        #log.debug('Log indicates job not terminated. Leaving status as running')
+                        slog.debug("Log does not have a TERMINATED statement.")
+                        pass
+                    job.save()
+                except:
+                    slog.debug("PROBLEM: May be log directory does not exist.")
 
 def cancel_task(task):
     #TODO: implement this method
