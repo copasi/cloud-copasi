@@ -76,7 +76,7 @@ def transfer_file(slurm_partition, slurm_qos, address):
     log.debug("$$$$ Current Working Directory: ")
     log.debug(os.getcwd())
     cwd_old = os.getcwd()
-    chng_cwd = cwd_old + '/cloud-copasi/cloud_copasi/web_interface/pools'
+    chng_cwd = cwd_old + '/cloud-copasi/web_interface/pools'
     os.chdir(chng_cwd)
 
     log.debug("$$$$ Changed Working Directory: ")
