@@ -63,9 +63,9 @@ http://www.gnu.org/licenses/gpl.html
                           {% endif %}
                           <a class="btn btn-primary" href="{% url 'task_results_zip_download' task_id=task.id %}">Download all task files</a><br>
                           <p></p>
-  
+
                           <a class="btn btn-primary btn-danger" href="{% url 'task_delete' task_id=task.id %}">Delete task</a><br>
-                          <p></p> 
+                          <p></p>
                       </ul>
                   </p>
 
@@ -216,7 +216,7 @@ http://www.gnu.org/licenses/gpl.html
                           <td>{{ subtask.get_type_display }}</td>
                           <td>{{subtask.get_status_display }}</td>
                           <td>{% if subtask.local %}<span style="font-style:italic">Local</span>{% else %}{{subtask.get_job_count}}{% endif %}</td>
-                          <td>{% if subtask.status == 'finished' or subtask.status == 'error'%}{{ subtask.get_run_time_timedelta| default_if_none:''}}{% endif %}</td>
+                          <td>{% if subtask.status == 'finished' or subtask.status == 'error'%}{{ subtask.get_run_time_timedelta | default_if_none:''}}{% endif %}</td>
                           <td>{{subtask.start_time|default:''}}</td>
                           <td>{{subtask.finish_time|default:''}}</td>
 
@@ -226,7 +226,7 @@ http://www.gnu.org/licenses/gpl.html
                   </table>
               </div>
               <p>
-                  <br>   
+                  <br>
                   {% if task.status == 'running' %}
                   <a href="{% url 'running_task_list' %}" class="btn btn-primary">Return to running task list</a>
                   {% elif task.status == 'finished' %}

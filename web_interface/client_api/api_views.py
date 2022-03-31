@@ -36,6 +36,7 @@ import urllib
 import datetime
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 class APIView(View):
     @method_decorator(csrf_exempt)
@@ -186,8 +187,10 @@ class UpdateCondorStatusView(APIView):
 
                 if subtask.index < subtask_count:
                     #We have another subtask to run
-                    print('Another subtask to run!')
+                    slog.debug('Another subtask to run!')
 
+                    slog.debug("subtask index: ")
+                    slog.debug(subtask.index)
                     task_instance.submit_subtask(subtask.index + 1)
 
                 else:

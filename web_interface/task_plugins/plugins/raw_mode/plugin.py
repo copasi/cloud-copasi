@@ -143,12 +143,12 @@ class TaskPlugin(BaseTask):
 
 
         output_files = self.task.get_custom_field('output_files')
-        log.debug("output_files: ")
-        log.debug(output_files)
+        slog.debug("output_files: ")
+        slog.debug(output_files)
 
         model_count = self.task.get_custom_field('model_count')
-        log.debug("model_count: ")
-        log.debug(model_count)
+        slog.debug("model_count: ")
+        slog.debug(model_count)
 
         collated_output_files = []
         #Collate the output files back into their original name
@@ -182,13 +182,14 @@ class TaskPlugin(BaseTask):
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
         #added by HB
-        log.debug("============== temp_finish_time: ")
-        log.debug(temp_finish_time)
+        slog.debug("============== temp_finish_time: ")
+        slog.debug(temp_finish_time)
 
         time_delta = temp_finish_time - temp_start_time
 
-        log.debug("Time Delta: ")
-        log.debug(time_delta)
+        slog.debug("Time Delta: ")
+        slog.debug(time_delta)
+        slog.debug("Calling set_run_time method with tiem_delta value")
         subtask.set_run_time(time_delta)
 
         subtask.save()
