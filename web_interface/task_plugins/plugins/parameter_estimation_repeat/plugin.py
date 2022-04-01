@@ -343,7 +343,7 @@ class TaskPlugin(BaseTask):
         #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        slog.debug("Time Delta: {}".(time_delta))
+        slog.debug("Time Delta: {}".format(time_delta))
         subtask.set_run_time(time_delta)
 
         subtask.save()
