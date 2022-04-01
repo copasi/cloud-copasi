@@ -403,18 +403,16 @@ def process_condor_q(user=None, subtask=None):
                     condor_log = condor_log_tools.Log(log_path)
 
                     #added by HB to get the run_time value of job.
+                    slog.debug("job.run_time: {}".format(job.run_time))
                     job.run_time = condor_log.running_time
 
                     if condor_log.has_terminated:
                         slog.debug("has_terminated runs")
                         if condor_log.termination_status == 0:
                             slog.debug('Log indicates normal termination. Checking output files exist')
-                            #slog.debug("job.job_output: ")
-                            #slog.debug(job.job_output)
+
                             slog.debug("job.job_output: {}".format(job.job_output))
 
-                            # slog.debug("job.run_time")
-                            # slog.debug(job.run_time)
                             slog.debug("job.run_time: {}".format(job.run_time))
 
                             if job.job_output != '' and job.job_output != None:
@@ -458,6 +456,8 @@ def process_condor_q(user=None, subtask=None):
                         #log.debug('Log indicates job not terminated. Leaving status as running')
                         slog.debug("Log does not have a TERMINATED statement.")
                         pass
+
+                    slog.debug("saving job......")    
                     job.save()
                 except:
                     slog.debug("PROBLEM: May be log directory does not exist.")
