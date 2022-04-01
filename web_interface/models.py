@@ -725,12 +725,9 @@ class Subtask(models.Model):
             return count
 
     def set_run_time(self, time_delta=None):
-        slog.debug("Executing set_run_time: ")
-        slog.debug("Called from %s" %__name__)
-        slog.debug("time_delta: ")
-        slog.debug(time_delta)
 
         if not time_delta:
+            slog.debug("Executing set_run_time when time_delta is NONE")
             self.run_time = self.get_run_time()
             slog.debug("self.run_time")
             slog.debug(self.run_time)
@@ -738,7 +735,7 @@ class Subtask(models.Model):
         else:
             assert isinstance(time_delta, datetime.timedelta)
             #Calculate run time in days
-            slog.debug("self.run_time when time_delta value is not NONE")
+            slog.debug("Executing set.run_time when time_delta value is NOT none")
             slog.debug("time_delta.days: {}".format(time_delta.days))
             slog.debug("time_delta.seconds: {}".format(time_delta.seconds))
 
