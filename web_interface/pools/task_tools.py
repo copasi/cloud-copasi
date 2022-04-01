@@ -31,11 +31,6 @@ def update_tasks(user=None, task=None):
     If requested, can filter by a specific user or subtask
     """
     slog.debug("Running update_tasks function")
-    slog.debug("Called from: %s" %__name__)
-    slog.debug("user: ")
-    slog.debug(user)
-    slog.debug("task: ")
-    slog.debug(task)
 
     #Step 1: Get a list of running tasks
     tasks = Task.objects.filter(status='running')
@@ -105,6 +100,7 @@ def update_tasks(user=None, task=None):
                         task_instance = TaskClass(task)
                         slog.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
+                        slog.debug("TASK PREPARED")
 
                         #If this wasn't a local subtask, submit to condor
                         if not subtask.local:

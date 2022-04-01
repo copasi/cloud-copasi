@@ -406,17 +406,25 @@ def process_condor_q(user=None, subtask=None):
                         slog.debug("has_terminated runs")
                         if condor_log.termination_status == 0:
                             slog.debug('Log indicates normal termination. Checking output files exist')
+                            #slog.debug("job.job_output: ")
+                            #slog.debug(job.job_output)
+                            slog.debug("job.job_output: {}".format(job.job_output))
+
+                            # slog.debug("job.run_time")
+                            # slog.debug(job.run_time)
+                            slog.debug("job.run_time: {}".format(job.run_time))
 
                             if job.job_output != '' and job.job_output != None:
                                 output_filename = os.path.join(job.subtask.task.directory, job.job_output)
-
+                                slog.debug("output_filename: ")
+                                slog.debug(output_filename)
                                 if os.path.isfile(output_filename):
                                     try:
                                         assert os.path.getsize(output_filename) > 0
                                         try:
                                             run_time =  condor_log.running_time_in_days
-                                            log.debug(" -*-*-*- run_time: ")
-                                            log.debug(run_time)
+                                            slog.debug(" -*-*-*- run_time: ")
+                                            slog.debug(run_time)
                                             job.run_time = run_time
                                             run_time_minutes = run_time * 24 * 60
                                         except:
