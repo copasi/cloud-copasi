@@ -236,8 +236,7 @@ class TaskPlugin(BaseTask):
         subtask=self.get_subtask(2)
 
         assert isinstance(subtask, Subtask)
-        #subtask.start_time = now()
-        #above line is modified by HB as follows
+
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
         slog.debug("temp_start_time: {}".format(temp_start_time))
@@ -262,17 +261,18 @@ class TaskPlugin(BaseTask):
 
         subtask.status = 'finished'
         subtask.finish_time = timezone.localtime()
-        #subtask.finish_time = now()
         temp_finish_time = subtask.finish_time
+
         slog.debug("temp_finish_time: {}".format(temp_finish_time))
 
         time_delta = temp_finish_time - temp_start_time
+
         slog.debug("Time Delta OPTIMIZATION REPEAT: {}".format(time_delta))
 
+        slog.debug("Calling set_run_time method from OPTIMIZATION REPEAT plugin with time_delta value")
         subtask.set_run_time(time_delta)
 
         subtask.save()
-
         subtask.task.results_view=False
         subtask.task.save()
 
