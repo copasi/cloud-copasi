@@ -729,8 +729,7 @@ class Subtask(models.Model):
         if not time_delta:
             slog.debug("Executing set_run_time when time_delta is NONE")
             self.run_time = self.get_run_time()
-            slog.debug("self.run_time")
-            slog.debug(self.run_time)
+            slog.debug("self.run_time: {}".format(self.run_time))
 
         else:
             assert isinstance(time_delta, datetime.timedelta)
