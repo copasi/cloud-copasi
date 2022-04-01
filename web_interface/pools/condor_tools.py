@@ -457,10 +457,11 @@ def process_condor_q(user=None, subtask=None):
                         slog.debug("Log does not have a TERMINATED statement.")
                         pass
 
-                    slog.debug("saving job......")    
+                    slog.debug("saving job......")
                     job.save()
-                except:
+                except Exception as e:
                     slog.debug("PROBLEM: May be log directory does not exist.")
+                    slog.debug(e)
 
 def cancel_task(task):
     #TODO: implement this method
