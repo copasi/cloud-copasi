@@ -402,6 +402,9 @@ def process_condor_q(user=None, subtask=None):
                 try:
                     condor_log = condor_log_tools.Log(log_path)
 
+                    #added by HB to get the run_time value of job.
+                    job.run_time = condor_log.running_time
+
                     if condor_log.has_terminated:
                         slog.debug("has_terminated runs")
                         if condor_log.termination_status == 0:
