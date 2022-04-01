@@ -309,6 +309,7 @@ class TaskPlugin(BaseTask):
     def create_optimal_file(self):
         """Create a copasi file containing the best values
         """
+        slog.debug("Creating file with optimal values:")
 
         if self.use_load_balancing:
             subtask = self.get_subtask(4)
@@ -318,6 +319,7 @@ class TaskPlugin(BaseTask):
         # following lines are added by HB to capture timings of this task
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
+        slog.debug("temp_start_time: {}".format(temp_start_time))
 
         optimal_model = self.copasi_model.create_pr_best_value_model(subtask.index, custom_report=self.custom_report)
         condor_pool = self.task.condor_pool
@@ -334,14 +336,14 @@ class TaskPlugin(BaseTask):
 
         #temporary check for capturing time of file creation tasks
         subtask.finish_time = timezone.localtime()
-
         temp_finish_time = subtask.finish_time
+        slog.debug("temp_finish_time: {}".format(temp_finish_time))
+
 
         #added by HB
         time_delta = temp_finish_time - temp_start_time
 
-        log.debug("Time Delta: ")
-        log.debug(time_delta)
+        slog.debug("Time Delta: {}".(time_delta))
         subtask.set_run_time(time_delta)
 
         subtask.save()
