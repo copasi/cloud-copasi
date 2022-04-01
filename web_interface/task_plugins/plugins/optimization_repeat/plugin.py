@@ -28,6 +28,7 @@ import datetime
 from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
 import matplotlib
@@ -238,7 +239,6 @@ class TaskPlugin(BaseTask):
         #subtask.start_time = now()
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
-
         temp_start_time = subtask.start_time
 
         #Go through and collate the results
@@ -266,8 +266,8 @@ class TaskPlugin(BaseTask):
 
         time_delta = temp_finish_time - temp_start_time
 
-        log.debug("Time Delta: ")
-        log.debug(time_delta)
+        slog.debug("Time Delta OPTIMIZATION REPEAT: ")
+        slog.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()
