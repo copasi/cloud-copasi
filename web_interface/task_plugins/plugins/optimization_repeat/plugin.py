@@ -240,6 +240,7 @@ class TaskPlugin(BaseTask):
         #above line is modified by HB as follows
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
+        slog.debug("temp_start_time: {}".format(temp_start_time))
 
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
@@ -263,11 +264,11 @@ class TaskPlugin(BaseTask):
         subtask.finish_time = timezone.localtime()
         #subtask.finish_time = now()
         temp_finish_time = subtask.finish_time
+        slog.debug("temp_finish_time: {}".format(temp_finish_time))
 
         time_delta = temp_finish_time - temp_start_time
+        slog.debug("Time Delta OPTIMIZATION REPEAT: {}".format(time_delta))
 
-        slog.debug("Time Delta OPTIMIZATION REPEAT: ")
-        slog.debug(time_delta)
         subtask.set_run_time(time_delta)
 
         subtask.save()

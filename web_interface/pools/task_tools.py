@@ -102,7 +102,7 @@ def update_tasks(user=None, task=None):
                         task_instance = TaskClass(task)
                         slog.debug('Preparing new subtask %d' % (subtask.index))
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
-                        slog.debug("TASK PREPARED")
+                        slog.debug("TASK EXECUTED")
 
                         #If this wasn't a local subtask, submit to condor
                         if not subtask.local:
