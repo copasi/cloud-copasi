@@ -403,9 +403,14 @@ def process_condor_q(user=None, subtask=None):
                     condor_log = condor_log_tools.Log(log_path)
 
                     #added by HB to get the run_time value of job.
-                    slog.debug("condor_log.running_time: {}".format(condor_log.running_time))
-                    slog.debug("condor_log.running_time in seconds: {}".format(condor_log.running_time.total_seconds()))
-                    job.run_time = condor_log.running_time.total_seconds()
+                    # slog.debug("condor_log.running_time: {}".format(condor_log.running_time))
+                    # slog.debug("condor_log.running_time in seconds: {}".format(condor_log.running_time.total_seconds()))
+                    # job.run_time = condor_log.running_time.total_seconds()
+
+                    slog.debug("condor_log.running_time_in_days: {}".format(condor_log.running_time_in_days))
+                    job.run_time = condor_log.running_time_in_days
+                    slog.debug("job.run_time: {}".format(job.run_time))
+
 
                     if condor_log.has_terminated:
                         slog.debug("has_terminated runs")
