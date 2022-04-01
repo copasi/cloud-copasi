@@ -69,8 +69,10 @@ def update_tasks(user=None, task=None):
                 #The subtask has finished!
                 slog.debug('Task %s, subtask %d: successfully finished. Updating status' % (task.name, subtask.index))
                 subtask.status = 'finished'
+                slog.debug("capturing job timings: ")
                 subtask.set_run_time() #Set the run time as the sum from the associated jobs
                 subtask.set_job_count() #And the number of condor jobs
+                slog.debug("RETURNED BACK")
                 #subtask.finish_time = now()
                 #above line is modified by HB as follows:
                 slog.debug("_+_+_+_+_+_+_++_+_+_+_+_++_+_+_+_+_+_ This line executes.")
