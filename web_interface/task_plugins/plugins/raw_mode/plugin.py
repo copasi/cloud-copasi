@@ -25,6 +25,7 @@ import re
 import datetime
 #from django.utils.timezone import now
 from django.utils import timezone #added by HB
+import time #added by HB to debug Local subtask time
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
@@ -134,9 +135,9 @@ class TaskPlugin(BaseTask):
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
         #added by HB
-        log.debug("============== temp_start_time: ")
-        log.debug(subtask.start_time)
-        log.debug(temp_start_time)
+        slog.debug("============== temp_start_time: ")
+        slog.debug(subtask.start_time)
+        slog.debug(temp_start_time)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
@@ -174,6 +175,8 @@ class TaskPlugin(BaseTask):
         if len(collated_output_files) > 0:
             self.task.result_view=True
         self.task.save()
+
+        time.sleep(30)  #adding 30 seconds delay to observe timings of local task
 
         subtask.status = 'finished'
         #subtask.finish_time = now()
