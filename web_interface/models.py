@@ -738,11 +738,11 @@ class Subtask(models.Model):
         else:
             assert isinstance(time_delta, datetime.timedelta)
             #Calculate run time in days
+            slog.debug("self.run_time when time_delta value is not NONE")
             slog.debug("time_delta.days: {}".format(time_delta.days))
             slog.debug("time_delta.seconds: {}".format(time_delta.seconds))
 
-            self.run_time = time_delta.days + (float(time_delta.seconds) / 86400.00)
-            slog.debug("self.run_time when time_delta value is not NONE")
+            self.run_time = float(time_delta.days) + (float(time_delta.seconds) / 86400.00)
             slog.debug("self.run_time")
             slog.debug(self.run_time)
             slog.debug("self.run_time: {}".format(self.run_time))
