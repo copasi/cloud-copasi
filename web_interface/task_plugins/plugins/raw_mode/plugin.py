@@ -25,7 +25,7 @@ import re
 import datetime
 #from django.utils.timezone import now
 from django.utils import timezone #added by HB
-import time #added by HB to debug Local subtask time
+# import time #added by HB to debug Local subtask time
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
@@ -176,7 +176,7 @@ class TaskPlugin(BaseTask):
             self.task.result_view=True
         self.task.save()
 
-        time.sleep(30)  #adding 30 seconds delay to observe timings of local task
+        # time.sleep(30)  #adding 30 seconds delay to observe timings of local task
 
         subtask.status = 'finished'
         #subtask.finish_time = now()
