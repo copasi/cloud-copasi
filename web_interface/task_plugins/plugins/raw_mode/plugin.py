@@ -25,8 +25,10 @@ import re
 import datetime
 #from django.utils.timezone import now
 from django.utils import timezone #added by HB
+# import time #added by HB to debug Local subtask time
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
 import matplotlib
@@ -133,9 +135,9 @@ class TaskPlugin(BaseTask):
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
         #added by HB
-        log.debug("============== temp_start_time: ")
-        log.debug(subtask.start_time)
-        log.debug(temp_start_time)
+        slog.debug("============== temp_start_time: ")
+        slog.debug(subtask.start_time)
+        slog.debug(temp_start_time)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
@@ -143,12 +145,12 @@ class TaskPlugin(BaseTask):
 
 
         output_files = self.task.get_custom_field('output_files')
-        log.debug("output_files: ")
-        log.debug(output_files)
+        slog.debug("output_files: ")
+        slog.debug(output_files)
 
         model_count = self.task.get_custom_field('model_count')
-        log.debug("model_count: ")
-        log.debug(model_count)
+        slog.debug("model_count: ")
+        slog.debug(model_count)
 
         collated_output_files = []
         #Collate the output files back into their original name
@@ -174,6 +176,8 @@ class TaskPlugin(BaseTask):
             self.task.result_view=True
         self.task.save()
 
+        # time.sleep(30)  #adding 30 seconds delay to observe timings of local task
+
         subtask.status = 'finished'
         #subtask.finish_time = now()
         #subtask.set_run_time(time_delta=subtask.finish_time-subtask.start_time)
@@ -182,13 +186,14 @@ class TaskPlugin(BaseTask):
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
         #added by HB
-        log.debug("============== temp_finish_time: ")
-        log.debug(temp_finish_time)
+        slog.debug("============== temp_finish_time: ")
+        slog.debug(temp_finish_time)
 
         time_delta = temp_finish_time - temp_start_time
 
-        log.debug("Time Delta: ")
-        log.debug(time_delta)
+        slog.debug("Time Delta: ")
+        slog.debug(time_delta)
+        slog.debug("Calling set_run_time method with tiem_delta value")
         subtask.set_run_time(time_delta)
 
         subtask.save()
