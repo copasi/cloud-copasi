@@ -134,16 +134,23 @@ class TaskPlugin(BaseTask):
         #subtask.start_time = now()
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
-        slog.debug("temp_start_time: {}".format(temp_start_time))
-
+        #added by HB
+        slog.debug("============== temp_start_time: ")
+        slog.debug(subtask.start_time)
+        slog.debug(temp_start_time)
         #Go through and collate the results
         #This is reasonably computationally simple, so we run locally
 
         directory = self.task.directory
 
+
         output_files = self.task.get_custom_field('output_files')
+        slog.debug("output_files: ")
+        slog.debug(output_files)
 
         model_count = self.task.get_custom_field('model_count')
+        slog.debug("model_count: ")
+        slog.debug(model_count)
 
         collated_output_files = []
         #Collate the output files back into their original name
@@ -172,16 +179,21 @@ class TaskPlugin(BaseTask):
         # time.sleep(30)  #adding 30 seconds delay to observe timings of local task
 
         subtask.status = 'finished'
+        #subtask.finish_time = now()
+        #subtask.set_run_time(time_delta=subtask.finish_time-subtask.start_time)
+
+        #added by HB
         subtask.finish_time = timezone.localtime()
         temp_finish_time = subtask.finish_time
-
-        slog.debug("temp_finish_time: {}".format(temp_finish_time))
+        #added by HB
+        slog.debug("============== temp_finish_time: ")
+        slog.debug(temp_finish_time)
 
         time_delta = temp_finish_time - temp_start_time
 
-        slog.debug("Time Delta RAW MODE: {}".format(time_delta))
-
-        # slog.debug("Calling set_run_time method from RAWMODE plugin with time_delta value")
+        slog.debug("Time Delta: ")
+        slog.debug(time_delta)
+        slog.debug("Calling set_run_time method with tiem_delta value")
         subtask.set_run_time(time_delta)
 
         subtask.save()

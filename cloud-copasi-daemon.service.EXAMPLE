@@ -1,5 +1,11 @@
 # cloud-copasi-daemon.service systemd-style service specification
 # This can be copied into somewhere like /etc/systemd/system/
+#
+# Change the User entry to make it match the username that runs
+# cloud-copasi (default is 'cloudcopasi'). Adjust the full paths
+# in ExexStart and ExecStop to match the directory where
+# cloud-copasi is installed.
+#
 # Then run:
 # sudo systemctl enable cloud-copasi-daemon.service
 # . . . to enable startup on boot, and . . .
@@ -7,7 +13,7 @@
 # . . . to immediately start the service
 
 [Unit]
-Description=cloud-copasi daemon to start bosco and periodically poll it's queue for completed jobs
+Description=cloud-copasi daemon, periodically polls condor queue for completed jobs
 Before=multi-user.target
 Before=graphical.target
 Before=shutdown.target
