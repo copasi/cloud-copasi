@@ -119,7 +119,7 @@ class CopasiModel_BasiCO(object):
                 return 'No objective expression has been set for the optimization task'
             return True
 
-        elif job_type == 'PR':
+        elif job_type == 'PR' or job_type == 'PL':
             if len(self.get_parameter_estimation_parameters()) == 0:
                 return 'No parameters have been set for the sensitivites task'
             return True
