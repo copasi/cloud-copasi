@@ -648,6 +648,7 @@ class Subtask(models.Model):
                     ('process', 'Results processing'),
                     ('file', 'Creating file with optimal values'),
                     ('other', 'Other'),
+                    ('PlFiles', 'Generating PL Files')
                     )
 
     type = models.CharField(max_length=32, choices=type_choices)
