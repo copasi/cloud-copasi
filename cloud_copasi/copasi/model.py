@@ -1567,3 +1567,71 @@ class CopasiModel_BasiCO(object):
         """Read the mean values from mean.txt"""
 
     def prepare_pl_files(self):
+
+        #First, clear all tasks
+        self._clear_tasks()
+        original_fit_parameters = get_fit_parameters()
+
+        param_list=[]
+        model_files = []
+        for i in range(len(original_fit_parameters)):
+        # for i in range(1):
+            current_param=[]        #current_param[name, lower, upper, cn]
+            param_name = original_fit_parameters.index[i]   #name
+            lower = original_fit_parameters.iloc[i, 0]      #lower
+            upper = original_fit_parameters.iloc[i, 1]      #Upper
+            POI = original_fit_parameters.iloc[i, 4]        #parameter of interest    #CN
+
+            current_param.append(param_name)
+            current_param.append(lower)
+            current_param.append(upper)
+            current_param.append(POI)
+
+            param_list.append(current_param)
+            #adding scan task with the current parameter
+            set_scan_items([{'cn':POI,
+                            'min': lower,
+                            'max':upper,
+                            'num_steps': 10}])
+
+            # adding report
+            # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
+            report_name = "Profile_Likelihood"
+            output_file_name = "Output-PL-" + param_name.rsplit('.')[1] + ".txt"
+
+            ############### checking if report exists
+            listOfReports = get_reports().index
+
+            # to avoid duplicating reports, delete those which alread exist with the name "Profile-Likelihood"
+            for report in listOfReports:
+                if report == report_name:
+                    remove_report(report)
+
+            add_report(
+                       name=report_name,
+                       task=T.SCAN,
+                       table=[
+                              str(POI),
+                              'CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Reference=Best Value'
+                              ]
+                        )
+
+            assign_report(name=report_name,
+                          task= T.SCAN,
+                          filename=output_file_name,
+                          append=True)
+
+            #removing the POI from the current list of fit parameters
+            new_fit_params = original_fit_parameters.drop(param_name)
+            set_fit_parameters(new_fit_params)
+
+            new_model_name = "Model-PL-" + param_name.rsplit('.')[1] + ".cps"
+            filename = os.path.join(self.path, new_model_name)
+            # save_model(new_model_name)
+            self.write(filename)
+            model_files.append(filename)
+            
+        return model_files
+
+
+            #running the files to see if they generate the correct files
