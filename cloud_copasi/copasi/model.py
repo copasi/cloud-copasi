@@ -1565,3 +1565,5 @@ class CopasiModel_BasiCO(object):
 
     def get_sp_mean(self):
         """Read the mean values from mean.txt"""
+
+    def prepare_pl_files(self):
