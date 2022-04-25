@@ -14,7 +14,7 @@ from django.forms import Form
 from django import forms
 from cloud_copasi import settings
 from cloud_copasi.copasi.model import CopasiModel_BasiCO
-from web_interface.task_plugins.plugins.parameter_estimation_repeat.copasi_model import PLCopasiModel_BasiCO # Use the task-specific copasi model in this directory
+from web_interface.task_plugins.plugins.profile_likelihood.copasi_model import PLCopasiModel_BasiCO # Use the task-specific copasi model in this directory
 import os, math
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
