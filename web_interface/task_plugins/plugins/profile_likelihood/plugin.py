@@ -44,7 +44,7 @@ class TaskForm(BaseTaskForm):
 
 class TaskPlugin(BaseTask):
 
-    subtasks = 3
+    subtasks = 2
 
     def __init__(self, task):
         #self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
@@ -75,8 +75,8 @@ class TaskPlugin(BaseTask):
     def initialize_subtasks(self):
         #Create new subtask objects, and save them
 
-        #Create a task to generate PL files for each Parameters
-        self.create_new_subtask('PlFiles', local=True)
+        # #Create a task to generate PL files for each Parameters
+        # self.create_new_subtask('PlFiles', local=True)
         #Create a task to submit jobs on remote submit node
         self.create_new_subtask('main')
 
@@ -87,20 +87,33 @@ class TaskPlugin(BaseTask):
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
         if index == 1:
-            return self.process_plfiles_subtask()
-
-        elif index == 2:
+            # return self.process_plfiles_subtask()
             return self.process_main_subtask()
 
-        elif index == 3:
+        elif index == 2:
+            # return self.process_main_subtask()
             return self.process_results_subtask()
 
+        # elif index == 3:
+            # return self.process_results_subtask()
         else:
             raise Exception('No subtasks remaining')
 
 
 #READ A QUESTION ON NOTE BOOK
-    def process_plfiles_subtask():
+    # def process_plfiles_subtask():
+    def process_main_subtask(self):
         subtask = self.get_subtask(1)
 
-        self.copasi_model.prepare_pl_files()
+        model_files = self.copasi_model.prepare_pl_files()
+
+        slog.debug("model files: {}".format(model_files))
+
+        # condor_pool = self.task.condor_pool
+        #
+        # condor_job_file = self.copasi_model.prepare_pr_condor_job(condor_pool.pool_type,
+        #                                                           condor_pool.address,
+        #                                                           len(model_files),
+        #                                                           subtask.index,
+        #                                                           self.data_files,
+        #                                                           rank='')
