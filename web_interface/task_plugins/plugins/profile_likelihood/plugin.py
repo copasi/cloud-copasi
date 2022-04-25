@@ -117,3 +117,5 @@ class TaskPlugin(BaseTask):
         #                                                           subtask.index,
         #                                                           self.data_files,
         #                                                           rank='')
+
+        return subtask
