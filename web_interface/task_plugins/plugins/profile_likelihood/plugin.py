@@ -61,7 +61,7 @@ class TaskPlugin(BaseTask):
 
         #added by HB
         slog.debug("---------> self.task.directory: {}".format(self.task.directory))
-        slog.debug("---------> self.task.original_model: {}".format(self.task.directory))
+        slog.debug("---------> self.task.original_model: {}".format(self.task.original_model))
 
         slog.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PLCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
@@ -100,22 +100,28 @@ class TaskPlugin(BaseTask):
             raise Exception('No subtasks remaining')
 
 
-#READ A QUESTION ON NOTE BOOK
-    # def process_plfiles_subtask():
     def process_main_subtask(self):
         subtask = self.get_subtask(1)
 
-        model_files = self.copasi_model.prepare_pl_files()
+        model_files, file_param_assign = self.copasi_model.prepare_pl_files(subtask.index)
 
         slog.debug("model files: {}".format(model_files))
 
-        # condor_pool = self.task.condor_pool
-        #
-        # condor_job_file = self.copasi_model.prepare_pr_condor_job(condor_pool.pool_type,
-        #                                                           condor_pool.address,
-        #                                                           len(model_files),
-        #                                                           subtask.index,
-        #                                                           self.data_files,
-        #                                                           rank='')
+        condor_pool = self.task.condor_pool
+
+        condor_job_file = self.copasi_model.prepare_pl_condor_job(condor_pool.pool_type,
+                                                                  condor_pool.address,
+                                                                  len(model_files),
+                                                                  subtask.index,
+                                                                  self.data_files,
+                                                                  rank='')
+
+        model_count = len(model_files)
+        self.task.set_custom_field('model_count', model_count)
+
+        subtask.spec_file = condor_job_file
+        subtask.status = 'ready'
+        subtask.save()
+
 
         return subtask
