@@ -109,12 +109,7 @@ class TaskPlugin(BaseTask):
 
         condor_pool = self.task.condor_pool
 
-        condor_job_file = self.copasi_model.prepare_pl_condor_job(condor_pool.pool_type,
-                                                                  condor_pool.address,
-                                                                  len(model_files),
-                                                                  subtask.index,
-                                                                  self.data_files,
-                                                                  rank='')
+        condor_job_file = self.copasi_model.prepare_pl_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, self.data_files, rank='')
 
         model_count = len(model_files)
         self.task.set_custom_field('model_count', model_count)
