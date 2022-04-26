@@ -1566,14 +1566,16 @@ class CopasiModel_BasiCO(object):
     def get_sp_mean(self):
         """Read the mean values from mean.txt"""
 
-    def prepare_pl_files(self):
-
+    def prepare_pl_files(self, subtask_index):
+        """ Generating separate model files for each parameter of interest for PL task """
         #First, clear all tasks
         self._clear_tasks()
         original_fit_parameters = get_fit_parameters()
 
         param_list=[]
         model_files = []
+        param_names_list = []
+        file_param_assign = {}
         for i in range(len(original_fit_parameters)):
         # for i in range(1):
             current_param=[]        #current_param[name, lower, upper, cn]
@@ -1625,13 +1627,55 @@ class CopasiModel_BasiCO(object):
             new_fit_params = original_fit_parameters.drop(param_name)
             set_fit_parameters(new_fit_params)
 
-            new_model_name = "Model-PL-" + param_name.rsplit('.')[1] + ".cps"
+            param_name_actual = param_name.rsplit('.')[1]
+            new_model_name = "auto_copasi_%d.%d.cps" % (subtask_index, i)
             filename = os.path.join(self.path, new_model_name)
             # save_model(new_model_name)
             self.write(filename)
             model_files.append(filename)
-            
-        return model_files
+            file_param_assign[new_model_name] = param_name_actual
+            # param_names_list.append(param_name_actual)
 
+        return (model_files, file_param_assign)
 
-            #running the files to see if they generate the correct files
+    def prepare_pl_condor_job(self,
+                              pool_type,
+                              pool_address,
+                              number_of_jobs,
+                              subtask_index=1,
+                              data_files,
+                              rank='0',
+                              extraArgs=''):
+        condor_jobs = []
+
+        # copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles='',
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename                                                                           
