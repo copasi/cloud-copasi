@@ -1603,7 +1603,8 @@ class CopasiModel_BasiCO(object):
             # adding report
             # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
             report_name = "Profile_Likelihood"
-            output_file_name = "Output-PL-" + param_name.rsplit('.')[1] + ".txt"
+            # output_file_name = "Output-PL-" + param_name.rsplit('.')[1] + ".txt"
+            output_file_name = "output_%d.%d.txt" % (subtask_index, i)
 
             ############### checking if report exists
             listOfReports = get_reports().index
