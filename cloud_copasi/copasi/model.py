@@ -1598,7 +1598,7 @@ class CopasiModel_BasiCO(object):
 
             set_task_settings(T.SCAN,
                           {'scheduled': True,
-                          'update_model': True,})                     
+                          'update_model': True,})
 
             # adding report
             # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
@@ -1642,7 +1642,7 @@ class CopasiModel_BasiCO(object):
 
         return (model_files, file_param_assign)
 
-    def prepare_pl_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, data_files, rank='0'):
+    def prepare_pl_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0',  extraArgs=''):
         condor_jobs = []
 
         # copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
