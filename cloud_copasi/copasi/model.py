@@ -1659,8 +1659,13 @@ class CopasiModel_BasiCO(object):
             binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
             transfer_executable = 'YES'
 
+        input_files_string = ', '
+        for data_file in data_files:
+            input_files_string += (data_file + ', ')
+        input_files_string = input_files_string.rstrip(', ')
+
         condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
-                                                                                   otherFiles='',
+                                                                                   otherFiles=input_files_string,
                                                                                    rank=rank,
                                                                                    binary_dir = binary_dir,
                                                                                    transfer_executable = transfer_executable,
@@ -1678,4 +1683,4 @@ class CopasiModel_BasiCO(object):
         condor_file.write(condor_job_string)
         condor_file.close()
 
-        return condor_job_filename                                                                           
+        return condor_job_filename
