@@ -1638,14 +1638,7 @@ class CopasiModel_BasiCO(object):
 
         return (model_files, file_param_assign)
 
-    def prepare_pl_condor_job(self,
-                              pool_type,
-                              pool_address,
-                              number_of_jobs,
-                              subtask_index=1,
-                              data_files,
-                              rank='0',
-                              extraArgs=''):
+    def prepare_pl_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, data_files, rank='0'):
         condor_jobs = []
 
         # copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
