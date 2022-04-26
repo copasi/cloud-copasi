@@ -1596,6 +1596,10 @@ class CopasiModel_BasiCO(object):
                             'max':upper,
                             'num_steps': 10}])
 
+            set_task_settings(T.SCAN,
+                          {'scheduled': True,
+                          'update_model': True,})                     
+
             # adding report
             # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
             report_name = "Profile_Likelihood"
