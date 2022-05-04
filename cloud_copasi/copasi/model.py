@@ -1639,7 +1639,7 @@ class CopasiModel_BasiCO(object):
             self.write(filename)
             model_files.append(filename)
             file_param_assign[new_model_name] = param_name_actual
-            file = open("File-Parameter Assignment.txt", "w")
+            file = open(os.path.join(self.path, "File-Parameter-Assignment.txt"), "w")
             for key, value in file_param_assign.items():
                 file.write("%s : PoI = %s\n" % (key, value))
             file.close()    
