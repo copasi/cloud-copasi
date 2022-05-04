@@ -17,6 +17,7 @@ from string import Template
 import logging
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
 log =  ${copasiFile}.log
