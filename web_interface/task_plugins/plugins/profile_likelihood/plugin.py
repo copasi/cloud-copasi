@@ -15,7 +15,9 @@ from django import forms
 from cloud_copasi import settings
 from cloud_copasi.copasi.model import CopasiModel_BasiCO
 from web_interface.task_plugins.plugins.profile_likelihood.copasi_model import PLCopasiModel_BasiCO # Use the task-specific copasi model in this directory
-import os, math
+import os, math, pandas
+from scipy import stats
+import scipy as sp
 import logging
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -142,7 +144,8 @@ class TaskPlugin(BaseTask):
 
         slog.debug("param_to_plot: {}".format(param_to_plot))
 
-        #next logic goes here
+        #generating plots and saving in the
+        self.generate_plots(param_to_plot)
 
         self.task.save()
         subtask.status = 'finished'
@@ -157,3 +160,84 @@ class TaskPlugin(BaseTask):
         subtask.save()
 
         return subtask
+
+    def read_xy_data(self, data_file_path):
+        """Reading simulation data from output_1.x.txt files"""
+
+        data_file = open(data_file_path, "r")
+        lines = data_file.readlines()
+        x = []
+        y = []
+        index = 0
+
+        for line in lines:
+            if index == 0:
+                index += 1
+            else:
+                values = line.split('\t')
+                x.append(float(values[0]))
+                y.append(float(values[1].strip('\n')))
+
+        return x, y
+
+    def generate_plots(self, param_to_plot):
+        plot_list = []
+        rows = math.ceil(len(param_to_plot)/4.0)
+        slog.debug("rows: {}".format(rows))
+
+        if len(param_to_plot) < 4:
+            cols = len(param_to_plot)
+        else:
+            cols = 4
+
+        fig, ax = plt.subplots(rows, cols, figsize=(15,5), sharey=True)
+        plt.subplots_adjust(wspace=0.2, hspace=0.2)
+
+        for i in range(len(param_to_plot)):
+            read_file_name = 'output_1.%d.txt' %i #update it for the server
+            read_file = os.path.join(self.task.directory, read_file_name)
+
+            plot_file_name = 'output_1.%d' %i + ".png"
+            plot_file = os.path.join(self.task.directory, plot_file_name)
+
+            poi_data = param_to_plot[i]
+
+            x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
+            min_val = min(y)    #reading minimum value of y to set it on the y-axis
+
+            #Plot settings
+            ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
+            ax[i].plot(x,y, marker = 'o')
+            ax[i].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
+            ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
+            ax[i].set_xlabel('%s' %poi_data[0])
+
+            # for xy coordinates in poi_data:
+            #SoS_x = "{:.1f}".format(poi_data[1])
+            #SoS_y = "{:.1f}".format(poi_data[2])
+            #displaying the coordinate value of best solution
+            # ax[i].annotate(text = "(%s, %s)" %(SoS_x, SoS_y), xy = (poi_data[1], poi_data[2]), rotation=45)
+
+            #estimating chi-square value fitting one parameter
+            c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
+            print(f"c1: {c1}")
+            t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
+            print(f"poi_data[1]: {poi_data[2]}")
+            print(math.exp(c1/len(param_to_plot)))
+            print(f"t1: {t1}")
+            ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
+
+            #estimating chi-square value fitting n parameter
+            c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
+            print(f"c2: {c2}")
+            t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
+            print(f"t2: {t2}")
+            ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
+
+            #setting the y-axis limit
+            ax[i].set_ylim(min_val * 0.4, t2*1.2)
+
+        #plot labeling and saving    
+        plt.suptitle("Profile Likelihood")
+        fig.supylabel("Sum of Squares")
+        plt.savefig('subplots.png')
