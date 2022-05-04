@@ -120,3 +120,18 @@ class TaskPlugin(BaseTask):
 
 
         return subtask
+
+    def process_results_subtask(self):
+        main_subtask = self.get_subtask(1)
+        subtask = self.get_subtask(2)
+
+        subtask.start_time = timezone.localtime()
+        temp_start_time = subtask.start_time
+
+        directory = self.task.directory
+
+        main_jobs = CondorJob.objects.filter(subtask=main_subtask)
+
+        param_to_plot = self.copasi_model.process_original_pl_model()
+
+        slog.debug("param_to_plot: {}".format(param_to_plot))
