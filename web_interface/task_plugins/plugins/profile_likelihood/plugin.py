@@ -92,6 +92,7 @@ class TaskPlugin(BaseTask):
 
         elif index == 2:
             # return self.process_main_subtask()
+            slog.debug("============== executing process_results_subtask: ")
             return self.process_results_subtask()
 
         # elif index == 3:
@@ -125,8 +126,13 @@ class TaskPlugin(BaseTask):
         main_subtask = self.get_subtask(1)
         subtask = self.get_subtask(2)
 
+        assert isinstance(subtask, Subtask)
+
         subtask.start_time = timezone.localtime()
         temp_start_time = subtask.start_time
+
+        slog.debug("============== temp_start_time: ")
+        slog.debug(subtask.start_time)
 
         directory = self.task.directory
 
