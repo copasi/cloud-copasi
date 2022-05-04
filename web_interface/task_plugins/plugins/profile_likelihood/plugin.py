@@ -135,3 +135,19 @@ class TaskPlugin(BaseTask):
         param_to_plot = self.copasi_model.process_original_pl_model()
 
         slog.debug("param_to_plot: {}".format(param_to_plot))
+
+        #next logic goes here
+
+        self.task.save()
+        subtask.status = 'finished'
+        subtask.finish_time = timezone.localtime()
+        temp_finish_time = subtask.finish_time
+
+        time_delta = temp_finish_time - temp_start_time
+
+        slog.debug("Time Delta: {}".format(time_delta))
+        subtask.set_run_time(time_delta)
+
+        subtask.save()
+
+        return subtask
