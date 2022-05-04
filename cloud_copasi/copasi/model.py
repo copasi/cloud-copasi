@@ -1642,7 +1642,7 @@ class CopasiModel_BasiCO(object):
             file = open(os.path.join(self.path, "File-Parameter-Assignment.txt"), "w")
             for key, value in file_param_assign.items():
                 file.write("%s : PoI = %s\n" % (key, value))
-            file.close()    
+            file.close()
             # param_names_list.append(param_name_actual)
 
         return (model_files, file_param_assign)
@@ -1686,3 +1686,26 @@ class CopasiModel_BasiCO(object):
         condor_file.close()
 
         return condor_job_filename
+
+    def process_original_pl_model(self):
+        original_fit_parameters = get_fit_parameters()
+
+        solution = run_parameter_estimation(method='Current Solution Statistics', calculate_statistics = True)
+        obj_value = get_fit_statistic()['obj']
+
+        param_to_plot_list = []
+
+        for i in range(len(solution)):
+            sol_list = []
+            param_name = solution.index[i].rsplit('.')[1]
+            sol = original_fit_parameters.iloc[i, 2]   #sol
+            sol_list.append(param_name)
+            sol_list.append(sol)
+            sol_list.append(obj_value)
+
+            param_to_plot_list.append(sol_list)
+
+        slog.debug("param_to_plot_list: {}".format(param_to_plot_list))
+
+
+        return param_to_plot_list
