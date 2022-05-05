@@ -164,9 +164,12 @@ class TaskPlugin(BaseTask):
     def read_xy_data(self, data_file_path):
         """Reading simulation data from output_1.x.txt files"""
         slog.debug("reading xy data from output files")
-        
+
         data_file = open(data_file_path, "r")
         lines = data_file.readlines()
+
+        slog.debug("lines: {}".format(lines))
+
         x = []
         y = []
         index = 0
