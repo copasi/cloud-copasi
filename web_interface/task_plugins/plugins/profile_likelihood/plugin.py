@@ -163,7 +163,8 @@ class TaskPlugin(BaseTask):
 
     def read_xy_data(self, data_file_path):
         """Reading simulation data from output_1.x.txt files"""
-
+        slog.debug("reading xy data from output files")
+        
         data_file = open(data_file_path, "r")
         lines = data_file.readlines()
         x = []
@@ -198,10 +199,11 @@ class TaskPlugin(BaseTask):
         for i in range(len(param_to_plot)):
             read_file_name = 'output_1.%d.txt' %i #update it for the server
             read_file = os.path.join(self.task.directory, read_file_name)
+            slog.debug("read_file: {}".format(read_file))
 
             plot_file_name = 'output_1.%d' %i + ".png"
             plot_file = os.path.join(self.task.directory, plot_file_name)
-
+            slog.debug("plot_file: {}".format(plot_file))
             poi_data = param_to_plot[i]
 
             slog.debug(" ========== Reading xy data")
