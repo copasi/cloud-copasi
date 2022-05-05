@@ -209,7 +209,7 @@ class TaskPlugin(BaseTask):
             slog.debug("y: {}".format(y))
 
             min_val = min(y)    #reading minimum value of y to set it on the y-axis
-            slog.debug("min_value: {}".format(min_value))
+            slog.debug("min_value: {}".format(min_val))
 
             #Plot settings
             ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
