@@ -246,4 +246,5 @@ class TaskPlugin(BaseTask):
         #plot labeling and saving
         plt.suptitle("Profile Likelihood")
         fig.supylabel("Sum of Squares")
-        plt.savefig('subplots.png')
+        plot_file = os.path.join(self.task.directory, 'subplots.png')
+        plt.savefig(plot_file)
