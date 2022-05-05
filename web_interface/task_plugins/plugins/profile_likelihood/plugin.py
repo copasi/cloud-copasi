@@ -214,6 +214,7 @@ class TaskPlugin(BaseTask):
             slog.debug(" ========== Reading xy data")
             x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
 
+            slog.debug("retured back")
 
             min_val = min(y)    #reading minimum value of y to set it on the y-axis
 
