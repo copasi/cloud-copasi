@@ -248,3 +248,15 @@ class TaskPlugin(BaseTask):
         fig.supylabel("Sum of Squares")
         plot_file = os.path.join(self.task.directory, 'subplots.png')
         plt.savefig(plot_file)
+
+    def get_results_view_template_name(self, request):
+        """Return a string with the HTML code to be used in the task results view page
+        """
+        # Get the name of the page we're displaying. If not specified, assume main
+        page_name = request.GET.get('name', 'main')
+
+        if page_name == 'main':
+            return self.get_template_name('pl_sub_plots')
+
+        else:
+            return ''
