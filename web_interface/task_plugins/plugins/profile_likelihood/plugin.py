@@ -163,12 +163,9 @@ class TaskPlugin(BaseTask):
 
     def read_xy_data(self, data_file_path):
         """Reading simulation data from output_1.x.txt files"""
-        slog.debug("reading xy data from output files")
 
         data_file = open(data_file_path, "r")
         lines = data_file.readlines()
-
-        slog.debug("lines: {}".format(lines))
 
         x = []
         y = []
@@ -182,8 +179,6 @@ class TaskPlugin(BaseTask):
                 x.append(float(values[0]))
                 y.append(float(values[1].strip('\n')))
 
-        slog.debug("x: {}".format(x))
-        slog.debug("y: {}".format(y))
         return x, y
 
     def generate_plots(self, param_to_plot):
@@ -200,24 +195,20 @@ class TaskPlugin(BaseTask):
         fig, ax = plt.subplots(rows, cols, figsize=(15,5), sharey=True)
         plt.subplots_adjust(wspace=0.2, hspace=0.2)
 
-        slog.debug("************ Entering a loop.")
         for i in range(len(param_to_plot)):
             read_file_name = 'output_1.%d.txt' %i #update it for the server
             read_file = os.path.join(self.task.directory, read_file_name)
-            slog.debug("read_file: {}".format(read_file))
 
-            plot_file_name = 'output_1.%d' %i + ".png"
-            plot_file = os.path.join(self.task.directory, plot_file_name)
-            slog.debug("plot_file: {}".format(plot_file))
+            # plot_file_name = 'output_1.%d' %i + ".png"
+            # plot_file = os.path.join(self.task.directory, plot_file_name)
             poi_data = param_to_plot[i]
 
             slog.debug(" ========== Reading xy data")
             x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-
-            slog.debug("retured back")
+            slog.debug("x: {}".format(x))
+            slog.debug("y: {}".format(y))
 
             min_val = min(y)    #reading minimum value of y to set it on the y-axis
-
             slog.debug("min_value: {}".format(min_value))
 
             #Plot settings
