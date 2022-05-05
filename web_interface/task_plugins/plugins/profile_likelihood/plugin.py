@@ -190,9 +190,11 @@ class TaskPlugin(BaseTask):
         else:
             cols = 4
 
+        slog.debug("cols: {}".format(cols))
         fig, ax = plt.subplots(rows, cols, figsize=(15,5), sharey=True)
         plt.subplots_adjust(wspace=0.2, hspace=0.2)
 
+        slog.debug("************ Entering a loop.")
         for i in range(len(param_to_plot)):
             read_file_name = 'output_1.%d.txt' %i #update it for the server
             read_file = os.path.join(self.task.directory, read_file_name)
@@ -202,7 +204,10 @@ class TaskPlugin(BaseTask):
 
             poi_data = param_to_plot[i]
 
+            slog.debug(" ========== Reading xy data")
             x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
+            slog.debug("x: {x}".format(x))
+            slog.debug("y: {y}".format(y))
             min_val = min(y)    #reading minimum value of y to set it on the y-axis
 
             #Plot settings
@@ -237,7 +242,7 @@ class TaskPlugin(BaseTask):
             #setting the y-axis limit
             ax[i].set_ylim(min_val * 0.4, t2*1.2)
 
-        #plot labeling and saving    
+        #plot labeling and saving
         plt.suptitle("Profile Likelihood")
         fig.supylabel("Sum of Squares")
         plt.savefig('subplots.png')
