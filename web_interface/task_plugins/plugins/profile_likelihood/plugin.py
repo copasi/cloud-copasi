@@ -139,6 +139,8 @@ class TaskPlugin(BaseTask):
         directory = self.task.directory
 
         main_jobs = CondorJob.objects.filter(subtask=main_subtask)
+        results_files = [job.job_output for job in main_jobs]
+        slog.debug("results_files: {}".format(results_files))
 
         param_to_plot = self.copasi_model.process_original_pl_model()
 
@@ -308,3 +310,8 @@ class TaskPlugin(BaseTask):
             output = {'form': form, 'img_string': img_string}
 
             return output
+
+    def get_results_download_data(self, request):
+        page_name = request.GET.get('name', 'main')
+
+        if page_name == 'main':
