@@ -159,6 +159,7 @@ class TaskPlugin(BaseTask):
         slog.debug("Time Delta: {}".format(time_delta))
         subtask.set_run_time(time_delta)
 
+        self.task.result_download = False
         subtask.save()
 
         return subtask
