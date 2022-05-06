@@ -660,7 +660,8 @@ class CopasiModel_BasiCO(object):
         #Finally, get non-fixed global quantities
         values = get_parameters()
         #Hack - If no values have been set in the model, use the empty list to avoid a NoneType error
-        if values.empty:
+        # if values.empty:
+        if values == None:
             values = []
 
         #extracting parameter names
