@@ -28,6 +28,7 @@ import datetime
 from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 os.environ['HOME'] = settings.STORAGE_DIR  # This needs to be set to a writable directory
 import matplotlib
@@ -332,6 +333,8 @@ class TaskPlugin(BaseTask):
 
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
+
+        slog.debug("page_name: {}".format(page_name))
 
         if page_name == 'main':
             # Return the file results.txt
