@@ -314,4 +314,4 @@ class TaskPlugin(BaseTask):
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
 
-        if page_name == 'main':
+        # if page_name == 'main':
