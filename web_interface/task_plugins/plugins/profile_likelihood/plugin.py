@@ -266,6 +266,8 @@ class TaskPlugin(BaseTask):
 
     def get_results_view_data(self, request):
         page_name = request.GET.get('name', 'main')
+
+        slog.debug("page_name: {}".format(page_name))
         if page_name == 'main':
             model = self.copasi_model
             try:
@@ -314,5 +316,5 @@ class TaskPlugin(BaseTask):
 
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
-
+        slog.debug("page_name: {}".format(page_name))
         # if page_name == 'main':
