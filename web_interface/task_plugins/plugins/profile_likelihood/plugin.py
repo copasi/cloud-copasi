@@ -260,3 +260,51 @@ class TaskPlugin(BaseTask):
 
         else:
             return ''
+
+    def get_results_view_data(self, request):
+        page_name = request.GET.get('name', 'main')
+        if page_name == 'main':
+            model = self.copasi_model
+            try:
+                variable_choices = model.get_variables(pretty=True)
+            except:
+                raise
+
+            # If the variables GET field hasn't been set, preset it to all variables
+            try:
+                assert request.GET.get('custom') == 'true'
+                form = PlotUpdateForm(request.GET, variable_choices=variable_choices)
+            except:
+                form = PlotUpdateForm(variable_choices=variable_choices,
+                                      initial={'variables': range(len(variable_choices))})
+
+            if form.is_valid():
+                variables = map(int, form.cleaned_data['variables'])
+                log = form.cleaned_data['logarithmic']
+                legend = form.cleaned_data['legend']
+                grid = form.cleaned_data['grid']
+                fontsize = form.cleaned_data['fontsize']
+            else:
+                variables = range(len(variable_choices))
+                log = False
+                legend = True
+                grid = True
+                fontsize = '12'
+
+            # construct the string to load the image file
+            img_string = '?variables=' + str(variables).strip('[').rstrip(']').replace(' ', '')
+            img_string += '&name=plot'
+            if log:
+                img_string += '&log=true'
+            if stdev:
+                img_string += '&stdev=true'
+            if legend:
+                img_string += '&legend=true'
+            if grid:
+                img_string += '&grid=true'
+            if fontsize:
+                img_string += '&fontsize=' + str(fontsize)
+
+            output = {'form': form, 'img_string': img_string}
+
+            return output
