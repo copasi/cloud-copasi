@@ -251,6 +251,14 @@ LOGGING = {
             'backupCount': 10,
             'formatter':'verbose',
         },
+	    'sfile' : {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'special-cloud-copasi.log'),
+            'maxBytes': 1024*1024*5, # 5 MB
+            'backupCount': 10,
+            'formatter':'verbose',
+        },        
     },
     'loggers': {
         'django': {
@@ -260,6 +268,10 @@ LOGGING = {
         },
         'cloud_copasi': {
             'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'special': {
+            'handlers': ['sfile'],
             'level': 'DEBUG',
         },
         'daemon' : {
