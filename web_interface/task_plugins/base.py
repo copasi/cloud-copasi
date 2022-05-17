@@ -106,8 +106,8 @@ class BaseTask(object):
     def get_template_name(self, name):
         """Return the full path of the template with given name
         """
-        slog.debug("task_type: {}".format(self.task.task_type))
-        slog.debug("name: {}".format(name))
+        slog.debug("++++++++ task_type: {}".format(self.task.task_type))
+        slog.debug("++++++++ name: {}".format(name))
         return '%s/%s.html' % (self.task.task_type, name)
 
     def get_results_view_template_name(self, request):
