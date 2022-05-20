@@ -318,3 +318,9 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
         # if page_name == 'main':
+
+class PlotUpdateform(forms.Form):
+
+    legend = forms.BooleanField(label="Show figure legend", required=False, initial=True)
+    grid = forms.BooleanField(label="Show grid", required=False, initial=True)
+    logarithmic = forms.BooleanField(label="Logarithmic Scale", required = False)
