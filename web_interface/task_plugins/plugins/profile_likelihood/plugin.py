@@ -341,7 +341,7 @@ class TaskPlugin(BaseTask):
                 #estimating chi-square value fitting n parameter
                 c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
                 # print(f"c2: {c2}")
-                slog.debug(f"c2: {}".format(c2))
+                slog.debug("c2: {}".format(c2))
                 t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
                 # print(f"t2: {t2}")
                 slog.debug("t2: {}".format(t2))
