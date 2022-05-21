@@ -453,8 +453,6 @@ class TaskPlugin(BaseTask):
             img_string += '&name=plot'
             if log:
                 img_string += '&log=true'
-            if stdev:
-                img_string += '&stdev=true'
             if legend:
                 img_string += '&legend=true'
             if grid:
