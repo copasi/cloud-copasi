@@ -391,8 +391,8 @@ class TaskPlugin(BaseTask):
                 fig.savefig(response, format='png', transparent=False, dpi=120)
             return response
 
-        except: Exception as e:
-            selg.debug(e)
+        except Exception as e:
+            slog.debug(e)
             raise e
 
 
