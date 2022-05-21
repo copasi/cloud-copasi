@@ -31,7 +31,7 @@ from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
-
+  
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
