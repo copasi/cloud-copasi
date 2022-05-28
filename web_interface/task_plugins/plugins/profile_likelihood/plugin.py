@@ -258,6 +258,10 @@ class TaskPlugin(BaseTask):
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
 
+            slog.debug("log: {}".format(log))
+            slog.debug("legend: {}".format(legend))
+            slog.debug("grid: {}".format(grid))
+
 
             # Check to see if we should return as an attachment in .png or .svg or .pdf
             download_png = 'download_png' in request.POST
@@ -306,7 +310,7 @@ class TaskPlugin(BaseTask):
                 # print(f"min_value: {min_val}")
 
                 #Plot settings
-                if grid == True:
+                if grid != 'false':
                     ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
                 else:
                     ax[i].grid(color='grey', linestyle='--', linewidth='0')
@@ -316,7 +320,7 @@ class TaskPlugin(BaseTask):
                 ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
                 ax[i].set_xlabel('%s' %poi_data[0])
 
-                if log == True:
+                if log != 'false':
                     ax[i].set_xscale('log')
 
                 # for xy coordinates in poi_data:
@@ -459,6 +463,7 @@ class TaskPlugin(BaseTask):
                 img_string += '&grid=true'
 
             output = {'form': form, 'img_string': img_string}
+            slog.debug("output: {}".format(output))
 
             return output
 

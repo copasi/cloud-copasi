@@ -328,6 +328,7 @@ class TaskPlugin(BaseTask):
                 img_string += '&fontsize=' + str(fontsize)
 
             output = {'form': form, 'img_string': img_string}
+            slog.debug("output: {}".format(output)) 
 
             return output
 
@@ -377,6 +378,10 @@ class TaskPlugin(BaseTask):
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
             fontsize = int(request.GET.get('fontsize', '12'))
+
+            slog.debug("log: {}".format(log))
+            slog.debug("legend: {}".format(legend))
+            slog.debug("grid: {}".format(grid)) 
 
             # Check to see if we should return as an attachment in .png or .svg or .pdf
             download_png = 'download_png' in request.POST
