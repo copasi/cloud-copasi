@@ -31,7 +31,7 @@ from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
-  
+
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
@@ -398,7 +398,9 @@ class TaskPlugin(BaseTask):
         except Exception as e:
             slog.debug(e)
             raise e
-
+        except Exception as e:
+            slog.exception(e)
+            raise e
 
     def get_results_view_template_name(self, request):
         """Return a string with the HTML code to be used in the task results view page
