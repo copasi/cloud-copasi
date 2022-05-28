@@ -396,9 +396,6 @@ class TaskPlugin(BaseTask):
             return response
 
         except Exception as e:
-            slog.debug(e)
-            raise e
-        except Exception as e:
             slog.exception(e)
             raise e
 
@@ -416,7 +413,7 @@ class TaskPlugin(BaseTask):
 
     def get_results_view_data(self, request):
         page_name = request.GET.get('name', 'main')
-
+        slog.debug("get_results_view_data")
         slog.debug("page_name: {}".format(page_name))
         if page_name == 'main':
             model = self.copasi_model
@@ -473,8 +470,9 @@ class TaskPlugin(BaseTask):
         param_to_plot = self.copasi_model.process_original_pl_model()
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
+        slog.debug("get_results_download_data")
         # if page_name == 'main':
-        return get_pl_plot(request, param_to_plot)
+        return self.get_pl_plot(request, param_to_plot)
 
 class PlotUpdateform(forms.Form):
 
