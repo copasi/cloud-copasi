@@ -10,6 +10,7 @@ http://www.gnu.org/licenses/gpl.html
 <div class = "plot">
 <img src="{% url 'task_results_download' task_id=task.id %}{{results.img_string}}" alt="Plot">
 <br>
+<br>
 <form action="{% url 'task_results_download' task_id=task.id %}{{results.img_string}}" method="post">
 {% csrf_token %}
 <input type="submit" name="download_png" value="Download in .PNG Format">
@@ -17,7 +18,7 @@ http://www.gnu.org/licenses/gpl.html
 <input type="submit" name="download_pdf" value="Download in .PDF Format">
 </form>
 </div>
-
+<br>
 <form action="" method="get">
     <input type="hidden" name="custom" value="true">
     <table class="formtable">
