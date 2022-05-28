@@ -450,7 +450,7 @@ class TaskPlugin(BaseTask):
             # img_string = '?variables=' + str(variables).strip('[').rstrip(']').replace(' ', '')
             #HB above line is commented out for PL task
             img_string = ''
-            img_string += '&name=plot'
+            img_string += '?name=plot'
             if log:
                 img_string += '&log=true'
             if legend:
