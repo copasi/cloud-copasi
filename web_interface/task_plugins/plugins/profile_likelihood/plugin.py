@@ -146,7 +146,8 @@ class TaskPlugin(BaseTask):
         slog.debug("param_to_plot: {}".format(param_to_plot))
 
         #generating plots and saving in the
-        self.generate_plots(param_to_plot)
+        #commenting out for the time being to check if it still works with new get_pl_plot def
+        # self.generate_plots(param_to_plot)
 
         self.task.save()
         subtask.status = 'finished'
