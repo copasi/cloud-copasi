@@ -462,6 +462,10 @@ class TaskPlugin(BaseTask):
 
 class PlotUpdateform(forms.Form):
 
+    #adding to check if that solves form values reflection issue:
+    def __init__(self, *args, **kwargs):
+        super(PlotUpdateForm, self).__init__(*args, **kwargs)
+
     legend = forms.BooleanField(label="Show figure legend", required=False, initial=True)
     grid = forms.BooleanField(label="Show grid", required=False, initial=True)
     logarithmic = forms.BooleanField(label="Logarithmic Scale", required = False)
