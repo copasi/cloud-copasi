@@ -36,6 +36,7 @@ os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable di
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
+import io #added by HB
 from matplotlib.pyplot import annotate
 
 internal_type = ('profile_likelihood', 'Profile Likelihood')
