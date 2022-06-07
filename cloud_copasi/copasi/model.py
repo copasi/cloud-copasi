@@ -17,6 +17,7 @@ from string import Template
 import logging
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 condor_string_body = """transfer_input_files = ${copasiFile}${otherFiles}
 log =  ${copasiFile}.log
@@ -119,7 +120,7 @@ class CopasiModel_BasiCO(object):
                 return 'No objective expression has been set for the optimization task'
             return True
 
-        elif job_type == 'PR':
+        elif job_type == 'PR' or job_type == 'PL':
             if len(self.get_parameter_estimation_parameters()) == 0:
                 return 'No parameters have been set for the sensitivites task'
             return True
@@ -660,6 +661,7 @@ class CopasiModel_BasiCO(object):
         values = get_parameters()
         #Hack - If no values have been set in the model, use the empty list to avoid a NoneType error
         if values.empty:
+        # if values == None:
             values = []
 
         #extracting parameter names
@@ -1565,3 +1567,147 @@ class CopasiModel_BasiCO(object):
 
     def get_sp_mean(self):
         """Read the mean values from mean.txt"""
+
+    def prepare_pl_files(self, subtask_index):
+        """ Generating separate model files for each parameter of interest for PL task """
+        #First, clear all tasks
+        self._clear_tasks()
+        original_fit_parameters = get_fit_parameters()
+
+        param_list=[]
+        model_files = []
+        param_names_list = []
+        file_param_assign = {}
+        for i in range(len(original_fit_parameters)):
+        # for i in range(1):
+            current_param=[]        #current_param[name, lower, upper, cn]
+            param_name = original_fit_parameters.index[i]   #name
+            lower = original_fit_parameters.iloc[i, 0]      #lower
+            upper = original_fit_parameters.iloc[i, 1]      #Upper
+            POI = original_fit_parameters.iloc[i, 4]        #parameter of interest    #CN
+
+            current_param.append(param_name)
+            current_param.append(lower)
+            current_param.append(upper)
+            current_param.append(POI)
+
+            param_list.append(current_param)
+            #adding scan task with the current parameter
+            set_scan_items([{'cn':POI,
+                            'min': lower,
+                            'max':upper,
+                            'num_steps': 10}])
+
+            set_task_settings(T.SCAN,
+                          {'scheduled': True,
+                          'update_model': True,})
+
+            # adding report
+            # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
+            report_name = "Profile_Likelihood"
+            # output_file_name = "Output-PL-" + param_name.rsplit('.')[1] + ".txt"
+            output_file_name = "output_%d.%d.txt" % (subtask_index, i)
+
+            ############### checking if report exists
+            listOfReports = get_reports().index
+
+            # to avoid duplicating reports, delete those which alread exist with the name "Profile-Likelihood"
+            for report in listOfReports:
+                if report == report_name:
+                    remove_report(report)
+
+            add_report(
+                       name=report_name,
+                       task=T.SCAN,
+                       table=[
+                              str(POI),
+                              'CN=Root,Vector=TaskList[Parameter Estimation],Problem=Parameter Estimation,Reference=Best Value'
+                              ]
+                        )
+
+            assign_report(name=report_name,
+                          task= T.SCAN,
+                          filename=output_file_name,
+                          append=True)
+
+            #removing the POI from the current list of fit parameters
+            new_fit_params = original_fit_parameters.drop(param_name)
+            set_fit_parameters(new_fit_params)
+
+            param_name_actual = param_name.rsplit('.')[1]
+            new_model_name = "auto_copasi_%d.%d.cps" % (subtask_index, i)
+            filename = os.path.join(self.path, new_model_name)
+            # save_model(new_model_name)
+            self.write(filename)
+            model_files.append(filename)
+            file_param_assign[new_model_name] = param_name_actual
+            file = open(os.path.join(self.path, "File-Parameter-Assignment.txt"), "w")
+            for key, value in file_param_assign.items():
+                file.write("%s : PoI = %s\n" % (key, value))
+            file.close()
+            # param_names_list.append(param_name_actual)
+
+        return (model_files, file_param_assign)
+
+    def prepare_pl_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index, data_files, rank='0',  extraArgs=''):
+        condor_jobs = []
+
+        # copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        copasi_file = 'auto_copasi_%d.$(Process).cps' % subtask_index
+        output_file = 'output_%d.$(Process).txt' % subtask_index
+
+        if pool_type == 'ec2':
+            binary_dir = '/usr/local/bin'
+            transfer_executable = 'NO'
+        else:
+            binary_dir, binary = os.path.split(settings.COPASI_LOCAL_BINARY)
+            transfer_executable = 'YES'
+
+        input_files_string = ', '
+        for data_file in data_files:
+            input_files_string += (data_file + ', ')
+        input_files_string = input_files_string.rstrip(', ')
+
+        condor_job_string = Template(condor_spec.raw_condor_job_string).substitute(copasiFile=copasi_file,
+                                                                                   otherFiles=input_files_string,
+                                                                                   rank=rank,
+                                                                                   binary_dir = binary_dir,
+                                                                                   transfer_executable = transfer_executable,
+                                                                                   pool_type = pool_type,
+                                                                                   pool_address = pool_address,
+                                                                                   subtask=str(subtask_index),
+                                                                                   n = number_of_jobs,
+                                                                                   outputFile = output_file,
+                                                                                   extraArgs='',
+                                                                                   )
+
+        condor_job_filename = 'auto_condor_%d.job'%subtask_index
+        condor_job_full_filename = os.path.join(self.path, condor_job_filename)
+        condor_file = open(condor_job_full_filename, 'w')
+        condor_file.write(condor_job_string)
+        condor_file.close()
+
+        return condor_job_filename
+
+    def process_original_pl_model(self):
+        original_fit_parameters = get_fit_parameters()
+
+        solution = run_parameter_estimation(method='Current Solution Statistics', calculate_statistics = True)
+        obj_value = get_fit_statistic()['obj']
+
+        param_to_plot_list = []
+
+        for i in range(len(solution)):
+            sol_list = []
+            param_name = solution.index[i].rsplit('.')[1]
+            sol = original_fit_parameters.iloc[i, 2]   #sol
+            sol_list.append(param_name)
+            sol_list.append(sol)
+            sol_list.append(obj_value)
+
+            param_to_plot_list.append(sol_list)
+
+        # slog.debug("param_to_plot_list: {}".format(param_to_plot_list))
+
+
+        return param_to_plot_list

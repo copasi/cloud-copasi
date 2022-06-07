@@ -28,6 +28,7 @@ import datetime
 from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 os.environ['HOME'] = settings.STORAGE_DIR  # This needs to be set to a writable directory
 import matplotlib
@@ -327,11 +328,14 @@ class TaskPlugin(BaseTask):
                 img_string += '&fontsize=' + str(fontsize)
 
             output = {'form': form, 'img_string': img_string}
+            slog.debug("output: {}".format(output)) 
 
             return output
 
     def get_results_download_data(self, request):
         page_name = request.GET.get('name', 'main')
+
+        slog.debug("page_name: {}".format(page_name))
 
         if page_name == 'main':
             # Return the file results.txt
@@ -374,6 +378,10 @@ class TaskPlugin(BaseTask):
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
             fontsize = int(request.GET.get('fontsize', '12'))
+
+            slog.debug("log: {}".format(log))
+            slog.debug("legend: {}".format(legend))
+            slog.debug("grid: {}".format(grid)) 
 
             # Check to see if we should return as an attachment in .png or .svg or .pdf
             download_png = 'download_png' in request.POST

@@ -101,6 +101,7 @@ def update_tasks(user=None, task=None):
                         TaskClass = tools.get_task_class(task.task_type)
                         task_instance = TaskClass(task)
                         slog.debug('Preparing new subtask %d' % (subtask.index))
+                        slog.debug("Check if this is executing")
                         prepared_subtask = task_instance.prepare_subtask(subtask.index)
                         slog.debug("TASK EXECUTED")
 

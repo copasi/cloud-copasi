@@ -16,4 +16,5 @@ task_types = [
               ('OD', 'Optimization Repeat with Different Algorithms'),
               ('SP', 'Sigma Point Method'),
               ('RW', 'Raw mode'),
+              ('PL', 'Profile Likelihood')
               ]

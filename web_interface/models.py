@@ -648,6 +648,7 @@ class Subtask(models.Model):
                     ('process', 'Results processing'),
                     ('file', 'Creating file with optimal values'),
                     ('other', 'Other'),
+                    ('PlFiles', 'Generating PL Files')
                     )
 
     type = models.CharField(max_length=32, choices=type_choices)
@@ -701,8 +702,7 @@ class Subtask(models.Model):
 
     def set_job_count(self):
         self.job_count = self.get_job_count()
-        slog("self.job_count: ")
-        slog(self.job_count)
+        slog.debug("self.job_count: {}".format(self.job_count))
         self.save()
     job_count = models.IntegerField(default=-1, help_text = 'The count of the number of condor jobs. Only set after the subtask has finished. Use get_job_count() instead to find out job count')
 
