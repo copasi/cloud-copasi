@@ -421,7 +421,7 @@ class TaskPlugin(BaseTask):
                 # form = PlotUpdateForm(variable_choices=variable_choices,
                 #                       initial={'variables': range(len(variable_choices))})
                 #above line is modified by HB for PL task as follows
-                form = PlotUpdateform(initial={'key':'value'})
+                form = PlotUpdateForm(initial={'key':'value'})
 
             if form.is_valid():
                 # variables = map(int, form.cleaned_data['variables']) #removed for pl task
