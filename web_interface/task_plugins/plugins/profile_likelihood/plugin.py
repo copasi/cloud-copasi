@@ -26,8 +26,7 @@ from string import Template
 from web_interface.task_plugins import load_balancing
 import re
 import datetime
-#from django.utils.timezone import now
-from django.utils import timezone #added by HB
+from django.utils import timezone
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
@@ -36,7 +35,7 @@ os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable di
 import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
-import io #added by HB
+import io
 from matplotlib.pyplot import annotate
 
 internal_type = ('profile_likelihood', 'Profile Likelihood')
@@ -62,9 +61,6 @@ class TaskPlugin(BaseTask):
 
         super(TaskPlugin, self).__init__(task)
 
-        #added by HB
-        slog.debug("---------> self.task.directory: {}".format(self.task.directory))
-
         self.copasi_model = PLCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
     def validate(self):
@@ -88,12 +84,9 @@ class TaskPlugin(BaseTask):
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
         if index == 1:
-            # return self.process_plfiles_subtask()
             return self.process_main_subtask()
 
         elif index == 2:
-            # return self.process_main_subtask()
-            slog.debug("============== executing process_results_subtask: ")
             return self.process_results_subtask()
 
         # elif index == 3:
@@ -106,8 +99,7 @@ class TaskPlugin(BaseTask):
         subtask = self.get_subtask(1)
 
         model_files, file_param_assign = self.copasi_model.prepare_pl_files(subtask.index)
-
-        slog.debug("model files: {}".format(model_files))
+        # slog.debug("model files: {}".format(model_files))
 
         condor_pool = self.task.condor_pool
 
@@ -145,9 +137,7 @@ class TaskPlugin(BaseTask):
 
         slog.debug("param_to_plot: {}".format(param_to_plot))
 
-        #generating plots and saving in the
-        #commenting out for the time being to check if it still works with new get_pl_plot def
-        # self.generate_plots(param_to_plot)
+        # self.generate_plots(param_to_plot) #can be removed later if not needed
 
         self.task.save()
         subtask.status = 'finished'
@@ -184,7 +174,7 @@ class TaskPlugin(BaseTask):
 
         return x, y
 
-    def generate_plots(self, param_to_plot):
+    def generate_plots(self, param_to_plot):        #this function is not needed. Can be removed.
         plot_list = []
         rows = math.ceil(len(param_to_plot)/4.0)
         slog.debug("rows: {}".format(rows))
@@ -253,59 +243,41 @@ class TaskPlugin(BaseTask):
         plt.savefig(plot_file)
 
     def get_pl_plot(self, request, param_to_plot):
+        """ generate plot and display it on the front interface. """
         try:
             log = request.GET.get('log', 'false')
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
 
-            slog.debug("log: {}".format(log))
-            slog.debug("legend: {}".format(legend))
-            slog.debug("grid: {}".format(grid))
-
+            # slog.debug("log: {}".format(log))
 
             # Check to see if we should return as an attachment in .png or .svg or .pdf
             download_png = 'download_png' in request.POST
             download_svg = 'download_svg' in request.POST
             download_pdf = 'download_pdf' in request.POST
 
-            ########### TEST logic added from local implementation #######
             plt.switch_backend('Agg')
             plot_list = []
             rows = math.ceil(len(param_to_plot)/4.0)
-            slog.debug("rows: {}".format(rows))
-            # print(f"rows: {rows}")
 
             if len(param_to_plot) < 4:
                 cols = len(param_to_plot)
             else:
                 cols = 4
 
-            slog.debug("cols: {}".format(cols))
-            # print(f"cols: {cols}")
             fig, ax = plt.subplots(rows, cols, figsize=(8,3.2), sharey=True)
             plt.subplots_adjust(wspace=0.2, hspace=0.2)
 
             for i in range(len(param_to_plot)):
-                # print(os.path.dirname(__file__))
-                read_file_name = 'output_1.%d.txt' %i #update it for the server
-                # read_file = os.path.join(os.path.dirname(__file__), read_file_name)
-
+                read_file_name = 'output_1.%d.txt' %i
                 read_file = os.path.join(self.task.directory, read_file_name)
 
-                # plot_file_name = 'output_1.%d' %i + ".png"
-                # plot_file = os.path.join(self.task.directory, plot_file_name)
                 poi_data = param_to_plot[i]
 
-                #slog.debug(" ========== Reading xy data")
-
                 x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-                # x, y = read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-                #slog.debug("x: {}".format(x))
-                #log.debug("y: {}".format(y))
 
                 min_val = min(y)    #reading minimum value of y to set it on the y-axis
-                # slog.debug("min_value: {}".format(min_val))
-                # print(f"min_value: {min_val}")
+
 
                 #Plot settings
                 if grid != 'false':
@@ -343,20 +315,13 @@ class TaskPlugin(BaseTask):
             #plot labeling and saving
             plt.suptitle("Profile Likelihood")
             fig.supylabel("Sum of Squares")
-            ##############################################################
+
             name = self.task.name.replace(' ', '_')
             if download_png:
-                #response = HttpResponse(mimetype='image/png', content_type='image/png')
-                #above line is modified by HB as follows
                 response = HttpResponse(content_type='image/png')
                 fig.savefig(response, format='png', transparent=False, dpi=120)
                 response['Content-Disposition'] = 'attachment; filename=%s.png' % name
             elif download_svg:
-                #response = HttpResponse(mimetype='image/svg', content_type='image/svg')
-                #fig.savefig(response, format='svg', transparent=False, dpi=120)
-                #response['Content-Disposition'] = 'attachment; filename=%s.svg' % name
-
-                #above lines are modified by HB as follows
                 buf = io.BytesIO()
                 fig.savefig(buf, format='svg', transparent=False, dpi=120)
                 response = HttpResponse(buf.getvalue(), content_type='image/svg')
@@ -364,21 +329,15 @@ class TaskPlugin(BaseTask):
 
 
             elif download_pdf:
-                #response = HttpResponse(mimetype='application/pdf', content_type='application/pdf')
-                #fig.savefig(response, format='pdf', transparent=False, dpi=120)
-                #response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
-
-                #above lines are modified by HB as follows
                 buf = io.BytesIO()
                 fig.savefig(buf, format='pdf', transparent=False, dpi=120)
                 response = HttpResponse(buf.getvalue(), content_type='application/pdf')
                 response['Content-Disposition'] = 'attachment; filename=%s.pdf' % name
 
             else:
-                #response = HttpResponse(mimetype='image/png', content_type='image/png')
-                #above line is modified by HB as follows
                 response = HttpResponse(content_type='image/png')
                 fig.savefig(response, format='png', transparent=False, dpi=120)
+
             return response
 
         except Exception as e:
@@ -399,48 +358,26 @@ class TaskPlugin(BaseTask):
 
     def get_results_view_data(self, request):
         page_name = request.GET.get('name', 'main')
-        slog.debug("get_results_view_data")
-        slog.debug("page_name: {}".format(page_name))
         if page_name == 'main':
             model = self.copasi_model
 
-            #HB removing the following block for pl task as we don't need variables to be plotted
-            # try:
-            #     variable_choices = model.get_variables(pretty=True)
-            # except:
-            #     raise
-
-            # If the variables GET field hasn't been set, preset it to all variables
             try:
                 assert request.GET.get('custom') == 'true'
-                # form = PlotUpdateForm(request.GET, variable_choices=variable_choices)
-                #above line is modified by HB for PL task as follows
                 form = PlotUpdateForm(request.GET)
-
             except:
-                # form = PlotUpdateForm(variable_choices=variable_choices,
-                #                       initial={'variables': range(len(variable_choices))})
-                #above line is modified by HB for PL task as follows
                 form = PlotUpdateForm(initial={'key':'value'})
 
             if form.is_valid():
-                # variables = map(int, form.cleaned_data['variables']) #removed for pl task
                 log = form.cleaned_data['logarithmic']
                 legend = form.cleaned_data['legend']
                 grid = form.cleaned_data['grid']
             else:
-                # variables = range(len(variable_choices)) #removed for pl task
                 log = False
                 legend = True
                 grid = True
 
 
             # construct the string to load the image file
-            # img_string = '?variables=' + str(variables).strip('[').rstrip(']').replace(' ', '')
-            #HB above line is commented out for PL task
-            #commenting following lines to see if it solves the form issue
-            # img_string = ''
-            # img_string += '?name=plot'
             img_string = '?name=plot'
             if log:
                 img_string += '&log=true'
@@ -459,12 +396,10 @@ class TaskPlugin(BaseTask):
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
         slog.debug("get_results_download_data")
-        # if page_name == 'main':
         return self.get_pl_plot(request, param_to_plot)
 
 class PlotUpdateForm(forms.Form):
 
-    #adding to check if that solves form values reflection issue:
     def __init__(self, *args, **kwargs):
         super(PlotUpdateForm, self).__init__(*args, **kwargs)
 
