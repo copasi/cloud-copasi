@@ -1707,7 +1707,7 @@ class CopasiModel_BasiCO(object):
 
             param_to_plot_list.append(sol_list)
 
-        slog.debug("param_to_plot_list: {}".format(param_to_plot_list))
+        # slog.debug("param_to_plot_list: {}".format(param_to_plot_list))
 
 
         return param_to_plot_list

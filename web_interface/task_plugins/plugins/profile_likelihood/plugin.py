@@ -63,9 +63,7 @@ class TaskPlugin(BaseTask):
 
         #added by HB
         slog.debug("---------> self.task.directory: {}".format(self.task.directory))
-        slog.debug("---------> self.task.original_model: {}".format(self.task.original_model))
 
-        slog.debug("+++++++++++ Running BasiCO implementation.")
         self.copasi_model = PLCopasiModel_BasiCO(os.path.join(self.task.directory, self.task.original_model))
 
     def validate(self):
@@ -296,17 +294,15 @@ class TaskPlugin(BaseTask):
                 # plot_file = os.path.join(self.task.directory, plot_file_name)
                 poi_data = param_to_plot[i]
 
-                slog.debug(" ========== Reading xy data")
-                # print(" ========== Reading xy data")
+                #slog.debug(" ========== Reading xy data")
+
                 x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
                 # x, y = read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-                slog.debug("x: {}".format(x))
-                slog.debug("y: {}".format(y))
-                # print(f"x: {x}")
-                # print(f"y: {y}")
+                #slog.debug("x: {}".format(x))
+                #log.debug("y: {}".format(y))
 
                 min_val = min(y)    #reading minimum value of y to set it on the y-axis
-                slog.debug("min_value: {}".format(min_val))
+                # slog.debug("min_value: {}".format(min_val))
                 # print(f"min_value: {min_val}")
 
                 #Plot settings
@@ -331,24 +327,12 @@ class TaskPlugin(BaseTask):
 
                 #estimating chi-square value fitting one parameter
                 c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
-                # print(f"c1: {c1}")
-                slog.debug("c1: {}".format(c1))
                 t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
-                # print(f"poi_data[1]: {poi_data[2]}")
-                slog.debug("poi_data[1]: {}".format(poi_data[2]))
-                # print(math.exp(c1/len(param_to_plot)))
-                slog.debug("math.exp: {}".format(math.exp(c1/len(param_to_plot))))
-                # print(f"t1: {t1}")
-                slog.debug("t1: {}".format(t1))
                 ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
 
                 #estimating chi-square value fitting n parameter
                 c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
-                # print(f"c2: {c2}")
-                slog.debug("c2: {}".format(c2))
                 t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
-                # print(f"t2: {t2}")
-                slog.debug("t2: {}".format(t2))
                 ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
@@ -452,7 +436,7 @@ class TaskPlugin(BaseTask):
             # construct the string to load the image file
             # img_string = '?variables=' + str(variables).strip('[').rstrip(']').replace(' ', '')
             #HB above line is commented out for PL task
-            #commenting following lines to see if it solves the form issue 
+            #commenting following lines to see if it solves the form issue
             # img_string = ''
             # img_string += '?name=plot'
             img_string = '?name=plot'
