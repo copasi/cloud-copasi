@@ -1634,7 +1634,9 @@ class CopasiModel_BasiCO(object):
             new_fit_params = original_fit_parameters.drop(param_name)
             set_fit_parameters(new_fit_params)
 
+            slog.debug("param_name: {}".format(param_name))
             param_name_actual = param_name.rsplit('.')[1]
+            slog.debug("param_name_actual: {}".format(param_name_actual))
             new_model_name = "auto_copasi_%d.%d.cps" % (subtask_index, i)
             filename = os.path.join(self.path, new_model_name)
             # save_model(new_model_name)
