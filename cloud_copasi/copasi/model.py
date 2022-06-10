@@ -1582,6 +1582,7 @@ class CopasiModel_BasiCO(object):
         # for i in range(1):
             current_param=[]        #current_param[name, lower, upper, cn]
             param_name = original_fit_parameters.index[i]   #name
+            slog.debug("param_name: {}".format(param_name))         #added for debugging
             lower = original_fit_parameters.iloc[i, 0]      #lower
             upper = original_fit_parameters.iloc[i, 1]      #Upper
             POI = original_fit_parameters.iloc[i, 4]        #parameter of interest    #CN
