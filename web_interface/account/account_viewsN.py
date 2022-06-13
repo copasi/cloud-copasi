@@ -542,6 +542,15 @@ class AccountProfileForm(forms.Form):
     send_task_emails = forms.BooleanField(required=False,
                                           label='Send task emails',
                                           help_text = 'Send emails relating to task activity, e.g. when a task has completed or encountered an error.')
+    # A check mark to enable the newer without SSH version of cloud copasi
+    enable_without_ssh = forms.BooleanField(required=False,
+                                          label='Enable Connection Without SSH Configuration',
+                                          help_text = 'Connect to UCHC HPC Facility without SSH Authentication')
+
+
+
+
+
 
 class AccountResetPasswordView(FormView):
     page_tile = 'Reset password'
@@ -552,17 +561,7 @@ class AccountResetPasswordView(FormView):
         context = FormView.get_context_data(self, **kwargs)
         context['page_title'] = self.page_title
         return context
-
-class AccountProfileForm(forms.Form):
-    email_address = forms.EmailField(required=True)
-    institution = forms.CharField(required = True, max_length=50)
-    send_pool_emails = forms.BooleanField(required=False,
-                                          label='Send EC2 pool emails',
-                                          help_text = 'Send emails relating to EC2 pool activity, e.g. when a pool has been automatically terminated.',
-                                          )
-    send_task_emails = forms.BooleanField(required=False,
-                                          label='Send task emails',
-                                          help_text = 'Send emails relating to task activity, e.g. when a task has completed or encountered an error.')
+    
 
 
 
@@ -586,7 +585,8 @@ class AccountProfileView(RestrictedFormView):
         self.initial['institution'] = profile.institution
         self.initial['send_pool_emails'] = profile.pool_emails
         self.initial['send_task_emails'] = profile.task_emails
-
+        # SSH Attribute fetched
+        self.initial['enable_without_ssh'] = profile.ssh_free
         return super(AccountProfileView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, *args, **kwargs):
@@ -598,7 +598,8 @@ class AccountProfileView(RestrictedFormView):
         user.profile.institution = form.cleaned_data['institution']
         user.profile.pool_emails = form.cleaned_data['send_pool_emails']
         user.profile.task_emails = form.cleaned_data['send_task_emails']
-
+        # SSH Added
+        user.profile.ssh_free = form.cleaned_data['enable_without_ssh']
         user.profile.save()
         user.save()
 

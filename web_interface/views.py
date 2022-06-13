@@ -13,7 +13,7 @@ from django.urls import reverse_lazy
 from django import forms
 import sys
 #from boto.exception import BotoServerError
-from web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP
+from web_interface.models import AWSAccessKey, CondorPool, Task, EC2Instance, ElasticIP, Profile
 from web_interface.aws import resource_management_tools
 import logging
 from cloud_copasi import settings
@@ -58,6 +58,9 @@ class RestrictedView(DefaultView):
         #Populate the context with information about the access keys
         user = request.user
         access_keys = AWSAccessKey.objects.filter(user=user)
+        profile = Profile.objects.get(user=user)
+        # get configuration (with SSH or without SSH)
+        kwargs['ssh_free'] = profile.ssh_free
         kwargs['access_keys'] = access_keys
         kwargs['show_status_bar'] = True
 
@@ -94,7 +97,9 @@ class RestrictedFormView(RestrictedView, FormMixin, ProcessFormView):
         user=request.user
         kwargs['form'] = self.get_form(self.get_form_class())
         kwargs['compute_pools'] = CondorPool.objects.filter(user=user)
-
+        # Get SSH cconfiguration information
+        profile = Profile.objects.get(user=user)
+        kwargs['ssh_free'] = profile.ssh_free
         kwargs['compute_nodes'] = EC2Instance.objects.filter(ec2_pool__vpc__access_key__user=user)
         kwargs['elastic_ips'] = ElasticIP.objects.filter(vpc__access_key__user=user)
 

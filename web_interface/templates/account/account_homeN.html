@@ -29,7 +29,7 @@ http://www.gnu.org/licenses/gpl.html
           <article>
             <header id="AccountSummary"> <h2>My account: Summary</h2> </header>
 
-
+	    {% if not  ssh_free %}
             <section>
               <h4>AWS resources in use</h4>
               <div class="smalltable">
@@ -50,7 +50,7 @@ http://www.gnu.org/licenses/gpl.html
               </div>
 
             </section>
-
+	    {% endif %}
 
             <section>
               <h4>Task overview</h4>
@@ -76,7 +76,9 @@ http://www.gnu.org/licenses/gpl.html
 
             <section>
               <h4>Compute pools</h4>
-
+	      {% if ssh_free %}
+              You are connected to UCHC CAM HPC Cluster.
+              {% else %}		
               {% if compute_pools.count == 0 %}
               <p>No compute pools are currently connected or running. You must launch or connect a compute pool before you can run tasks.
                 <br />
@@ -108,11 +110,12 @@ http://www.gnu.org/licenses/gpl.html
 
                   {% endif %}
 
-
+		
                   <a href="{% url 'pool_list' %}" class="btn btn-primary">Manage your compute pools</a>
                 </p>
+		{% endif %}
               </section>
-
+	      {% if not ssh_free %}
               <section>
                 <h4>AWS Keys</h4>
                 <p>
@@ -126,6 +129,7 @@ http://www.gnu.org/licenses/gpl.html
                   <a href="{% url 'my_account_keys' %}" class="btn btn-primary">Manage your AWS keys</a>
                 </p>
               </section>
+	      {% endif %}
             </article>
 
         </div>
