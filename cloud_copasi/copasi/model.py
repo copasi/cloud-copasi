@@ -1703,7 +1703,8 @@ class CopasiModel_BasiCO(object):
 
         for i in range(len(solution)):
             sol_list = []
-            param_name = solution.index[i].rsplit('.')[1]
+            # param_name = solution.index[i].rsplit('.')[1]
+            param_name = solution.index[i]
             sol = original_fit_parameters.iloc[i, 2]   #sol
             sol_list.append(param_name)
             sol_list.append(sol)
