@@ -1601,7 +1601,11 @@ class CopasiModel_BasiCO(object):
 
             set_task_settings(T.SCAN,
                           {'scheduled': True,
-                          'update_model': True,})
+                          'update_model': True,
+                          'problem':{'Output in subtask': False,},
+                          })
+
+            set_scan_settings( subtask = 'Parameter Estimation')              
 
             # adding report
             # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
