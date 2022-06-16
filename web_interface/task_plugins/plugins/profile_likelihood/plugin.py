@@ -265,8 +265,9 @@ class TaskPlugin(BaseTask):
             else:
                 cols = 4
 
-            fig, ax = plt.subplots(rows, cols, figsize=(8,3.2), sharey=True)
-            plt.subplots_adjust(wspace=0.2, hspace=0.2)
+            fig, ax = plt.subplots(rows, cols, figsize=(9,11), sharey=True)
+            ax = ax.flat
+            plt.subplots_adjust(wspace=0.3, hspace=1)
 
             for i in range(len(param_to_plot)):
                 read_file_name = 'output_1.%d.txt' %i
@@ -310,7 +311,7 @@ class TaskPlugin(BaseTask):
                 ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
-                ax[i].set_ylim(min_val * 0.05, t2*1.2)
+                ax[i].set_ylim(min_val * 0.05, t2*1.8)
 
             #plot labeling and saving
             plt.suptitle("Profile Likelihood")

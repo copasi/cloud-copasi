@@ -1636,14 +1636,15 @@ class CopasiModel_BasiCO(object):
             set_fit_parameters(new_fit_params)
 
             slog.debug("param_name: {}".format(param_name))
-            param_name_actual = param_name.rsplit('.')[1]
-            slog.debug("param_name_actual: {}".format(param_name_actual))
+            # param_name_actual = param_name.rsplit('.')[1]
+            # slog.debug("param_name_actual: {}".format(param_name_actual))
             new_model_name = "auto_copasi_%d.%d.cps" % (subtask_index, i)
             filename = os.path.join(self.path, new_model_name)
             # save_model(new_model_name)
             self.write(filename)
             model_files.append(filename)
-            file_param_assign[new_model_name] = param_name_actual
+            # file_param_assign[new_model_name] = param_name_actual
+            file_param_assign[new_model_name] = param_name
             file = open(os.path.join(self.path, "File-Parameter-Assignment.txt"), "w")
             for key, value in file_param_assign.items():
                 file.write("%s : PoI = %s\n" % (key, value))
