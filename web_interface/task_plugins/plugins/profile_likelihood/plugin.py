@@ -244,6 +244,7 @@ class TaskPlugin(BaseTask):
 
     def get_pl_plot(self, request, param_to_plot):
         """ generate plot and display it on the front interface. """
+        total_params = len(param_to_plot)       #total number of parameters
         try:
             log = request.GET.get('log', 'false')
             legend = request.GET.get('legend', 'false')
@@ -258,10 +259,10 @@ class TaskPlugin(BaseTask):
 
             plt.switch_backend('Agg')
             plot_list = []
-            rows = math.ceil(len(param_to_plot)/4.0)
+            rows = math.ceil(total_params/4.0)
 
-            if len(param_to_plot) < 4:
-                cols = len(param_to_plot)
+            if total_params < 4:
+                cols = total_params
             else:
                 cols = 4
 
@@ -273,7 +274,8 @@ class TaskPlugin(BaseTask):
 
             plt.subplots_adjust(wspace=0.4, hspace=1)
 
-            for i in range(len(param_to_plot)):
+            for i in range(total_params):
+
                 read_file_name = 'output_1.%d.txt' %i
                 read_file = os.path.join(self.task.directory, read_file_name)
 
@@ -306,12 +308,12 @@ class TaskPlugin(BaseTask):
 
                 #estimating chi-square value fitting one parameter
                 c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
-                t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
+                t1 = poi_data[2] * math.exp(c1/total_params)      #threshold value for 95% confidence
                 ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
 
                 #estimating chi-square value fitting n parameter
-                c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
-                t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
+                c2 = sp.stats.chi2.isf(0.05, total_params, loc = 0, scale = 1)
+                t2 = poi_data[2] * math.exp(c2/total_params)      #threshold value for 95% confidence
                 ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
