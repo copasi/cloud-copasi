@@ -265,9 +265,13 @@ class TaskPlugin(BaseTask):
             else:
                 cols = 4
 
-            fig, ax = plt.subplots(rows, cols, figsize=(9,11), sharey=True)
-            ax = ax.flat
-            plt.subplots_adjust(wspace=0.3, hspace=1)
+            width = 3 * cols
+            height = 4 * rows
+            fig, ax = plt.subplots(rows, cols, squeeze=False, figsize=(width,height), sharey=True)
+            # fig, ax = plt.subplots(rows, cols, figsize=(9,11), sharey=True)
+            # ax = ax.flat
+
+            plt.subplots_adjust(wspace=0.4, hspace=1)
 
             for i in range(len(param_to_plot)):
                 read_file_name = 'output_1.%d.txt' %i
