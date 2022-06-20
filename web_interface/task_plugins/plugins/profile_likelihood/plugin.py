@@ -322,6 +322,21 @@ class TaskPlugin(BaseTask):
                 #setting the y-axis limit
                 ax[a, b].set_ylim(min_val * 0.05, t2*1.8)
 
+            # When total parameters are not divisible by 4 (meaning that they need to be fixed in next row)
+            # also when the loop value is the last parameter value
+            if (total_params > 4):   #when parameters are greater than the size of one row
+                if (total_params % 4 != 0) and (i == total_params -1):
+
+                    #subplots that are valid and have data
+                    valid_subplots = total_params % 4
+                    slog.debug("valid_subplots: {}".format(valid_subplots))
+
+                    empty_subplots = 4 - valid_subplots
+                    for i in range(empty_subplots):
+                        del_plot_idx = i + valid_subplots
+                        fig.delaxes(ax[a, del_plot_idx])
+
+
             #plot labeling and saving
             plt.suptitle("Profile Likelihood")
             fig.supylabel("Sum of Squares")
