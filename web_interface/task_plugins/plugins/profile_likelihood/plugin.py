@@ -275,30 +275,33 @@ class TaskPlugin(BaseTask):
             plt.subplots_adjust(wspace=0.4, hspace=1)
 
             for i in range(total_params):
-
                 read_file_name = 'output_1.%d.txt' %i
                 read_file = os.path.join(self.task.directory, read_file_name)
-
                 poi_data = param_to_plot[i]
 
                 x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-
                 min_val = min(y)    #reading minimum value of y to set it on the y-axis
 
 
                 #Plot settings
-                if grid != 'false':
-                    ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
+                if rows != 1:
+                    a = int(i/(rows-1))
                 else:
-                    ax[i].grid(color='grey', linestyle='--', linewidth='0')
+                    a = 0
+                b = i%(cols)
 
-                ax[i].plot(x,y, marker = 'o')
-                ax[i].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
-                ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
-                ax[i].set_xlabel('%s' %poi_data[0])
+                if grid != 'false':
+                    ax[a, b].grid(color='grey', linestyle='--', linewidth='0.1')
+                else:
+                    ax[a, b].grid(color='grey', linestyle='--', linewidth='0')
+
+                ax[a, b].plot(x,y, marker = 'o')
+                ax[a, b].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
+                ax[a, b].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
+                ax[a, b].set_xlabel('%s' %poi_data[0])
 
                 if log != 'false':
-                    ax[i].set_xscale('log')
+                    ax[a, b].set_xscale('log')
 
                 # for xy coordinates in poi_data:
                 #SoS_x = "{:.1f}".format(poi_data[1])
@@ -309,15 +312,15 @@ class TaskPlugin(BaseTask):
                 #estimating chi-square value fitting one parameter
                 c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
                 t1 = poi_data[2] * math.exp(c1/total_params)      #threshold value for 95% confidence
-                ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
+                ax[a, b].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
 
                 #estimating chi-square value fitting n parameter
                 c2 = sp.stats.chi2.isf(0.05, total_params, loc = 0, scale = 1)
                 t2 = poi_data[2] * math.exp(c2/total_params)      #threshold value for 95% confidence
-                ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
+                ax[a, b].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
-                ax[i].set_ylim(min_val * 0.05, t2*1.8)
+                ax[a, b].set_ylim(min_val * 0.05, t2*1.8)
 
             #plot labeling and saving
             plt.suptitle("Profile Likelihood")
