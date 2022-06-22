@@ -343,8 +343,9 @@ class TaskPlugin(BaseTask):
 
 
             #plot labeling and saving
-            plt.suptitle("Profile Likelihood", y =0.90)
-            fig.supylabel("Sum of Squares", x=0.05)
+            plt.suptitle("Profile Likelihood", y =0.99)
+            fig.supylabel("Sum of Squares")
+            fig.tight_layout()
 
             name = self.task.name.replace(' ', '_')
             if download_png:
