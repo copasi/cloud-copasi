@@ -246,7 +246,8 @@ class TaskPlugin(BaseTask):
         """ generate plot and display it on the front interface. """
         total_params = len(param_to_plot)       #total number of parameters
         try:
-            log = request.GET.get('log', 'false')
+            logX = request.GET.get('logX', 'false')
+            logY = request.GET.get('logY', 'false')
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
 
@@ -300,8 +301,11 @@ class TaskPlugin(BaseTask):
                 ax[a, b].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
                 ax[a, b].set_xlabel('%s' %poi_data[0])
 
-                if log != 'false':
+                if logX != 'false':
                     ax[a, b].set_xscale('log')
+                    
+                if logY != 'false':
+                    ax[a, b].set_yscale('log')
 
                 # for xy coordinates in poi_data:
                 #SoS_x = "{:.1f}".format(poi_data[1])
@@ -393,19 +397,23 @@ class TaskPlugin(BaseTask):
                 form = PlotUpdateForm(initial={'key':'value'})
 
             if form.is_valid():
-                log = form.cleaned_data['logarithmic']
+                logX = form.cleaned_data['logarithmicX']
+                logY = form.cleaned_data['logarithmicY']
                 legend = form.cleaned_data['legend']
                 grid = form.cleaned_data['grid']
             else:
-                log = False
+                logX = False
+                logY = False
                 legend = True
                 grid = True
 
 
             # construct the string to load the image file
             img_string = '?name=plot'
-            if log:
-                img_string += '&log=true'
+            if logX:
+                img_string += '&logX=true'
+            if logY:
+                img_string += '&logY=true'
             if legend:
                 img_string += '&legend=true'
             if grid:
@@ -430,4 +438,5 @@ class PlotUpdateForm(forms.Form):
 
     legend = forms.BooleanField(label="Show figure legend", required=False, initial=True)
     grid = forms.BooleanField(label="Show grid", required=False, initial=True)
-    logarithmic = forms.BooleanField(label="Logarithmic Scale", required = False)
+    logarithmicX = forms.BooleanField(label="Log Scale X", required = False)
+    logarithmicY = forms.BooleanField(label="Log Scale Y", required = False)
