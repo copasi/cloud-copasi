@@ -58,7 +58,6 @@ class Profile(models.Model):
     task_emails = models.BooleanField(default=True)
     pool_emails = models.BooleanField(default=True)
     # A boolean check for the cloud copasi version the user is using
-    ssh_free = models.BooleanField(default=False)
 
     #test_field = models.CharField(max_length=10,blank=True,null=True)
 

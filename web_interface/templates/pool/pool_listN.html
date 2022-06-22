@@ -32,7 +32,7 @@ http://www.gnu.org/licenses/gpl.html
                   <span class="byline">Your Compute Pools</span>
               </header>
 
-
+	{% if not ssh_free %}
               <header class="minor">
                   <h3>EC2 Pools</h3>
 
@@ -77,13 +77,17 @@ http://www.gnu.org/licenses/gpl.html
               {% else %}
               <p><span class="bold">You must have <a href="{% url 'my_account_keys_add' %}">associated at least one AWS access key with your account</a> in order to launch EC2 pools.</span></p>
               {% endif %}
+	{% endif %}
 
               <header class="minor">
                   <h3>Connected pools </h3>
 
               </header>
               <p>Cloud-COPASI can connect to existing Condor, PBS, LSF, SGE, and Slurm compute pools.</p>
-              <p><a class="btn btn-primary" href="{% url 'bosco_pool_add' %}">Connect to compute pool</a></p>
+        {% if not ssh_free %}      
+	<p><a class="btn btn-primary" href="{% url 'bosco_pool_add' %}">Connect to compute pool</a></p>
+
+	{% endif %}
 
               {% if bosco_pools %}
                   <div class="tablelist">

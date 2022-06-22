@@ -555,7 +555,7 @@ class CopasiModel_BasiCO(object):
 
     def prepare_ss_condor_job(self, pool_type, pool_address, number_of_jobs, subtask_index=1, rank='0', extraArgs=''):
         """Prepare the neccessary .job file to submit to condor for the relevant task"""
-        log.debug("+++++++++++ BasiCO prepare_ss_condor_job runnnig")
+        slog.debug("+++++++++++ BasiCO prepare_ss_condor_job runnnig")
         #Build the appropriate .job files for the sensitivity optimization task, write them to disk, and make a note of their locations
         condor_jobs = []
 
@@ -588,7 +588,7 @@ class CopasiModel_BasiCO(object):
         condor_file = open(condor_job_full_filename, 'w')
         condor_file.write(condor_job_string)
         condor_file.close()
-
+        slog.debug('In ss_condor_job' + str(condor_job_filename))
         return condor_job_filename
 
     def prepare_ss_process_job(self, pool_type, pool_address, jobs, script_path, rank='0'):

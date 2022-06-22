@@ -17,7 +17,7 @@ from django.contrib.auth import authenticate, login
 from web_interface.views import RestrictedView, DefaultView, RestrictedFormView
 
 from web_interface.models import AWSAccessKey, Task, EC2Instance,\
-    ElasticIP, EC2Pool, Profile
+    ElasticIP, EC2Pool, Profile, BoscoPool
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import User
@@ -31,6 +31,7 @@ import boto.exception
 from web_interface.models import VPC, CondorPool
 from django.forms.forms import NON_FIELD_ERRORS
 import logging
+import subprocess
 from django.forms.utils import ErrorList
 # from cloud_copasi.django_recaptcha.fields import ReCaptchaField
 from web_interface.account import user_countries
@@ -42,7 +43,7 @@ import re
 import os
 
 log = logging.getLogger(__name__)
-
+slog = logging.getLogger('special')
 class MyAccountView(RestrictedView):
     template_name = 'account/account_homeN.html'
     page_title = 'My account'
@@ -529,6 +530,54 @@ class AccountRegisterView(FormView):
         profile = Profile(user=user, institution=form.cleaned_data['institution'])
         profile.save()
         user.save()
+        if settings.SERVER_VERSION=="local":
+            slog.debug('Testing SSH credentials')
+            command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', settings.SSH_FILE_PATH, '-l', settings.SERVER_USER , settings.SUBMIT_NODE_ADDRESS, 'pwd']
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+            #process = subprocess.run(command, stdout=subprocess.PIPE, env={'DISPLAY' : ''})
+            output = process.communicate()
+
+            slog.debug('SSH response:')
+            slog.debug(output)
+            if process.returncode != 0:
+                slog.debug("The SSH credentials provided are not correct")
+                form._errors[NON_FIELD_ERRORS] = ErrorList(['The SSH credentials provided are not correct'])
+                return self.form_invalid(self, *args, **kwargs)
+
+
+            ##Only do this if no other pools exist with the same address!
+            count= BoscoPool.objects.filter(address = settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS).count()
+
+            slog.debug('BoscoPool Object Count: %s', count)
+
+            #############################
+            if count == 0:
+                #following line is duplicated and modified by HB to pass slurm_partition and slurm_qos to condor_tools.py file
+                output, errors, exit_status = condor_tools.add_bosco_pool(settings.SUBMIT_NODE_PLATFORM,
+                                            settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS,
+                                            settings.SSH_FILE_PATH,
+                                            settings.DEFAULT_POOL_TYPE, 'general', 'general')
+
+                if exit_status != 0:
+                    form._errors[NON_FIELD_ERRORS] = ErrorList(['There was an error adding the pool'] + output + errors)
+                    try:
+                        slog.debug('Error adding pool. Attempting to remove from bosco_cluster')
+                        condor_tools.remove_bosco_pool(settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS)
+                    except:
+                        pass
+                    return self.form_invalid(self, *args, **kwargs)
+            else:
+                slog.debug('Adding new bosco pool %s to db, skipping bosco_cluster --add because it already exists ' % (settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS))
+
+            pool = BoscoPool(name = 'UConn HPC Pool - frubab',
+                                user = self.request.user,
+                                platform = settings.SUBMIT_NODE_PLATFORM,
+                                address = settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS,
+                                pool_type = settings.DEFAULT_POOL_TYPE,
+                                status_page = "",
+                                )
+            pool.save()
+            slog.debug("The pool was added and saved")
 
         return super(AccountRegisterView, self).form_valid(form, *args, **kwargs)
 
@@ -542,13 +591,6 @@ class AccountProfileForm(forms.Form):
     send_task_emails = forms.BooleanField(required=False,
                                           label='Send task emails',
                                           help_text = 'Send emails relating to task activity, e.g. when a task has completed or encountered an error.')
-    # A check mark to enable the newer without SSH version of cloud copasi
-    enable_without_ssh = forms.BooleanField(required=False,
-                                          label='Enable Connection Without SSH Configuration',
-                                          help_text = 'Connect to UCHC HPC Facility without SSH Authentication')
-
-
-
 
 
 
@@ -585,8 +627,6 @@ class AccountProfileView(RestrictedFormView):
         self.initial['institution'] = profile.institution
         self.initial['send_pool_emails'] = profile.pool_emails
         self.initial['send_task_emails'] = profile.task_emails
-        # SSH Attribute fetched
-        self.initial['enable_without_ssh'] = profile.ssh_free
         return super(AccountProfileView, self).dispatch(request, *args, **kwargs)
 
     def form_valid(self, *args, **kwargs):
@@ -598,8 +638,6 @@ class AccountProfileView(RestrictedFormView):
         user.profile.institution = form.cleaned_data['institution']
         user.profile.pool_emails = form.cleaned_data['send_pool_emails']
         user.profile.task_emails = form.cleaned_data['send_task_emails']
-        # SSH Added
-        user.profile.ssh_free = form.cleaned_data['enable_without_ssh']
         user.profile.save()
         user.save()
 

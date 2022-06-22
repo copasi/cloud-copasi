@@ -14,8 +14,8 @@ condor_master
 # Give the daemon access to needed Python dependendies
 # if they have been installed in a Python virtual
 # environment named "venv" (per "Deployment" instructions).
-export PYTHONHOME=/home/cloudcopasi/cloud-copasi/venv
-source /home/cloudcopasi/cloud-copasi/venv/bin/activate
+export PYTHONHOME=/home/cloudcopasi/venv
+. /home/cloudcopasi/venv/bin/activate
 
 # Run the daemon.
 python /home/cloudcopasi/cloud-copasi/cloud_copasi/background_daemon/cloud_copasi_daemon.py "$@"

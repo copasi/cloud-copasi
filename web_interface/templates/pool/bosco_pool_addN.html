@@ -27,16 +27,22 @@ http://www.gnu.org/licenses/gpl.html
           <article>
             <header class="major" id="PoolAddForm">
                 <h2>Connect to compute pool</h2>
-                <span class="byline">Connect to an existing Condor, PBS, LSF, Sun Grid Engine, or Slurm pool</span>
-            </header>
+               {% if not ssh_free %}
+		 <span class="byline">Connect to an existing Condor, PBS, LSF, Sun Grid Engine, or Slurm pool</span>
+            {% endif %}
+		</header>
 
-
+	{% if not ssh_free %}
             <p>You must have configured key-based SSH access to the pool before continuing. See the documentation for further details</p>
 
             {% include 'formNew.html' with submit_text="Connect to pool"%}
             <p />
             <br>
             <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
+	{% else %}
+            <p>In this version of cloud copasi, you are not allowed to add another pool. </p>
+            <p>You are already onnected to UConn's HPC Facility.</p>
+            {% endif %}
 
           </article>
 

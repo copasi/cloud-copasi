@@ -35,7 +35,7 @@ from django.contrib.auth.models import User
 from web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
-
+slog = logging.getLogger('special')
 class PoolListView(RestrictedView):
     """View to display active compute pools
     """
@@ -854,7 +854,9 @@ class PoolTestResultView(RestrictedView):
         kwargs['output'] = output
         kwargs['stderr'] = errors
         kwargs['exit_status'] = exit_status
-
+        slog.debug('in test pool')
+        slog.debug(output)
+        slog.debug(errors)
         if exit_status == 0: kwargs['success'] = True
         else: kwargs['success'] = False
 

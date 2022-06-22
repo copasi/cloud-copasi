@@ -86,7 +86,8 @@ def transfer_file(slurm_partition, slurm_qos, address):
     process=subprocess.Popen(command,stdout=subprocess.PIPE, shell=False)
     output=process.communicate()
     os.chdir(cwd_old)
-
+    slog.debug(str(output))
+    slog.debug("In transfer file, transferred qos")
     log.debug("$$$$ CWD changed back to: ")
     log.debug(os.getcwd())
 
@@ -104,7 +105,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
     output = run_bosco_command(command, error=True, shell=True)
 
-    log.debug(output)
+    slog.debug(output)
 
     #added by HB
     log.debug("============ slurm inputs received: ")
@@ -116,10 +117,10 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
 def remove_bosco_pool(address):
 
-    log.debug('Removing pool %s' %address)
+    slog.debug('Removing pool %s' %address)
     output = run_bosco_command([BOSCO_CLUSTER, '--remove', address], error=True)
-    log.debug('Response:')
-    log.debug(output)
+    slog.debug('Response:')
+    slog.debug(output)
 
     #log.debug('Removing pool from ssh known_hosts')
     #process = subprocess.Popen(['ssh-keygen', '-R', address], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -136,13 +137,13 @@ def test_bosco_pool(address):
     #output =  run_bosco_command(command, error=True, shell=True)
     output =  run_bosco_command(command, error=True)
 
-    log.debug('Test response:')
+    slog.debug('Test response:')
     #log.debug(output)
-    log.debug(output[0])
-    log.debug('Errors:')
-    log.debug(output[1])
-    log.debug('Exit status')
-    log.debug(output[2])
+    slog.debug(output[0])
+    slog.debug('Errors:')
+    slog.debug(output[1])
+    slog.debug('Exit status')
+    slog.debug(output[2])
 
     return output
 
@@ -173,7 +174,7 @@ def condor_submit(condor_file):
     (directory, filename) = os.path.split(condor_file)
 
     #added by HB
-    log.debug('submitting job to pool')
+    slog.debug('submitting job to pool')
     output, error, exit_status = run_bosco_command([CONDOR_SUBMIT, condor_file], error=True, cwd=directory)
 
     #Get condor_process number...
@@ -197,11 +198,11 @@ def condor_submit(condor_file):
         cluster_id = int(r.match(PO_to_string).group('cluster'))
 
     except Exception as e:
-        log.exception('Failed to submit job')
-        log.exception(e)
-        log.exception(output)
-        log.exception(error)
-        log.exception(exit_status)
+        slog.exception('Failed to submit job')
+        slog.exception(e)
+        slog.exception(output)
+        slog.exception(error)
+        slog.exception(exit_status)
         raise e
     return (cluster_id, number_of_jobs)
 
@@ -287,6 +288,7 @@ def submit_task(subtask):
     subtask.start_time = timezone.localtime()
 
     subtask.save()
+    slog.debug('subtask saved and runninh in submit_task func')
 
 
 def remove_task(subtask):

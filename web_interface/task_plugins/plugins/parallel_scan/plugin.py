@@ -28,6 +28,7 @@ import datetime
 from django.utils import timezone #added by HB
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger('special')
 
 os.environ['HOME'] = settings.STORAGE_DIR #This needs to be set to a writable directory
 import matplotlib
@@ -88,6 +89,7 @@ class TaskPlugin(BaseTask):
         self.task.result_view = False
         #And a subtask to process any results
         self.create_new_subtask('process', local=True)
+        slog.debug('In initialize subtasks method')
 
     def prepare_subtask(self, index):
         """Prepare the indexed subtask"""
@@ -180,7 +182,7 @@ class TaskPlugin(BaseTask):
 
     def process_main_subtask(self):
 
-        log.debug("======== Processing Main subtask ========")
+        slog.debug("======== Processing Main subtask ========")
         #Get the correct subtask
         if self.use_load_balancing:
             subtask = self.get_subtask(2)
@@ -199,8 +201,8 @@ class TaskPlugin(BaseTask):
                     lb_repeats = int(repeats_str)
                     time = float(time_str)
                 except Exception as e:
-                    log.debug("XXXXXXXXX Raised exception")
-                    log.exception(e)
+                    slog.debug("XXXXXXXXX Raised exception")
+                    slog.exception(e)
                     lb_repeats = 1
                     time = settings.IDEAL_JOB_TIME
 
@@ -213,7 +215,7 @@ class TaskPlugin(BaseTask):
         #If no load balancing step required:
         model_files = self.copasi_model.prepare_ps_jobs(subtask.index, time_per_step)
         condor_pool = self.task.condor_pool
-
+        slog.debug('prepearing ss condor job')
         condor_job_file = self.copasi_model.prepare_ss_condor_job(condor_pool.pool_type, condor_pool.address, len(model_files), subtask.index, rank='')
 
         model_count = len(model_files)
@@ -222,6 +224,7 @@ class TaskPlugin(BaseTask):
 
         subtask.spec_file = condor_job_file
         subtask.status = 'ready'
+        slog.debug('subtask is ready')
         subtask.save()
 
         return subtask

@@ -31,7 +31,7 @@ http://www.gnu.org/licenses/gpl.html
                   <h2>Compute pool details</h2>
                   <span class="byline">Compute pool details for <span style="font-weight:bolder">{{pool.name}}</span></span>
               </header>
-               <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>
+              <!-- <p><a href="{% url 'pool_list' %}">Return to compute pool overview</a></p>-->
               <h4>Compute pool information</h4>
               {% if pool_type == 'ec2' or shared_pool_type == 'ec2' %}
               <div class="tablelist">
