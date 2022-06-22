@@ -303,7 +303,7 @@ class TaskPlugin(BaseTask):
 
                 if logX != 'false':
                     ax[a, b].set_xscale('log')
-                    
+
                 if logY != 'false':
                     ax[a, b].set_yscale('log')
 
@@ -324,7 +324,8 @@ class TaskPlugin(BaseTask):
                 ax[a, b].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
-                ax[a, b].set_ylim(min_val * 0.05, t2*1.8)
+                # ax[a, b].set_ylim(min_val * 0.05, t2*1.8)
+                ax[a, b].set_ylim(min_val * 0.07, t2*2.1)
 
             # When total parameters are not divisible by 4 (meaning that they need to be fixed in next row)
             # also when the loop value is the last parameter value
