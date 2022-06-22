@@ -282,6 +282,7 @@ class TaskPlugin(BaseTask):
 
                 x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
                 min_val = min(y)    #reading minimum value of y to set it on the y-axis
+                max_val = max(y)    #reading maximum value of y to set it on the y-axis
 
 
                 #Plot settings
@@ -324,8 +325,11 @@ class TaskPlugin(BaseTask):
                 ax[a, b].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
-                # ax[a, b].set_ylim(min_val * 0.05, t2*1.8)
-                ax[a, b].set_ylim(min_val * 0.07, t2*2.1)
+                # ax[a, b].set_ylim(min_val * 0.07, t2*2.1)
+                if max_val >= 1e90:
+                    ax[a, b].set_ylim(min_val*0.05, t2*1.2)
+                else:
+                    ax[a, b].set_ylim(min_val*0.05, max_val*1.5)
 
             # When total parameters are not divisible by 4 (meaning that they need to be fixed in next row)
             # also when the loop value is the last parameter value
