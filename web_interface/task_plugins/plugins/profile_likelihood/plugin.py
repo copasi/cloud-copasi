@@ -53,7 +53,7 @@ class TaskPlugin(BaseTask):
     def __init__(self, task):
         #self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
         self.data_files = task.get_custom_field('data_files')
-        self.task.result_download = True
+
 
         # if self.use_load_balancing:
         #     self.subtasks = 3
@@ -82,6 +82,7 @@ class TaskPlugin(BaseTask):
 
         #And a subtask to process results locally (on web server)
         self.create_new_subtask('process', local=True)
+        self.task.result_download = True
         self.task.save()
 
     def prepare_subtask(self, index):
