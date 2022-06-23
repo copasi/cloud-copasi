@@ -36,6 +36,7 @@ import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
 import io
+import zipfile
 from matplotlib.pyplot import annotate
 
 internal_type = ('profile_likelihood', 'Profile Likelihood')
@@ -430,12 +431,40 @@ class TaskPlugin(BaseTask):
 
             return output
 
-    def get_results_download_data(self, request):
+    def get_results_download_data_old(self, request):
         param_to_plot = self.copasi_model.process_original_pl_model()
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
         slog.debug("get_results_download_data")
         return self.get_pl_plot(request, param_to_plot)
+
+    def get_results_download_data(self, request):
+        page_name = request.GET.get('name', 'main')
+        slog.debug("page_name: {}".format(page_name))
+
+        if page_name == 'main':
+            file = "Results.zip"
+            directory = self.task.directory
+            compile_string = re.compile('output_[0-9].[0-9]*.txt')
+            with zipfile.ZipFile(file, 'w') as zip:
+                for path, directory, files in os.walk(directory):
+                    for file in files:
+                        name = compile_string.match(file)
+                        if name != None:
+                            zip.write(file)
+
+            result_file = open(filename, 'rb')
+            response = HttpResponse(result_file, content_type='application/x-zip-compressed')
+            response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.zip'
+            response['Content-Length'] = os.path.getsize(filename)
+
+            return response
+
+        elif page_name == 'plot':
+            param_to_plot = self.copasi_model.process_original_pl_model()
+            slog.debug("page_name: {}".format(page_name))
+            slog.debug("get_results_download_data")
+            return self.get_pl_plot(request, param_to_plot)
 
 class PlotUpdateForm(forms.Form):
 
