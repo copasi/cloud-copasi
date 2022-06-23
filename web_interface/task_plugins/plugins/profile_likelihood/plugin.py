@@ -448,10 +448,12 @@ class TaskPlugin(BaseTask):
         if page_name == 'main':
             file = "Results.zip"
             directory = self.task.directory
+            slog.debug("directory: ".format(directory))
             compile_string = re.compile('output_[0-9].[0-9]*.txt')
             with zipfile.ZipFile(file, 'w') as zip:
                 for path, directory, files in os.walk(directory):
                     for file in files:
+                        slog.debug("file name: ".format(file))
                         name = compile_string.match(file)
                         if name != None:
                             zip.write(file)
