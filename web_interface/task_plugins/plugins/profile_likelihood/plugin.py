@@ -49,9 +49,11 @@ class TaskPlugin(BaseTask):
 
     subtasks = 2
 
+
     def __init__(self, task):
         #self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
         self.data_files = task.get_custom_field('data_files')
+        self.task.result_download = True
 
         # if self.use_load_balancing:
         #     self.subtasks = 3
