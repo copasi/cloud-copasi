@@ -441,7 +441,7 @@ class TaskPlugin(BaseTask):
         return self.get_pl_plot(request, param_to_plot)
 
     def get_results_download_data(self, request):
-        self.task.result_download = True #just for testing
+
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
 
