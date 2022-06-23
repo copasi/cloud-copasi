@@ -82,7 +82,7 @@ class TaskPlugin(BaseTask):
 
         #And a subtask to process results locally (on web server)
         self.create_new_subtask('process', local=True)
-        self.task.result_download = True
+        # self.task.result_download = True
         self.task.save()
 
     def prepare_subtask(self, index):
@@ -153,7 +153,6 @@ class TaskPlugin(BaseTask):
         slog.debug("Time Delta: {}".format(time_delta))
         subtask.set_run_time(time_delta)
 
-        self.task.result_download = True
         subtask.save()
 
         return subtask
@@ -442,6 +441,7 @@ class TaskPlugin(BaseTask):
         return self.get_pl_plot(request, param_to_plot)
 
     def get_results_download_data(self, request):
+        self.task.result_download = True #just for testing
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
 
