@@ -461,6 +461,7 @@ class TaskPlugin(BaseTask):
                         name = compile_string.match(file)
                         if name != None:
                             file_to_write = os.path.join(directory, file)
+                            slog.debug("file_to_write: {}".format(file_to_write))
                             zip.write(file_to_write)
 
             result_file = open(filename, 'rb')
