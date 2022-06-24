@@ -444,13 +444,15 @@ class TaskPlugin(BaseTask):
 
         page_name = request.GET.get('name', 'main')
         slog.debug("page_name: {}".format(page_name))
+        slog.debug("Task Directory: {}".format(self.task.directory))
 
         if page_name == 'main':
             name = str(self.task.name).replace(' ', '_')
             # file = "Results.zip"
             filename = os.path.join(self.task.directory, name + '.zip')
             directory = self.task.directory
-            slog.debug("directory: ".format(directory))
+            slog.debug("directory: {}".format(directory))
+            slog.debug("filename: {}".format(filename))
             compile_string = re.compile('output_[0-9].[0-9]*.txt')
             with zipfile.ZipFile(filename, 'w') as zip:
                 for path, directory, files in os.walk(directory):
