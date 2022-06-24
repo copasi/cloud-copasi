@@ -457,7 +457,7 @@ class TaskPlugin(BaseTask):
             with zipfile.ZipFile(filename, 'w') as zip:
                 for path, directory, files in os.walk(directory):
                     for file in files:
-                        slog.debug("file name: ".format(file))
+                        slog.debug("file name: {}".format(file))
                         name = compile_string.match(file)
                         if name != None:
                             zip.write(file)
