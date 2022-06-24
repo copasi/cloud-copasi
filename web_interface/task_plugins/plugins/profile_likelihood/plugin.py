@@ -447,9 +447,10 @@ class TaskPlugin(BaseTask):
         slog.debug("Task Directory: {}".format(self.task.directory))
 
         if page_name == 'main':
-            name = str(self.task.name).replace(' ', '_')
+            # name = str(self.task.name).replace(' ', '_')
+            name = "Results.zip"
             # file = "Results.zip"
-            filename = os.path.join(self.task.directory, name + '.zip')
+            filename = os.path.join(self.task.directory, name)
             directory = self.task.directory
             slog.debug("directory: {}".format(directory))
             slog.debug("filename: {}".format(filename))
@@ -462,8 +463,8 @@ class TaskPlugin(BaseTask):
                         if name != None:
                             file_to_write = os.path.join(self.task.directory, file)
                             slog.debug("file_to_write: {}".format(file_to_write))
-                            zip.write(file_to_write)
-                zip.close()            
+                            zip.write(file_to_write, file)
+                zip.close()
 
             result_file = open(filename, 'rb')
             response = HttpResponse(result_file, content_type='application/x-zip-compressed')
