@@ -470,7 +470,7 @@ class TaskPlugin(BaseTask):
             result_file = open(filename, 'rb')
             response = HttpResponse(result_file, content_type='application/x-zip-compressed')
             # response['Content-Disposition'] = 'attachment; filename=' + self.task.name.replace(' ', '_') + '.zip'
-            response['Content-Disposition'] = 'attachment; filename=' + filename
+            response['Content-Disposition'] = 'attachment; filename=' + zip_file_name
             response['Content-Length'] = os.path.getsize(filename)
 
             return response
