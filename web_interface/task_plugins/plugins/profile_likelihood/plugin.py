@@ -139,8 +139,6 @@ class TaskPlugin(BaseTask):
 
         slog.debug("param_to_plot: {}".format(param_to_plot))
 
-        # self.generate_plots(param_to_plot) #can be removed later if not needed
-
         self.task.save()
         subtask.status = 'finished'
         subtask.finish_time = timezone.localtime()
@@ -174,75 +172,7 @@ class TaskPlugin(BaseTask):
                 y.append(float(values[1].strip('\n')))
 
         return x, y
-    #
-    # def generate_plots(self, param_to_plot):        #this function is not needed. Can be removed.
-    #     plot_list = []
-    #     rows = math.ceil(len(param_to_plot)/4.0)
-    #     slog.debug("rows: {}".format(rows))
-    #
-    #     if len(param_to_plot) < 4:
-    #         cols = len(param_to_plot)
-    #     else:
-    #         cols = 4
-    #
-    #     slog.debug("cols: {}".format(cols))
-    #     fig, ax = plt.subplots(rows, cols, figsize=(15,5), sharey=True)
-    #     plt.subplots_adjust(wspace=0.2, hspace=0.2)
-    #
-    #     for i in range(len(param_to_plot)):
-    #         read_file_name = 'output_1.%d.txt' %i #update it for the server
-    #         read_file = os.path.join(self.task.directory, read_file_name)
-    #
-    #         # plot_file_name = 'output_1.%d' %i + ".png"
-    #         # plot_file = os.path.join(self.task.directory, plot_file_name)
-    #         poi_data = param_to_plot[i]
-    #
-    #         slog.debug(" ========== Reading xy data")
-    #         x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-    #         slog.debug("x: {}".format(x))
-    #         slog.debug("y: {}".format(y))
-    #
-    #         min_val = min(y)    #reading minimum value of y to set it on the y-axis
-    #         slog.debug("min_value: {}".format(min_val))
-    #
-    #         #Plot settings
-    #         ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
-    #         ax[i].plot(x,y, marker = 'o')
-    #         ax[i].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
-    #         ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
-    #         ax[i].set_xlabel('%s' %poi_data[0])
-    #
-    #         # for xy coordinates in poi_data:
-    #         #SoS_x = "{:.1f}".format(poi_data[1])
-    #         #SoS_y = "{:.1f}".format(poi_data[2])
-    #         #displaying the coordinate value of best solution
-    #         # ax[i].annotate(text = "(%s, %s)" %(SoS_x, SoS_y), xy = (poi_data[1], poi_data[2]), rotation=45)
-    #
-    #         #estimating chi-square value fitting one parameter
-    #         c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
-    #         print(f"c1: {c1}")
-    #         t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
-    #         print(f"poi_data[1]: {poi_data[2]}")
-    #         print(math.exp(c1/len(param_to_plot)))
-    #         print(f"t1: {t1}")
-    #         ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
-    #
-    #         #estimating chi-square value fitting n parameter
-    #         c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
-    #         print(f"c2: {c2}")
-    #         t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
-    #         print(f"t2: {t2}")
-    #         ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
-    #
-    #         #setting the y-axis limit
-    #         ax[i].set_ylim(min_val * 0.4, t2*1.2)
-    #
-    #     #plot labeling and saving
-    #     plt.suptitle("Profile Likelihood")
-    #     fig.supylabel("Sum of Squares")
-    #     plot_file = os.path.join(self.task.directory, 'subplots.png')
-    #     plt.savefig(plot_file)
-    #
+
     def get_pl_plot(self, request, param_to_plot):
         """ generate plot and display it on the front interface. """
         total_params = len(param_to_plot)       #total number of parameters
