@@ -443,33 +443,25 @@ class TaskPlugin(BaseTask):
     def get_results_download_data(self, request):
 
         page_name = request.GET.get('name', 'main')
-        slog.debug("page_name: {}".format(page_name))
-        slog.debug("Task Directory: {}".format(self.task.directory))
 
         if page_name == 'main':
-            # name = str(self.task.name).replace(' ', '_')
             zip_file_name = "Results.zip"
-
             filename = os.path.join(self.task.directory, zip_file_name)
             directory = self.task.directory
-            slog.debug("directory: {}".format(directory))
-            slog.debug("filename: {}".format(filename))
 
             compile_string = re.compile('output_[0-9].[0-9]*.txt')
+
             with zipfile.ZipFile(filename, 'w') as zip:
                 for path, directory, files in os.walk(directory):
                     for file in files:
-                        slog.debug("file name: {}".format(file))
                         name = compile_string.match(file)
                         if name != None:
                             file_to_write = os.path.join(self.task.directory, file)
-                            slog.debug("file_to_write: {}".format(file_to_write))
                             zip.write(file_to_write, file)
                 zip.close()
 
             result_file = open(filename, 'rb')
             response = HttpResponse(result_file, content_type='application/x-zip-compressed')
-            # response['Content-Disposition'] = 'attachment; filename=' + self.task.name.replace(' ', '_') + '.zip'
             response['Content-Disposition'] = 'attachment; filename=' + zip_file_name
             response['Content-Length'] = os.path.getsize(filename)
 
