@@ -460,9 +460,10 @@ class TaskPlugin(BaseTask):
                         slog.debug("file name: {}".format(file))
                         name = compile_string.match(file)
                         if name != None:
-                            file_to_write = os.path.join(directory, file)
+                            file_to_write = os.path.join(self.task.directory, file)
                             slog.debug("file_to_write: {}".format(file_to_write))
                             zip.write(file_to_write)
+                zip.close()            
 
             result_file = open(filename, 'rb')
             response = HttpResponse(result_file, content_type='application/x-zip-compressed')
