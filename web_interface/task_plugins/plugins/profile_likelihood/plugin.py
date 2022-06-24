@@ -446,7 +446,9 @@ class TaskPlugin(BaseTask):
         slog.debug("page_name: {}".format(page_name))
 
         if page_name == 'main':
-            file = "Results.zip"
+            name = str(self.task.name).replace(' ', '_')
+            # file = "Results.zip"
+            filename = os.path.join(self.task.directory, name + '.zip')
             directory = self.task.directory
             slog.debug("directory: ".format(directory))
             compile_string = re.compile('output_[0-9].[0-9]*.txt')
@@ -460,7 +462,7 @@ class TaskPlugin(BaseTask):
 
             result_file = open(filename, 'rb')
             response = HttpResponse(result_file, content_type='application/x-zip-compressed')
-            response['Content-Disposition'] = 'attachment; filename=' + task.name.replace(' ', '_') + '.zip'
+            response['Content-Disposition'] = 'attachment; filename=' + self.task.name.replace(' ', '_') + '.zip'
             response['Content-Length'] = os.path.getsize(filename)
 
             return response
