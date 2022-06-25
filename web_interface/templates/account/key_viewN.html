@@ -31,7 +31,7 @@ http://www.gnu.org/licenses/gpl.html
                   <h2>AWS Keys</h2>
                   <span class="byline">Your AWS keypairs</span>
               </header>
-
+              {% if not ssh_free %}
               <p>You must have at least 1 AWS access key associated with your account in order to launch EC2 pools. A Virtual Private Cloud (VPC) must be available for each access key in order to run jobs.</p>
 
               <p><a class="btn btn-primary btn-lg" href="{% url 'my_account_keys_add' %}">Add new key</a></p>
@@ -99,6 +99,10 @@ http://www.gnu.org/licenses/gpl.html
               {% else %}
               <p><span class="bold">You do not have any AWS access keys shared with your account.</span></p>
               {% endif %}
+              {% else %}
+              <p><span class="bold">You are running local version of cloud copasi. This does not support AWS Keys or AWS Pools.</span></p>
+              {% endif %}
+
           </article>
 
         </div>

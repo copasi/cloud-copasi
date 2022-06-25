@@ -28,15 +28,20 @@ http://www.gnu.org/licenses/gpl.html
         <div class="information">
           <article>
               <header class="major" id="AddAWSKey">
+                  {% if not ssh_free %}
                   <h2>Add key</h2>
                   <span class="byline">Add a new AWS keypair</span>
+                  {% else %}
+                  <h2>You are running local version of Cloud-COPASI</h2>
+                  <span class="byline">This version does not support AWS Keys.</span>
+                  {% endif %}
               </header>
-
+              {% if not ssh_free %}
               <p>See the documentation for full details on how to create an AWS access key</p>
               <p>Upload the key file, or enter the information manually below</p>
 
               {% include 'formNew.html' with submit_text="Add key" multipart=True %}
-
+              {% endif %}
 
           </article>
 

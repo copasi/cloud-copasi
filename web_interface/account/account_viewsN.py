@@ -360,7 +360,7 @@ class KeysDeleteView(MyAccountView):
         key = AWSAccessKey.objects.get(id=key_id)
         kwargs['key'] = key
         assert key.user == request.user
-
+        kwargs['ssh_free'] = settings.SERVER_VERSION=="local"
         kwargs['show_loading_screen'] = True
         kwargs['loading_title'] = 'Removing key and associated VPC'
         kwargs['loading_description'] = 'Please be patient and do not navigate away from this page.'
@@ -556,8 +556,7 @@ class AccountRegisterView(FormView):
                 output, errors, exit_status = condor_tools.add_bosco_pool(settings.SUBMIT_NODE_PLATFORM,
                                             settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS,
                                             settings.SSH_FILE_PATH,
-                                            settings.DEFAULT_POOL_TYPE, 'general', 'general')
-
+                                            settings.DEFAULT_POOL_TYPE, settings.COPASI_PARTITION, settings.COPASI_QOS)
                 if exit_status != 0:
                     form._errors[NON_FIELD_ERRORS] = ErrorList(['There was an error adding the pool'] + output + errors)
                     try:

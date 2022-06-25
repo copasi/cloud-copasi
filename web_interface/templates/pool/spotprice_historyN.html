@@ -33,10 +33,12 @@ http://www.gnu.org/licenses/gpl.html
         <div class="information">
           <article>
               <header class="major">
-                    <h2>Spot price history</h2>
+                    <h2>Spot price history</h2> 
+                  {% if not ssh_free %}
                   <span class="byline">Compute pool details for <span style="font-weight:bolder">{{pool.name}}</span></span>
+                  {% endif %}
               </header>
-
+              {% if not ssh_free %}
               <p>Note that the spot price does not include VAT or any other applicable taxes. For information on fixed instance pricing, refer to the <a href="http://aws.amazon.com/ec2/pricing/#on-demand" target="new">AWS documentation</a>. All instances are launched in the US-East (N. Virginia) AWS region. All times are in GMT</p>
 
               <table class="formtable" id="formtable">
@@ -56,7 +58,9 @@ http://www.gnu.org/licenses/gpl.html
                       <td ><div id="spotprice_history" style="width:600px; height:300px;"></div></td>
                   </tr>
               </table>
-
+              {% else %}
+              You are using local version of cloud copasi. This does not support AWS Keys or Pools.
+              {% endif %}
           </article>
 
         </div>

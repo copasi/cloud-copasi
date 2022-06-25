@@ -31,7 +31,7 @@ http://www.gnu.org/licenses/gpl.html
                   <h2>Share key</h2>
                   <span class="byline">Share key with another user</span>
               </header>
-
+              {% if not ssh_free %}
               {% if shared_users %}
 
               <p>This key is currently shared with the following users:
@@ -52,6 +52,9 @@ http://www.gnu.org/licenses/gpl.html
               {% include 'form.html' with submit_text="Share key"%}
               <p />
               <p><a href="{% url 'my_account_keys' %}">Back to key overview</a>
+              {% else %}
+              You are using local version of cloud copasi. This version does not support AWS Keys.
+              {% endif %}
           </article>
 
         </div>

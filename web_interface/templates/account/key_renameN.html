@@ -30,11 +30,12 @@ http://www.gnu.org/licenses/gpl.html
               <header class="major">
                   <h2>Rename pool {{key.name}}</h2>
               </header>
-
+              {% if not ssh_free %}
               {% include 'form.html' with submit_text="Rename pool"%}
               <p />
               <p><a href="{% url 'my_account_keys' %}">Back to pool details</a>
-
+              {% else %}
+              You are using local version of cloud copasi. This does not support AWS Keys and Pools.
 
           </article>
 
