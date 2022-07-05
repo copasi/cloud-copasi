@@ -42,6 +42,7 @@ class DefaultView(TemplateView):
             kwargs['page_title'] = self.page_title
         #Check for errors in request.session
         kwargs['debug'] = settings.DEBUG
+        kwargs['ssh_free'] = settings.SERVER_VERSION=="local"
         errors = request.session.pop('errors', None)
         if errors:
             kwargs['errors'] = errors

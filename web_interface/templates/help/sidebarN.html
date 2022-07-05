@@ -22,13 +22,14 @@ http://www.gnu.org/licenses/gpl.html
     <hr>
     <h4>Compute Pools</h4>
     <a class="btn" href="{% url 'help_pools' %}#existing">Connecting existing pools</a>
+    {% if not ssh_free %}
     <a class="btn" href="{% url 'help_pools' %}#ssh_manage">Managing SSH keys</a>
     <a class="btn" href="{% url 'help_pools' %}#ec2_launch">Launching EC2 pools</a>
     <a class="btn" href="{% url 'help_pools' %}#aws_manage">Managing AWS keys</a>
     <a class="btn" href="{% url 'help_pools' %}#instance_types">Instance types</a>
     <a class="btn" href="{% url 'help_pools' %}#usage_limits">Usage limits</a>
     <a class="btn" href="{% url 'help_pools' %}#spot_requests">Spot requests</a>
-
+    {% endif %}
     <hr>
     <a class="btn" href="{% url 'help_terms' %}#">Terms and Conditions</a>
     <a class="btn" href="{% url 'contactN' %}#">Contact Us</a>

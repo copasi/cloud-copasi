@@ -43,8 +43,11 @@ http://www.gnu.org/licenses/gpl.html
                   If the machine you are connect to is not running Debian or Red Hat, then we recommend selecting Debian 6, and trying the other platforms
                   if you experience problems connecting.
               </p>
+              <p><strong>
+                Cloud Copasi is currently in the local version. In this version you are automatically connected to the UCHC HPC Pool. There is no need to configure SSH access. We have already done it for you! You can directly go to your pool and submit jobs.
+              </strong></p>
 
-
+              {% if not ssh_free %}
               <header class="minor" id="ssh_manage">
                   <h4>Managing SSH Keys</h4>
               </header>
@@ -69,9 +72,12 @@ http://www.gnu.org/licenses/gpl.html
                   Note that this keypair is used only once when connecting to the pool, and is not stored on the server. Bosco will create a second
                   public/private keypair combination, and this keypair will be used for all future connections.
               </p>
-
+              {% endif %}
               <header class="major" id="ec2_launch"><h3>Launching EC2 pools</h3></header>
-              <p>
+              
+                {% if not ssh_free %}
+
+		<p>
                   If you do not have access to a compute pool, then you can launch a new pool using the Amazon Elastic Compute Cloud (EC2). Visit
                   the <a href="http://aws.amazon.com/">Amazon Web Services</a> website to sign up for an account - you will have to enter credit
                   card information when you sign up in order to pay for any accrued charges.
@@ -136,7 +142,9 @@ http://www.gnu.org/licenses/gpl.html
 
                   <p><span class="bold">Note that the spot market price can, in specific circumstances, rise well above the fixed instance price.
                   </span> Only enter a bid price that you are willing to pay!</p>
-
+                  {% else %}
+                  <p><strong>Cloud Copasi is currently configured in the local version. You will not be able to access AWS Pools or manage the keys. In order to do that, please email us.</strong></p>
+                  {% endif %}
           </article>
           </div>
         </div>

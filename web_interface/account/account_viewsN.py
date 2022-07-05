@@ -568,7 +568,7 @@ class AccountRegisterView(FormView):
             else:
                 slog.debug('Adding new bosco pool %s to db, skipping bosco_cluster --add because it already exists ' % (settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS))
 
-            pool = BoscoPool(name = 'UConn HPC Pool - frubab',
+            pool = BoscoPool(name = 'UConn HPC Pool',
                                 user = self.request.user,
                                 platform = settings.SUBMIT_NODE_PLATFORM,
                                 address = settings.SERVER_USER + '@' + settings.SUBMIT_NODE_ADDRESS,
