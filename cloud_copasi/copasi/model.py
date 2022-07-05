@@ -1582,6 +1582,7 @@ class CopasiModel_BasiCO(object):
         # for i in range(1):
             current_param=[]        #current_param[name, lower, upper, cn]
             param_name = original_fit_parameters.index[i]   #name
+            slog.debug("param_name: {}".format(param_name))         #added for debugging
             lower = original_fit_parameters.iloc[i, 0]      #lower
             upper = original_fit_parameters.iloc[i, 1]      #Upper
             POI = original_fit_parameters.iloc[i, 4]        #parameter of interest    #CN
@@ -1600,7 +1601,11 @@ class CopasiModel_BasiCO(object):
 
             set_task_settings(T.SCAN,
                           {'scheduled': True,
-                          'update_model': True,})
+                          'update_model': True,
+                          'problem':{'Output in subtask': False,},
+                          })
+
+            set_scan_settings( subtask = 'Parameter Estimation')              
 
             # adding report
             # report_name = "Profile_Likelihood-" + param_name.rsplit('.')[1]
@@ -1634,13 +1639,16 @@ class CopasiModel_BasiCO(object):
             new_fit_params = original_fit_parameters.drop(param_name)
             set_fit_parameters(new_fit_params)
 
-            param_name_actual = param_name.rsplit('.')[1]
+            slog.debug("param_name: {}".format(param_name))
+            # param_name_actual = param_name.rsplit('.')[1]
+            # slog.debug("param_name_actual: {}".format(param_name_actual))
             new_model_name = "auto_copasi_%d.%d.cps" % (subtask_index, i)
             filename = os.path.join(self.path, new_model_name)
             # save_model(new_model_name)
             self.write(filename)
             model_files.append(filename)
-            file_param_assign[new_model_name] = param_name_actual
+            # file_param_assign[new_model_name] = param_name_actual
+            file_param_assign[new_model_name] = param_name
             file = open(os.path.join(self.path, "File-Parameter-Assignment.txt"), "w")
             for key, value in file_param_assign.items():
                 file.write("%s : PoI = %s\n" % (key, value))
@@ -1699,7 +1707,8 @@ class CopasiModel_BasiCO(object):
 
         for i in range(len(solution)):
             sol_list = []
-            param_name = solution.index[i].rsplit('.')[1]
+            # param_name = solution.index[i].rsplit('.')[1]
+            param_name = solution.index[i]
             sol = original_fit_parameters.iloc[i, 2]   #sol
             sol_list.append(param_name)
             sol_list.append(sol)

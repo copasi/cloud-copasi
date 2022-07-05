@@ -36,6 +36,7 @@ import matplotlib
 matplotlib.use('Agg') #Use this so matplotlib can be used on a headless server. Otherwise requires DISPLAY env variable to be set.
 import matplotlib.pyplot as plt
 import io
+import zipfile
 from matplotlib.pyplot import annotate
 
 internal_type = ('profile_likelihood', 'Profile Likelihood')
@@ -51,6 +52,7 @@ class TaskPlugin(BaseTask):
     def __init__(self, task):
         #self.use_load_balancing = not task.get_custom_field('skip_load_balancing_step')
         self.data_files = task.get_custom_field('data_files')
+
 
         # if self.use_load_balancing:
         #     self.subtasks = 3
@@ -79,6 +81,7 @@ class TaskPlugin(BaseTask):
 
         #And a subtask to process results locally (on web server)
         self.create_new_subtask('process', local=True)
+        # self.task.result_download = True
         self.task.save()
 
     def prepare_subtask(self, index):
@@ -93,7 +96,6 @@ class TaskPlugin(BaseTask):
             # return self.process_results_subtask()
         else:
             raise Exception('No subtasks remaining')
-
 
     def process_main_subtask(self):
         subtask = self.get_subtask(1)
@@ -137,8 +139,6 @@ class TaskPlugin(BaseTask):
 
         slog.debug("param_to_plot: {}".format(param_to_plot))
 
-        # self.generate_plots(param_to_plot) #can be removed later if not needed
-
         self.task.save()
         subtask.status = 'finished'
         subtask.finish_time = timezone.localtime()
@@ -149,7 +149,6 @@ class TaskPlugin(BaseTask):
         slog.debug("Time Delta: {}".format(time_delta))
         subtask.set_run_time(time_delta)
 
-        self.task.result_download = False
         subtask.save()
 
         return subtask
@@ -174,78 +173,12 @@ class TaskPlugin(BaseTask):
 
         return x, y
 
-    def generate_plots(self, param_to_plot):        #this function is not needed. Can be removed.
-        plot_list = []
-        rows = math.ceil(len(param_to_plot)/4.0)
-        slog.debug("rows: {}".format(rows))
-
-        if len(param_to_plot) < 4:
-            cols = len(param_to_plot)
-        else:
-            cols = 4
-
-        slog.debug("cols: {}".format(cols))
-        fig, ax = plt.subplots(rows, cols, figsize=(15,5), sharey=True)
-        plt.subplots_adjust(wspace=0.2, hspace=0.2)
-
-        for i in range(len(param_to_plot)):
-            read_file_name = 'output_1.%d.txt' %i #update it for the server
-            read_file = os.path.join(self.task.directory, read_file_name)
-
-            # plot_file_name = 'output_1.%d' %i + ".png"
-            # plot_file = os.path.join(self.task.directory, plot_file_name)
-            poi_data = param_to_plot[i]
-
-            slog.debug(" ========== Reading xy data")
-            x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-            slog.debug("x: {}".format(x))
-            slog.debug("y: {}".format(y))
-
-            min_val = min(y)    #reading minimum value of y to set it on the y-axis
-            slog.debug("min_value: {}".format(min_val))
-
-            #Plot settings
-            ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
-            ax[i].plot(x,y, marker = 'o')
-            ax[i].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
-            ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
-            ax[i].set_xlabel('%s' %poi_data[0])
-
-            # for xy coordinates in poi_data:
-            #SoS_x = "{:.1f}".format(poi_data[1])
-            #SoS_y = "{:.1f}".format(poi_data[2])
-            #displaying the coordinate value of best solution
-            # ax[i].annotate(text = "(%s, %s)" %(SoS_x, SoS_y), xy = (poi_data[1], poi_data[2]), rotation=45)
-
-            #estimating chi-square value fitting one parameter
-            c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
-            print(f"c1: {c1}")
-            t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
-            print(f"poi_data[1]: {poi_data[2]}")
-            print(math.exp(c1/len(param_to_plot)))
-            print(f"t1: {t1}")
-            ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
-
-            #estimating chi-square value fitting n parameter
-            c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
-            print(f"c2: {c2}")
-            t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
-            print(f"t2: {t2}")
-            ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
-
-            #setting the y-axis limit
-            ax[i].set_ylim(min_val * 0.4, t2*1.2)
-
-        #plot labeling and saving
-        plt.suptitle("Profile Likelihood")
-        fig.supylabel("Sum of Squares")
-        plot_file = os.path.join(self.task.directory, 'subplots.png')
-        plt.savefig(plot_file)
-
     def get_pl_plot(self, request, param_to_plot):
         """ generate plot and display it on the front interface. """
+        total_params = len(param_to_plot)       #total number of parameters
         try:
-            log = request.GET.get('log', 'false')
+            logX = request.GET.get('logX', 'false')
+            logY = request.GET.get('logY', 'false')
             legend = request.GET.get('legend', 'false')
             grid = request.GET.get('grid', 'false')
 
@@ -258,40 +191,53 @@ class TaskPlugin(BaseTask):
 
             plt.switch_backend('Agg')
             plot_list = []
-            rows = math.ceil(len(param_to_plot)/4.0)
+            rows = math.ceil(total_params/4.0)
 
-            if len(param_to_plot) < 4:
-                cols = len(param_to_plot)
+            if total_params < 4:
+                cols = total_params
             else:
                 cols = 4
 
-            fig, ax = plt.subplots(rows, cols, figsize=(8,3.2), sharey=True)
-            plt.subplots_adjust(wspace=0.2, hspace=0.2)
+            width = 3 * cols
+            height = 4 * rows
+            fig, ax = plt.subplots(rows, cols, squeeze=False, figsize=(width,height), sharey=True)
+            # fig, ax = plt.subplots(rows, cols, figsize=(9,11), sharey=True)
+            # ax = ax.flat
 
-            for i in range(len(param_to_plot)):
+            plt.subplots_adjust(wspace=0.4, hspace=0.5)
+
+            for i in range(total_params):
                 read_file_name = 'output_1.%d.txt' %i
                 read_file = os.path.join(self.task.directory, read_file_name)
-
                 poi_data = param_to_plot[i]
 
                 x, y = self.read_xy_data(read_file)     #reading simulation data from output_1.x.txt files
-
                 min_val = min(y)    #reading minimum value of y to set it on the y-axis
+                max_val = max(y)    #reading maximum value of y to set it on the y-axis
 
 
                 #Plot settings
-                if grid != 'false':
-                    ax[i].grid(color='grey', linestyle='--', linewidth='0.1')
+                if rows != 1:
+                    a = int(i/(rows-1))
                 else:
-                    ax[i].grid(color='grey', linestyle='--', linewidth='0')
+                    a = 0
+                b = i%(cols)
 
-                ax[i].plot(x,y, marker = 'o')
-                ax[i].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
-                ax[i].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
-                ax[i].set_xlabel('%s' %poi_data[0])
+                if grid != 'false':
+                    ax[a, b].grid(color='grey', linestyle='--', linewidth='0.1')
+                else:
+                    ax[a, b].grid(color='grey', linestyle='--', linewidth='0')
 
-                if log != 'false':
-                    ax[i].set_xscale('log')
+                ax[a, b].plot(x,y, marker = 'o')
+                ax[a, b].plot(poi_data[1], poi_data[2], 'ro', ms = 7)
+                ax[a, b].axhline(y = poi_data[2], color='red', linestyle='dotted')   #plotting a horizontal line for SoS
+                ax[a, b].set_xlabel('%s' %poi_data[0])
+
+                if logX != 'false':
+                    ax[a, b].set_xscale('log')
+
+                if logY != 'false':
+                    ax[a, b].set_yscale('log')
 
                 # for xy coordinates in poi_data:
                 #SoS_x = "{:.1f}".format(poi_data[1])
@@ -301,20 +247,40 @@ class TaskPlugin(BaseTask):
 
                 #estimating chi-square value fitting one parameter
                 c1 = sp.stats.chi2.isf(0.05, 1, loc = 0, scale = 1)
-                t1 = poi_data[2] * math.exp(c1/len(param_to_plot))      #threshold value for 95% confidence
-                ax[i].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
+                t1 = poi_data[2] * math.exp(c1/total_params)      #threshold value for 95% confidence
+                ax[a, b].axhline(y = t1, color='blue', linestyle='dotted')   #plotting a horizontal line for SoS
 
                 #estimating chi-square value fitting n parameter
-                c2 = sp.stats.chi2.isf(0.05, len(param_to_plot), loc = 0, scale = 1)
-                t2 = poi_data[2] * math.exp(c2/len(param_to_plot))      #threshold value for 95% confidence
-                ax[i].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
+                c2 = sp.stats.chi2.isf(0.05, total_params, loc = 0, scale = 1)
+                t2 = poi_data[2] * math.exp(c2/total_params)      #threshold value for 95% confidence
+                ax[a, b].axhline(y = t2, color='green', linestyle='solid')   #plotting a horizontal line for SoS
 
                 #setting the y-axis limit
-                ax[i].set_ylim(min_val * 0.05, t2*1.2)
+                # ax[a, b].set_ylim(min_val * 0.07, t2*2.1)
+                if max_val >= 1e90:
+                    ax[a, b].set_ylim(min_val*0.05, t2*1.2)
+                else:
+                    ax[a, b].set_ylim(min_val*0.05, max_val*1.5)
+
+            # When total parameters are not divisible by 4 (meaning that they need to be fixed in next row)
+            # also when the loop value is the last parameter value
+            if (total_params > 4):   #when parameters are greater than the size of one row
+                if (total_params % 4 != 0) and (i == total_params -1):
+
+                    #subplots that are valid and have data
+                    valid_subplots = total_params % 4
+                    slog.debug("valid_subplots: {}".format(valid_subplots))
+
+                    empty_subplots = 4 - valid_subplots
+                    for i in range(empty_subplots):
+                        del_plot_idx = i + valid_subplots
+                        fig.delaxes(ax[a, del_plot_idx])
+
 
             #plot labeling and saving
-            plt.suptitle("Profile Likelihood")
+            plt.suptitle("Profile Likelihood", y =0.99)
             fig.supylabel("Sum of Squares")
+            fig.tight_layout()
 
             name = self.task.name.replace(' ', '_')
             if download_png:
@@ -368,19 +334,23 @@ class TaskPlugin(BaseTask):
                 form = PlotUpdateForm(initial={'key':'value'})
 
             if form.is_valid():
-                log = form.cleaned_data['logarithmic']
+                logX = form.cleaned_data['logarithmicX']
+                logY = form.cleaned_data['logarithmicY']
                 legend = form.cleaned_data['legend']
                 grid = form.cleaned_data['grid']
             else:
-                log = False
+                logX = False
+                logY = False
                 legend = True
                 grid = True
 
 
             # construct the string to load the image file
             img_string = '?name=plot'
-            if log:
-                img_string += '&log=true'
+            if logX:
+                img_string += '&logX=true'
+            if logY:
+                img_string += '&logY=true'
             if legend:
                 img_string += '&legend=true'
             if grid:
@@ -392,11 +362,37 @@ class TaskPlugin(BaseTask):
             return output
 
     def get_results_download_data(self, request):
-        param_to_plot = self.copasi_model.process_original_pl_model()
+
         page_name = request.GET.get('name', 'main')
-        slog.debug("page_name: {}".format(page_name))
-        slog.debug("get_results_download_data")
-        return self.get_pl_plot(request, param_to_plot)
+
+        if page_name == 'main':
+            zip_file_name = "Results.zip"
+            filename = os.path.join(self.task.directory, zip_file_name)
+            directory = self.task.directory
+
+            compile_string = re.compile('output_[0-9].[0-9]*.txt')
+
+            with zipfile.ZipFile(filename, 'w') as zip:
+                for path, directory, files in os.walk(directory):
+                    for file in files:
+                        name = compile_string.match(file)
+                        if name != None:
+                            file_to_write = os.path.join(self.task.directory, file)
+                            zip.write(file_to_write, file)
+                zip.close()
+
+            result_file = open(filename, 'rb')
+            response = HttpResponse(result_file, content_type='application/x-zip-compressed')
+            response['Content-Disposition'] = 'attachment; filename=' + zip_file_name
+            response['Content-Length'] = os.path.getsize(filename)
+
+            return response
+
+        elif page_name == 'plot':
+            param_to_plot = self.copasi_model.process_original_pl_model()
+            slog.debug("page_name: {}".format(page_name))
+            slog.debug("get_results_download_data")
+            return self.get_pl_plot(request, param_to_plot)
 
 class PlotUpdateForm(forms.Form):
 
@@ -405,4 +401,5 @@ class PlotUpdateForm(forms.Form):
 
     legend = forms.BooleanField(label="Show figure legend", required=False, initial=True)
     grid = forms.BooleanField(label="Show grid", required=False, initial=True)
-    logarithmic = forms.BooleanField(label="Logarithmic Scale", required = False)
+    logarithmicX = forms.BooleanField(label="Log Scale X", required = False)
+    logarithmicY = forms.BooleanField(label="Log Scale Y", required = False)
