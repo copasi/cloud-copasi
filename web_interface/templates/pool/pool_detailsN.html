@@ -86,7 +86,14 @@ http://www.gnu.org/licenses/gpl.html
                       <table>
                           <th class="fieldlabel required">Pool actions</th>
                           {% for key, button in buttons.items %}
+                              {% if button.button_text == "Remove pool" %}
+                              {% if not ssh_free %}
+					
                               <tr><td><a href="{{ button.url }}" class="{% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
+                              {% endif %}
+                              {% else %}
+                              <tr><td><a href="{{ button.url }}" class="{% if button.class %}{{ button.class }}{% endif %}" {% if button.loading_screen %}onclick="showLoadingScreen()"{% endif %}>{{ button.button_text }}</a></td></tr>
+			      {% endif %}
                           {% endfor %}
                       </table>
                   </div>
