@@ -1,5 +1,5 @@
 boto==2.49.0 
-#boto3==1.21.10
+boto3==1.24.53
 copasi-basico==0.16
 cycler==0.11.0
 Django==4.0.4
