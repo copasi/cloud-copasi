@@ -33,10 +33,10 @@ def process_errors(error_list):
     """Process the list of errors such that any boto errors are flattened"""
     output=[]
     for error in error_list:
-        if isinstance(error, BotoServerError):
+        try:
             for boto_error in error.errors:
                 output.append(boto_error)
-        else:
+        except:
             output.append(error)
     return output
 

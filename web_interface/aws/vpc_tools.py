@@ -192,48 +192,46 @@ def create_vpc(key, vpc_connection, ec2_connection):
 def delete_vpc(vpc, vpc_connection, ec2_connection):
 
     assert isinstance(vpc, models.VPC)
-    assert isinstance(ec2_connection, EC2Connection)
-    assert isinstance(vpc_connection, VPCConnection)
 
     errors = []
 
     try:
-        ec2_connection.delete_security_group(group_id=vpc.master_group_id)
+        ec2_connection.delete_security_group(GroupId=vpc.master_group_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        ec2_connection.delete_security_group(group_id=vpc.worker_group_id)
+        ec2_connection.delete_security_group(GroupId=vpc.worker_group_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.disassociate_route_table(vpc.route_table_association_id)
+        vpc_connection.disassociate_route_table(AssociationId=vpc.route_table_association_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.delete_route_table(vpc.route_table_id)
+        vpc_connection.delete_route_table(RouteTableId=vpc.route_table_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.detach_internet_gateway(vpc.internet_gateway_id, vpc.vpc_id)
+        vpc_connection.detach_internet_gateway(InternetGatewayId=vpc.internet_gateway_id, VpcId=vpc.vpc_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.delete_internet_gateway(vpc.internet_gateway_id)
+        vpc_connection.delete_internet_gateway(InternetGatewayId=vpc.internet_gateway_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.delete_subnet(vpc.subnet_id)
+        vpc_connection.delete_subnet(SubnetId=vpc.subnet_id)
     except Exception as e:
         errors.append(e)
 
     try:
-        vpc_connection.delete_vpc(vpc.vpc_id)
+        vpc_connection.delete_vpc(VpcId=vpc.vpc_id)
     except Exception as e:
         errors.append(e)
 
