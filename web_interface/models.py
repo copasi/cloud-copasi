@@ -112,33 +112,33 @@ class VPC(models.Model):
     def get_vpc(self, vpc_connection):
         """Returns the boto vpc object
         """
-        return vpc_connection.get_all_vpcs([self.vpc_id])[0]
+        return vpc_connection.describe_vpcs(VpcIds = [self.vpc_id])['Vpcs'][0]
 
     def get_internet_gateway(self, vpc_connection):
         """Returns the boto internet gateway object
         """
-        return vpc_connection.get_all_internet_gateways([self.internet_gateway_id])[0]
+        return vpc_connection.describe_internet_gateways(InternetGatewayIds=[self.internet_gateway_id])['InternetGateways'][0]
 
     def get_route_table(self, vpc_connection):
         """Returns the boto route table object
         """
-        return vpc_connection.get_all_route_tables([self.route_table_id])[0]
+        return vpc_connection.describe_route_tables(RouteTableIds=[self.route_table_id])['Route_Tables'][0]
 
     def get_master_group(self, ec2_connection):
         """Returns the boto Master security group object
         """
-        return ec2_connection.get_all_security_groups(group_ids=[self.master_group_id])[0]
+        return ec2_connection.describe_security_groups(GroupIds=[self.master_group_id])['SecurityGroups'][0]
     def get_worker_group(self, ec2_connection):
         """Returns the boto Worker security group object
         """
-        return ec2_connection.get_all_security_groups(group_ids=[self.worker_group_id])[0]
+        return ec2_connection.describe_security_groups(GroupIds=[self.worker_group_id])['SecurityGroups'][0]
 
     def get_status(self):
 
         try:
             vpc_connection, ec2_connection = aws_tools.create_connections(self.access_key)
 
-            vpc_state = self.get_vpc(vpc_connection).state
+            vpc_state = self.get_vpc(vpc_connection)['State']
 
             vpc_connection.close()
             ec2_connection.close()
@@ -149,7 +149,7 @@ class VPC(models.Model):
         """
         Returns the EC2 keypair object
         """
-        return ec2_connection.get_key_pair(self.key_pair_name)
+        return ec2_connection.describe_key_pairs(KeyNames=[self.key_pair_name])['KeyPairs'][0]
 
 
 def create_secret_key():
