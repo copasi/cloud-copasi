@@ -12,10 +12,21 @@ from boto.exception import BotoServerError
 from boto.sqs.connection import SQSConnection
 from boto.sns.connection import SNSConnection
 from boto.ec2.cloudwatch import CloudWatchConnection
+import boto3.session
+from boto3.exceptions import Boto3Error
+
 def create_connections(key):
     """Returns pair vpc_connection, ec2_connection"""
-    vpc_connection = VPCConnection(key.access_key_id, key.secret_key)
-    ec2_connection = EC2Connection(key.access_key_id, key.secret_key)
+    session = boto3.Session(
+    aws_access_key_id=key.access_key_id,
+    aws_secret_access_key=key.secret_key,
+    region_name = "us-east-1"
+    )
+    vpc_connection = session.client('ec2')
+    ec2_connection = session.client('ec2')
+    
+    # vpc_connection = VPCConnection(key.access_key_id, key.secret_key)
+    # ec2_connection = EC2Connection(key.access_key_id, key.secret_key)
     return (vpc_connection, ec2_connection)
 
 def process_errors(error_list):

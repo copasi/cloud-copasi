@@ -42,6 +42,7 @@ import re
 import os
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
 
 class MyAccountView(RestrictedView):
     template_name = 'account/account_homeN.html'
@@ -168,10 +169,15 @@ class KeysAddView(RestrictedFormView):
         key.name = form.cleaned_data['name']
         key.save()
         try:
+            vpc_connection, ec2_connection = aws_tools.create_connections(key)
+            slog.debug('regions ' + str(ec2_connection.describe_regions()))
+            log.debug('regions ' + str(ec2_connection.describe_regions()))
+
             #Authenticate the keypair
+            """ #Authenticate the keypair
             vpc_connection, ec2_connection = aws_tools.create_connections(key)
             #Run a test API call
-            ec2_connection.get_all_regions()
+            ec2_connection.get_all_regions()"""
 
         except Exception as e:
             #Since we are about to return form_invalid, add the errors directly to the form non field error list
@@ -187,6 +193,7 @@ class KeysAddView(RestrictedFormView):
             vpc = vpc_tools.create_vpc(key, vpc_connection, ec2_connection)
 
         except Exception as e:
+            slog.debug("error vpc " + str(e))
             log.exception(e)
             try:
                 vpc.delete()

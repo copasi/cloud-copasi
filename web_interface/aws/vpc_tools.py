@@ -8,6 +8,8 @@
 #-------------------------------------------------------------------------------
 from boto.vpc import VPCConnection
 from boto.ec2 import EC2Connection
+import boto3
+import logging
 from web_interface import models
 import boto.exception
 import sys, os
@@ -20,9 +22,13 @@ CONDOR_FROM_PORT = 9600
 CONDOR_TO_PORT = 9700
 ALLOW_ALL_TRAFFIC = False #Allow only specific condor ports, or allow all traffic (for debuging only)
 
+
+log = logging.getLogger(__name__)
+slog = logging.getLogger("special")
+
 def create_vpc(key, vpc_connection, ec2_connection):
 
-
+    """
     assert isinstance(ec2_connection, EC2Connection)
     assert isinstance(vpc_connection, VPCConnection)
 
@@ -89,6 +95,98 @@ def create_vpc(key, vpc_connection, ec2_connection):
 
     vpc_model.save()
 
+    return vpc_model"""
+    # commented by fizza
+    slog.debug("entered create vpc method")
+    vpc = vpc_connection.create_vpc(CidrBlock=VPC_CIDR_BLOCK)
+    time.sleep(5)
+    slog.debug("vpc created with cidr block")
+    slog.debug("vpc: " + str(vpc))
+    #This also creates a DHCP options set associated with the VPC. Leave this unchanged
+    #Create a subnet
+    #comented
+    # subnet = vpc_connection.create_subnet(vpc.id, SUBNET_CIDR_BLOCK)
+    subnet = vpc_connection.create_subnet(VpcId=vpc['Vpc']['VpcId'], CidrBlock=SUBNET_CIDR_BLOCK)
+    time.sleep(5)
+    #Create an internet gateway device
+    internet_gateway = vpc_connection.create_internet_gateway()
+    time.sleep(5)
+    #Attach the internet gateway to the VPC
+    vpc_connection.attach_internet_gateway(InternetGatewayId=internet_gateway['InternetGateway']['InternetGatewayId'], VpcId=vpc['Vpc']['VpcId'])
+    time.sleep(5)
+    #Create a route table for the subnet containing 2 entries
+    route_table = vpc_connection.create_route_table(VpcId=vpc['Vpc']['VpcId'])['RouteTable']
+    time.sleep(5)
+    #Entry 1: 10.0.0.0/16 local
+    #Created by default
+    #Entry 2: 0.0.0.0/0 internet_gateway
+    vpc_connection.create_route(RouteTableId=route_table['RouteTableId'], DestinationCidrBlock='0.0.0.0/0', GatewayId=internet_gateway['InternetGateway']['InternetGatewayId'])
+    time.sleep(5)
+    #Associate the route table with the subnet
+    route_table_association_id = vpc_connection.associate_route_table(RouteTableId=route_table['RouteTableId'], SubnetId=subnet['Subnet']['SubnetId'])['AssociationId']
+    time.sleep(5)
+
+    #Set up the security groups
+    master_sg_name = 'condor_master_' + str(vpc['Vpc']['VpcId'])
+    worker_sg_name = 'condor_worker_' + str(vpc['Vpc']['VpcId'])
+    master_group = ec2_connection.create_security_group(GroupName=master_sg_name, Description='created_by_cloud_copasi', VpcId=vpc['Vpc']['VpcId'])
+    worker_group = ec2_connection.create_security_group(GroupName=worker_sg_name, Description='created_by_cloud_copasi', VpcId=vpc['Vpc']['VpcId'])
+    time.sleep(5)
+    slog.debug('security groups created')
+    if not ALLOW_ALL_TRAFFIC:
+        #Set up the master security group
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+            {'IpProtocol':'TCP', 'FromPort':22, 'ToPort':22, 'IpRanges':[{'CidrIp':'0.0.0.0/0'}]}
+            ])
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+            {"IpProtocol":'TCP', "FromPort":9600, "ToPort":9700, 'IpRanges':[{"CidrIp":VPC_CIDR_BLOCK}]}
+            ])
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
+        ])
+        time.sleep(5)
+        #Set up the worker security group
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":22, "ToPort":22, 'IpRanges':[{"CidrIp":VPC_CIDR_BLOCK}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
+        ])
+    else:
+        #Set up the master security group and worker group to allow all traffic
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+        time.sleep(5)
+        #Set up the worker security group
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+    slog.debug('security authorized')
+    vpc_model = models.VPC(
+                           access_key = key,
+                           vpc_id = vpc['Vpc']['VpcId'],
+                           subnet_id = subnet['Subnet']['SubnetId'],
+                           internet_gateway_id = internet_gateway['InternetGateway']['InternetGatewayId'],
+                           route_table_id = route_table['RouteTableId'],
+                           route_table_association_id=route_table_association_id,
+                           master_group_id = master_group['GroupId'],
+                           worker_group_id = worker_group['GroupId'],
+                           )
+
+    slog.debug(vpc['Vpc']['VpcId'] + " " + subnet['Subnet']['SubnetId']+ " " + internet_gateway['InternetGateway']['InternetGatewayId']+ " " +route_table['RouteTableId']+ " " +route_table_association_id+ " " +master_group['GroupId']+ " " +worker_group['GroupId'])
+    slog.debug('model saved')
+    vpc_model.save()
+
     return vpc_model
 
 def delete_vpc(vpc, vpc_connection, ec2_connection):
@@ -96,7 +194,6 @@ def delete_vpc(vpc, vpc_connection, ec2_connection):
     assert isinstance(vpc, models.VPC)
     assert isinstance(ec2_connection, EC2Connection)
     assert isinstance(vpc_connection, VPCConnection)
-
 
     errors = []
 

@@ -88,19 +88,19 @@ class VPC(models.Model):
     """
     access_key = models.OneToOneField(AWSAccessKey, null=True, on_delete = models.CASCADE)
     #The VPC in which everything else resides
-    vpc_id = models.CharField(max_length=20, verbose_name='VPC ID')
+    vpc_id = models.CharField(max_length=45, verbose_name='VPC ID')
 
-    subnet_id = models.CharField(max_length=20, verbose_name='Subnet ID')
+    subnet_id = models.CharField(max_length=45, verbose_name='Subnet ID')
 
-    internet_gateway_id = models.CharField(max_length=20, verbose_name='Internet gateway ID')
+    internet_gateway_id = models.CharField(max_length=45, verbose_name='Internet gateway ID')
 
-    route_table_id =  models.CharField(max_length=20, verbose_name='Route table ID')
+    route_table_id =  models.CharField(max_length=45, verbose_name='Route table ID')
 
-    route_table_association_id = models.CharField(max_length=20, verbose_name='Route table and subnet association ID')
+    route_table_association_id = models.CharField(max_length=45, verbose_name='Route table and subnet association ID')
     #Condor master security group
-    master_group_id = models.CharField(max_length=20, verbose_name='Condor Master security group ID')
+    master_group_id = models.CharField(max_length=45, verbose_name='Condor Master security group ID')
     #Condor worker security group
-    worker_group_id = models.CharField(max_length=20, verbose_name='Condor Worker security group ID')
+    worker_group_id = models.CharField(max_length=45, verbose_name='Condor Worker security group ID')
 
 
     class Meta:
