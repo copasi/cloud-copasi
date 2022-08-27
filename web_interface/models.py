@@ -71,6 +71,8 @@ class AWSAccessKey(models.Model):
 
     access_key_id = models.CharField(max_length=20, help_text='The 20-character AWS access key ID', verbose_name='Access key ID', validators=[RegexValidator(regex='^.{20}$', message='Length has to be 20', code='nomatch')])
 
+    aws_region = models.CharField(default='us-east-1', max_length=100, help_text='AWS Region where you want to use the access key', verbose_name='AWS Access Key Region')
+
     secret_key = models.CharField(max_length=40, help_text='The 40-character secret access key associated with the access key ID', verbose_name='Secret access key', validators=[RegexValidator(regex='^.{40}$', message='Length has to be 40', code='nomatch')])
 
     copy_of = models.ForeignKey('self', null=True, blank=True, verbose_name = 'Is this key a shared version of an original key?', on_delete = models.CASCADE)
@@ -347,8 +349,8 @@ class EC2Instance(models.Model):
 
     def get_instance(self):
         ec2_connection = self.get_ec2_connection()
-        instance_reservation = ec2_connection.get_all_instances(instance_ids=[self.instance_id])
-        instance = instance_reservation[0].instances[0]
+        instance_reservation = ec2_connection.describe_instances(InstanceIds=[self.instance_id])
+        instance = instance_reservation['Reservations'][0]['Instances'][0]
 
         return instance
 

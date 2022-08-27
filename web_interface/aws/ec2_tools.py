@@ -30,8 +30,8 @@ from boto.exception import BotoServerError, EC2ResponseError
 log = logging.getLogger(__name__)
 
 def get_active_ami(ec2_connection):
-    assert isinstance(ec2_connection, EC2Connection)
-    return ec2_connection.get_image(ec2_config.AMI_IMAGE_ID)
+    # assert isinstance(ec2_connection, EC2Connection)
+    return ec2_connection.describe_images(ImageIds=[ec2_config.AMI_IMAGE_ID])['Images'][0]
 
 def refresh_pool(ec2_pool):
     """Refresh the state of each instance in a ec2 pool
@@ -178,13 +178,14 @@ def create_key_pair(pool):
     assert isinstance(pool, models.EC2Pool)
     vpc_connection, ec2_connection = aws_tools.create_connections(pool.vpc.access_key)
     name =  'keypair_%s' % pool.uuid
-    key = ec2_connection.create_key_pair(name)
+    key = ec2_connection.create_key_pair(KeyName=name)
 
     #The directory where we store the ssh keypairs. Must be writable
     filepath = settings.KEYPAIR_FILEPATH
 
     path=os.path.join(filepath, name + '.pem')
-    key.save(filepath)
+    slog.debug(str(key))
+    #key.save(filepath)
 
     key_pair = EC2KeyPair(name=name, path=path)
 
@@ -212,24 +213,24 @@ def launch_pool(ec2_pool):
     master_launch_string = ec2_config.MASTER_LAUNCH_STRING
     #And launch
     log.debug('Launching Master node')
-    master_reservation = ec2_connection.run_instances(ami.id,
-                                               key_name=ec2_pool.key_pair.name,
-                                               instance_type=settings.MASTER_NODE_TYPE,
-                                               subnet_id=ec2_pool.vpc.subnet_id,
-                                               security_group_ids=[ec2_pool.vpc.master_group_id],
-                                               user_data=master_launch_string,
-                                               min_count=1,#Only 1 instance needed
-                                               max_count=1,
+    master_reservation = ec2_connection.run_instances(ImageId=ami['ImageId'],
+                                               KeyName=ec2_pool.key_pair.name,
+                                               InstanceType=settings.MASTER_NODE_TYPE,
+                                               SubnetId=ec2_pool.vpc.subnet_id,
+                                               SecurityGroupIds=[ec2_pool.vpc.master_group_id],
+                                               UserData=master_launch_string,
+                                               MinCount=1,#Only 1 instance needed
+                                               MaxCount=1,
                                                )
     #
     sleep(2)
 
     ec2_instances = []
 
-    master_instance = master_reservation.instances[0]
+    master_instance = master_reservation['Instances'][0]
     master_ec2_instance = EC2Instance()
     master_ec2_instance.ec2_pool = ec2_pool
-    master_ec2_instance.instance_id = master_instance.id
+    master_ec2_instance.instance_id = master_instance['InstanceId']
     master_ec2_instance.instance_type = settings.MASTER_NODE_TYPE
     master_ec2_instance.instance_role = 'master'
 
@@ -259,21 +260,21 @@ def launch_pool(ec2_pool):
         try:
             if not ec2_pool.spot_request:
                 #Fix price launch. This is easy.
-                worker_reservation = ec2_connection.run_instances(ami.id,
-                                                           key_name=ec2_pool.key_pair.name,
-                                                           instance_type=ec2_pool.initial_instance_type,
-                                                           subnet_id=ec2_pool.vpc.subnet_id,
-                                                           security_group_ids=[ec2_pool.vpc.worker_group_id],
-                                                           user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
-                                                           min_count=ec2_pool.size,
-                                                           max_count=ec2_pool.size,
+                worker_reservation = ec2_connection.run_instances(ImageId=ami['ImageId'],
+                                                           KeyName=ec2_pool.key_pair.name,
+                                                           InstanceType=ec2_pool.initial_instance_type,
+                                                           SubnetId=ec2_pool.vpc.subnet_id,
+                                                           SecurityGroupIds=[ec2_pool.vpc.worker_group_id],
+                                                           UserData=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                                                           MinCount=ec2_pool.size,
+                                                           MaxCount=ec2_pool.size,
                                                            )
                 sleep(3)
-                instances = worker_reservation.instances
+                instances = worker_reservation['Instances']
                 for instance in instances:
                     ec2_instance = EC2Instance()
                     ec2_instance.ec2_pool = ec2_pool
-                    ec2_instance.instance_id = instance.id
+                    ec2_instance.instance_id = instance['InstanceId']
                     ec2_instance.instance_type = ec2_pool.initial_instance_type
                     ec2_instance.instance_role = 'worker'
 
@@ -284,15 +285,15 @@ def launch_pool(ec2_pool):
 
             else:
                 #We're launching a spot request pool instead.
-                worker_requests = ec2_connection.request_spot_instances(str(ec2_pool.spot_price),
-                                                                        ami.id,
-                                                                        type='persistent',
-                                                                        count=ec2_pool.size,
-                                                                        key_name=ec2_pool.key_pair.name,
-                                                                        instance_type=ec2_pool.initial_instance_type,
-                                                                        subnet_id=ec2_pool.vpc.subnet_id,
-                                                                        security_group_ids=[ec2_pool.vpc.worker_group_id],
-                                                                        user_data=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
+                worker_requests = ec2_connection.request_spot_instances(SpotPrice=str(ec2_pool.spot_price),
+                                                                        ImageId=ami['ImageId'],
+                                                                        Type='persistent',
+                                                                        InstanceCount=ec2_pool.size,
+                                                                        KeyName=ec2_pool.key_pair.name,
+                                                                        InstanceType=ec2_pool.initial_instance_type,
+                                                                        SubnetId=ec2_pool.vpc.subnet_id,
+                                                                        SecurityGroupIds=[ec2_pool.vpc.worker_group_id],
+                                                                        UserData=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
                                                                         )
                 for request in worker_requests:
                     spot_request = SpotRequest(ec2_pool=ec2_pool,

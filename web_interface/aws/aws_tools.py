@@ -6,12 +6,12 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from boto.vpc import VPCConnection
-from boto.ec2 import EC2Connection
-from boto.exception import BotoServerError
-from boto.sqs.connection import SQSConnection
-from boto.sns.connection import SNSConnection
-from boto.ec2.cloudwatch import CloudWatchConnection
+#from boto.vpc import VPCConnection
+#from boto.ec2 import EC2Connection
+#from boto.exception import BotoServerError
+#from boto.sqs.connection import SQSConnection
+#from boto.sns.connection import SNSConnection
+#from boto.ec2.cloudwatch import CloudWatchConnection
 import boto3.session
 from boto3.exceptions import Boto3Error
 
@@ -20,7 +20,7 @@ def create_connections(key):
     session = boto3.Session(
     aws_access_key_id=key.access_key_id,
     aws_secret_access_key=key.secret_key,
-    region_name = "us-east-1"
+    region_name = key.aws_region
     )
     vpc_connection = session.client('ec2')
     ec2_connection = session.client('ec2')

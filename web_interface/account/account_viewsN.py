@@ -92,6 +92,7 @@ class AddKeyForm(forms.Form):
     secret_key = forms.CharField(max_length=40, min_length=40, required=False, label='Secret access key',
                                  help_text='The 40-character secret access key associated with the access key ID. Only enter this if you do not upload a key file',
                                  )
+    aws_region = forms.CharField(max_length=50, label='AWS Region Name',  help_text='AWS Region where you initialized the access key', )
 
 
 class KeysAddView(RestrictedFormView):
@@ -167,6 +168,7 @@ class KeysAddView(RestrictedFormView):
 
         key.user = self.request.user
         key.name = form.cleaned_data['name']
+        key.aws_region = form.cleaned_data['aws_region']
         key.save()
         try:
             vpc_connection, ec2_connection = aws_tools.create_connections(key)
