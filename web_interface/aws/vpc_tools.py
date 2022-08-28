@@ -6,8 +6,6 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from boto.vpc import VPCConnection
-from boto.ec2 import EC2Connection
 import boto3
 import logging
 from web_interface import models

@@ -41,9 +41,28 @@ def process_errors(error_list):
     return output
 
 def create_sqs_connection(key):
-    return SQSConnection(key.access_key_id, key.secret_key)
+    session = boto3.Session(
+    aws_access_key_id=key.access_key_id,
+    aws_secret_access_key=key.secret_key,
+    region_name = key.aws_region
+    )
+    sqs_connection = session.client('sqs')
+    return sqs_connection
 
 def create_sns_connection(key):
-    return SNSConnection(key.access_key_id, key.secret_key)
+    session = boto3.Session(
+    aws_access_key_id=key.access_key_id,
+    aws_secret_access_key=key.secret_key,
+    region_name = key.aws_region
+    )
+    sns_connection = session.client('sns')
+    return sns_connection
+
 def create_cloudwatch_connection(key):
-    return CloudWatchConnection(key.access_key_id, key.secret_key)
+    session = boto3.Session(
+    aws_access_key_id=key.access_key_id,
+    aws_secret_access_key=key.secret_key,
+    region_name = key.aws_region
+    )
+    cloudwatch_connection = session.client('cloudwatch')
+    return cloudwatch_connection
