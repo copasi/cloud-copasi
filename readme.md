@@ -2,7 +2,7 @@
 
 Cloud-COPASI is a web-based service for running computationally intensive simulation and analysis tasks in parallel on a high-throughput computing pool. Cloud-COPASI connects to existing computing pools, or provides a simple interface for launching a new computing pool using the [Amazon Elastic Compute Cloud (EC2)](http://aws.amazon.com).
 
-Cloud-COPASI can run a number of simulation and analysis tasks, including global sensitivity analyses, stochastic simulations, parameter scans, optimizations, and parameter fitting. Each task is automatically slit into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
+Cloud-COPASI can run a number of simulation and analysis tasks, including global sensitivity analyses, stochastic simulations, parameter scans, optimizations, and parameter fitting. Each task is automatically split into a number of smaller jobs, which are executed in parallel, allowing for significant speed-ups in running time.
 
 Models must be prepared using the desktop version of [COPASI](http://copasi.org) (COmplex PAthway SImulator), a widely used free, open-source, cross-platform simulation tool.
 
