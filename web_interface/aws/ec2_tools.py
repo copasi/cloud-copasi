@@ -26,8 +26,10 @@ from django.utils.timezone import utc
 from django.urls import reverse_lazy
 import subprocess
 from boto.exception import BotoServerError, EC2ResponseError
+import botocore
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger('special')
 
 def get_active_ami(ec2_connection):
     # assert isinstance(ec2_connection, EC2Connection)
@@ -36,7 +38,7 @@ def get_active_ami(ec2_connection):
 def refresh_pool(ec2_pool):
     """Refresh the state of each instance in a ec2 pool
     """
-    log.debug('Refreshing pool %s status' % ec2_pool.name)
+    slog.debug('Refreshing pool %s status' % ec2_pool.name)
 
     if ec2_pool.copy_of:
         copied_pool = ec2_pool
@@ -45,11 +47,11 @@ def refresh_pool(ec2_pool):
         copied_pool = None
     #If this pool is not an original, then don't refresh.
 
-    log.debug('refreshing status of pool %s' % ec2_pool.name)
+    slog.debug('refreshing status of pool %s' % ec2_pool.name)
     difference = utcnow() - ec2_pool.last_update_time.replace(tzinfo=utc)
-    log.debug('Time difference %s' % str(difference))
+    slog.debug('Time difference %s' % str(difference))
     if difference < datetime.timedelta(seconds=3):
-        log.debug('Pool recently refreshed. Not updating')
+        slog.debug('Pool recently refreshed. Not updating')
         return
 
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
@@ -74,7 +76,7 @@ def refresh_pool(ec2_pool):
                 spot_instance_request = ec2_connection.describe_spot_instance_requests(SpotInstanceRequestIds=[spot_request_id])
                 spot_request_list.append(spot_instance_request["SpotInstanceRequests"][0])
             except:
-                log.debug('Spot request %s not found, not updating status' %spot_request_id)
+                slog.debug('Spot request %s not found, not updating status' %spot_request_id)
                 not_found_requests.append(spot_request_id)
             #Don't do anything with spot requests that weren't found for now
 
@@ -105,7 +107,7 @@ def refresh_pool(ec2_pool):
 
             spot_request.save()
         except Exception as  e:
-            log.exception(e)
+            slog.exception(e)
 
     instances = EC2Instance.objects.filter(ec2_pool=ec2_pool) | EC2Instance.objects.filter(ec2_pool__copy_of=ec2_pool)
 
@@ -124,7 +126,7 @@ def refresh_pool(ec2_pool):
                 instance_status = ec2_connection.describe_instance_status(InstanceIds=[instance_id])["InstanceStatuses"][0]
                 instance_status_list.append(instance_status)
             except:
-                log.debug('Instance %s not found, presuming terminated' % instance_id)
+                slog.debug('Instance %s not found, presuming terminated' % instance_id)
                 not_found_instances.append(instance_id)
 
         for instance_id in not_found_instances:
@@ -139,7 +141,7 @@ def refresh_pool(ec2_pool):
 
     for status in instance_status_list:
         #assert isinstance(status, )
-        log.debug('Refreshing instance %s' % status["InstanceId"])
+        slog.debug('Refreshing instance %s' % status["InstanceId"])
         try:
             id=status["InstanceId"]
             ec2_instance = instances.get(instance_id=id)
@@ -153,7 +155,7 @@ def refresh_pool(ec2_pool):
             ec2_instance.system_status = status["SystemStatus"]["Status"]
             ec2_instance.save()
         except Exception as  e:
-            log.exception(e)
+            slog.exception(e)
 
     #Add instance termination alarms. Because instance metrics don't appear instantly,
     #We have to do this now, as opposed to when the pool was first launched
@@ -186,6 +188,8 @@ def create_key_pair(pool):
     path=os.path.join(filepath, name + '.pem')
     slog.debug(str(key))
     #key.save(filepath)
+    with open(path, 'w') as file:
+        file.write(key['KeyMaterial'])
 
     key_pair = EC2KeyPair(name=name, path=path)
 
@@ -197,7 +201,7 @@ def launch_pool(ec2_pool):
     Launch a EC2 pool with the definitions provided by the ec2_pool object
     """
 
-    log.debug('Launcing EC2 pool')
+    slog.debug('Launcing EC2 pool')
     assert isinstance(ec2_pool, EC2Pool)
 
     errors = []
@@ -207,27 +211,33 @@ def launch_pool(ec2_pool):
 
     log.debug('Retrieving machine image')
     ami = get_active_ami(ec2_connection)
-
+    slog.debug("AMI Obtained")
     #Launch the master instance
     #Add the pool details to the launch string
     master_launch_string = ec2_config.MASTER_LAUNCH_STRING
     #And launch
-    log.debug('Launching Master node')
-    master_reservation = ec2_connection.run_instances(ImageId=ami['ImageId'],
-                                               KeyName=ec2_pool.key_pair.name,
-                                               InstanceType=settings.MASTER_NODE_TYPE,
-                                               SubnetId=ec2_pool.vpc.subnet_id,
-                                               SecurityGroupIds=[ec2_pool.vpc.master_group_id],
-                                               UserData=master_launch_string,
-                                               MinCount=1,#Only 1 instance needed
-                                               MaxCount=1,
-                                               )
+    slog.debug('Launching Master node')
+    try:
+        master_reservation = ec2_connection.run_instances(ImageId=ami['ImageId'],
+                                                   KeyName=ec2_pool.key_pair.name,
+                                                   InstanceType=settings.MASTER_NODE_TYPE,
+                                                   SubnetId=ec2_pool.vpc.subnet_id,
+                                                   SecurityGroupIds=[ec2_pool.vpc.master_group_id],
+                                                   UserData=master_launch_string,
+                                                   MinCount=1,#Only 1 instance needed
+                                                   MaxCount=1,
+                                                   )
+    except botocore.exceptions.ClientError as error:
+        slog.debug(error)
+        
     #
     sleep(2)
+    slog.debug("Master reserved")
 
     ec2_instances = []
 
     master_instance = master_reservation['Instances'][0]
+    slog.debug(master_instance)
     master_ec2_instance = EC2Instance()
     master_ec2_instance.ec2_pool = ec2_pool
     master_ec2_instance.instance_id = master_instance['InstanceId']
@@ -239,13 +249,14 @@ def launch_pool(ec2_pool):
     ec2_instances.append(master_ec2_instance)
 
     ec2_pool.master = master_ec2_instance
-
+    # line below being problematic
     ec2_pool.last_update_time = now()
     ec2_pool.save()
 
     #wait until the master has a private ip address
     #sleep in beween
     log.debug('Waiting for private IP to be assigned to master node')
+    slog.debug('Waiting for private IP to be assigned to master node')
     sleep_time=5
     max_retrys=20
     current_try=0
@@ -253,8 +264,9 @@ def launch_pool(ec2_pool):
         sleep(sleep_time)
         current_try+=1
     sleep(2)
+    slog.debug("IPs assigned")
     if ec2_pool.size > 0:
-        log.debug('Launching worker nodes')
+        slog.debug('Launching worker nodes')
 
         #Are we launcing fixed price or spot instances?
         try:
@@ -270,6 +282,7 @@ def launch_pool(ec2_pool):
                                                            MaxCount=ec2_pool.size,
                                                            )
                 sleep(3)
+                slog.debug("Worker nodes created") 
                 instances = worker_reservation['Instances']
                 for instance in instances:
                     ec2_instance = EC2Instance()
@@ -281,7 +294,7 @@ def launch_pool(ec2_pool):
                     ec2_instance.save()
 
                     ec2_instances.append(ec2_instance)
-
+                slog.debug("worker nodes saved into DB")
 
             else:
                 #We're launching a spot request pool instead.
@@ -297,11 +310,11 @@ def launch_pool(ec2_pool):
                                                                         )["SpotInstanceRequests"]
                 for request in worker_requests:
                     spot_request = SpotRequest(ec2_pool=ec2_pool,
-                                               request_id=request.id,
-                                               price=request.price,
-                                               status_code=request.status.code,
-                                               status_message=request.status.message,
-                                               state=request.state,
+                                               request_id=request['SpotRequestId'],
+                                               price=request['SpotPrice'],
+                                               status_code=request['Status']['Code'],
+                                               status_message=request['Status']['Message'],
+                                               state=request['State'],
                                                instance_type=ec2_pool.initial_instance_type,
                                                )
                     spot_request.save()
@@ -313,30 +326,36 @@ def launch_pool(ec2_pool):
             errors.append(e)
 
     #Create an sqs queue
-    log.debug('Creating SQS for pool')
+    slog.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(ec2_pool.vpc.access_key)
-    queue = sqs_connection.get_queue_url(QueueName=ec2_pool.get_queue_name())
-    if queue != None:
-        sqs_connection.delete_queue(QueueUrl=queue)
-
-    sqs_connection.create_queue(QueueName=ec2_pool.get_queue_name())
+    slog.debug('SQS created')
+    try:
+        queue = sqs_connection.get_queue_url(QueueName=ec2_pool.get_queue_name())
+        slog.debug("queue_url " + queue)
+        if queue != None:
+            sqs_connection.delete_queue(QueueUrl=queue)
+    except Exception as e:
+        slog.debug("creating the queue")
+        sqs_connection.create_queue(QueueName=ec2_pool.get_queue_name())
+        slog.debug("queue created")
 
     #Create an SNS topic for instance alarm notifications
-    log.debug('Creating SNS topic for alarms')
+    slog.debug('Creating SNS topic for alarms')
     sns_connection = aws_tools.create_sns_connection(ec2_pool.vpc.access_key)
     topic_data = sns_connection.create_topic(Name=ec2_pool.get_alarm_notify_topic())
 
     topic_arn = topic_data['TopicArn']
 
-    log.debug('SNS topic created with arn %s' %topic_arn)
+    slog.debug('SNS topic created with arn %s' %topic_arn)
 
     ec2_pool.alarm_notify_topic_arn = topic_arn
     #And create a  subscription to the api_terminate_instance_alarm endpoint
     termination_notify_url = 'http://' + settings.HOST + str(reverse_lazy('api_terminate_instance_alarm'))
-
+    slog.debug("termination url: " + termination_notify_url)
     try:
-        sns_connection.subscribe(topic_arn, 'http', termination_notify_url)
-    except BotoServerError as e:
+        sns_connection.subscribe(TopicArn=topic_arn, Protocol='http', Endpoint=termination_notify_url)
+    except Exception as e:
+        slog.debug(e)
         errors.append(('Error enabling smart termination', 'Smart termination was not successfully enabled'))
         try:
             ec2_pool.smart_terminate = False
@@ -348,37 +367,40 @@ def launch_pool(ec2_pool):
 
     #Assign an elastic IP to the master instance
     #Try up to 5 times
-    log.debug('Assigning elastic IP to master node')
+    slog.debug('Assigning elastic IP to master node')
     try:
         elastic_ip = assign_ip_address(master_ec2_instance)
-        log.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
+        slog.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
     except Exception as  e:
-        log.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
-        log.exception(e)
+        slog.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
+        slog.exception(e)
         raise e
 
     ec2_pool.address = 'ubuntu@' + str(elastic_ip.public_ip)
-
+    slog.debug(ec2_pool.address)
 
     #Check to see if we can ssh in
     #Try a couple of times
     tries = 15
+    os.chmod(ec2_pool.key_pair.path, 0o400)
+    slog.debug("permission altering attempted")
     for i in range(tries):
-        log.debug('Testing SSH credentials')
+        slog.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ec2_pool.key_pair.path, ec2_pool.address, 'pwd']
 
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={'DISPLAY' : ''})
         output = process.communicate()
 
-        log.debug('SSH response:')
-        log.debug(output)
+        slog.debug('SSH response:')
+        slog.debug(output)
 
         if process.returncode == 0:
-            log.debug('SSH success')
+            slog.debug('SSH success')
             break
         sleep(5)
 
-
+    slog.debug("Printing errors and exiting the function")
+    slog.debug(str(errors))
     return errors
 
 def scale_up(ec2_pool, extra_nodes, instance_type, spot, spot_bid_price):
@@ -555,7 +577,6 @@ def terminate_pool(ec2_pool):
     errors=[]
     #Create an ec2_connection object
     vpc_connection, ec2_connection = aws_tools.create_connections(ec2_pool.vpc.access_key)
-    assert isinstance(ec2_connection, EC2Connection)
 
     #First, refresh the status of the pool
     try:
@@ -626,7 +647,11 @@ def terminate_pool(ec2_pool):
         log.exception(e)
 
     ec2_pool.delete()
-    key_pair.delete()
+    # added by fizza
+    try:
+        key_pair.delete()
+    except Exception as ee:
+        slog.debug(ee)
 
     log.debug('Pool terminated')
     return errors
@@ -639,20 +664,21 @@ def assign_ip_address(ec2_instance):
     sleep(2)
     assert isinstance(ec2_instance, EC2Instance)
     ips = ElasticIP.objects.filter(vpc=ec2_instance.ec2_pool.vpc).filter(instance=None)
-
+    slog.debug("Attempting to assign IP addresses")
     sleep_time=5
     allocate_new = False
     if ips.count() > 0:
         #Use the first IP address
-        log.debug('Using existing IP address')
+        slog.debug('Using existing IP address')
         elastic_ip=ips[0]
         try:
             release_ip_address(ec2_instance.condor_pool.vpc.acess_key, allocation_id=elastic_ip.allocation_id, association_id=elastic_ip.association_id)
         except Exception as  e:
-            log.exception(e)
+            slog.exception(e)
             allocate_new = True
     elif ips.count() == 0 or allocate_new:
         #We need to allocate a new ip address first
+        slog.debug("need to allocate a new IP address")
         max_attempts=5
         attempt_count=0
         while attempt_count < max_attempts:
@@ -661,15 +687,16 @@ def assign_ip_address(ec2_instance):
                 address=ec2_connection.allocate_address(Domain='vpc')
 
                 elastic_ip = ElasticIP()
-                elastic_ip.allocation_id = address.allocation_id
-                elastic_ip.public_ip = address.public_ip
+                elastic_ip.allocation_id = address['AllocationId']
+                elastic_ip.public_ip = address['PublicIp']
                 elastic_ip.vpc = ec2_instance.ec2_pool.vpc
+                slog.debug("IP allocated")
                 assert elastic_ip.allocation_id != None
                 assert elastic_ip.allocation_id != ''
                 break
             except Exception as  e:
                 #Something is wrong here with the elastic ip
-                log.exception(e)
+                slog.exception(e)
                 attempt_count += 1
                 try:
                     elastic_ip.delete()
@@ -686,33 +713,34 @@ def assign_ip_address(ec2_instance):
     #Max 6 attemps...
     max_attempts=20
     attempt_count=0
-    log.debug('Associating IP addresss with EC2 instance')
+    slog.debug('Associating IP addresss with EC2 instance')
     while attempt_count < max_attempts:
         if ec2_instance.get_state() == 'running':
-            log.debug('Instance running')
+            slog.debug('Instance running')
             sleep(sleep_time) #sleep again, just to be on the safe side
             break
         else:
-            log.warning('Instance not running. Sleeping...')
+            slog.warning('Instance not running. Sleeping...')
             sleep(sleep_time)
             attempt_count +=1
-
+    slog.debug("Now try associating an elastic IP")
     #Now try associating an elastic IP
     max_attempts=5
     attempt_count=0
     while attempt_count < max_attempts:
         try:
 
-            assert ec2_connection.associate_address(InstanceId=ec2_instance.instance_id, AllocationId=elastic_ip.allocation_id)
+            #assert ec2_connection.associate_address(InstanceId=ec2_instance.instance_id, AllocationId=elastic_ip.allocation_id)
+            ec2_connection.associate_address(InstanceId=ec2_instance.instance_id, AllocationId=elastic_ip.allocation_id)
             sleep(sleep_time)
-            log.debug('IP associated with instance')
+            slog.debug('IP associated with instance')
             elastic_ip.instance=ec2_instance
 
             #Use an inelegent workaround to get the association id of the address, since the api doesn't tell us this
             #Reload the address object
             new_address = ec2_connection.describe_addresses(AllocationIds=[elastic_ip.allocation_id])["Addresses"][0]
 
-            elastic_ip.association_id=new_address.association_id
+            elastic_ip.association_id=new_address['AssociationId']
 
             elastic_ip.save()
 
@@ -720,8 +748,8 @@ def assign_ip_address(ec2_instance):
             return elastic_ip
 
         except Exception as  e:
-            log.debug('Unable to associate IP address with instance')
-            log.debug(e)
+            slog.debug('Unable to associate IP address with instance')
+            slog.debug(e)
             attempt_count += 1
             if attempt_count == max_attempts: raise e
             sleep(sleep_time)

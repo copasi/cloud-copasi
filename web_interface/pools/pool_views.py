@@ -35,6 +35,7 @@ from django.contrib.auth.models import User
 from web_interface.email import email_tools
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger('special')
 
 class PoolListView(RestrictedView):
     """View to display active compute pools
@@ -176,6 +177,7 @@ class EC2PoolAddView(RestrictedFormView):
         form=kwargs['form']
 
         spot = (form.cleaned_data['pricing'] == 'spot')
+        slog.debug("within ec2 form")
 
         try:
             pool = EC2Pool(name = form.cleaned_data['name'],
@@ -191,8 +193,10 @@ class EC2PoolAddView(RestrictedFormView):
             pool.save()
 
             key_pair=ec2_tools.create_key_pair(pool)
+            slog.debug("created key_pair " + str(key_pair))	
             pool.key_pair = key_pair
         except Exception as e:
+            slog.error(e)
             log.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
             return HttpResponseRedirect(reverse_lazy('ec2_pool_add'))
@@ -201,12 +205,13 @@ class EC2PoolAddView(RestrictedFormView):
         #Launch the pool
         try:
             errors = ec2_tools.launch_pool(pool)
+            slog.debug(errors)
             pool.save()
 
             #Connect to Bosco
             condor_tools.add_ec2_pool(pool)
         except Exception as e:
-            log.exception(e)
+            slog.exception(e)
             self.request.session['errors'] = aws_tools.process_errors([e])
             return HttpResponseRedirect(reverse_lazy('pool_details', kwargs={'pool_id':pool.id}))
 

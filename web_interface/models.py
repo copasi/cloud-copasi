@@ -287,7 +287,7 @@ class EC2Pool(CondorPool):
         """
         return 'cloud-copasi-' + str(self.uuid)
 
-    alarm_notify_topic_arn = models.CharField(max_length = 80, blank=True, null=True)
+    alarm_notify_topic_arn = models.CharField(max_length = 100, blank=True, null=True)
 
     def get_health(self):
         instances = EC2Instance.objects.filter(ec2_pool=self)
@@ -363,14 +363,14 @@ class EC2Instance(models.Model):
         try:
             instance = self.get_instance()
             #instance.update()
-            self.state = instance.state
+            self.state = instance['State']['Name']
             self.save()
-            return instance.state
-        except:
+            return instance['State']['Name']
+        except Exception as e:
             return 'Error'
     def get_private_ip(self):
         instance=self.get_instance()
-        return instance.private_ip_address
+        return instance['PrivateIpAddress']
 
     def has_spot_request(self):
         return SpotRequest.objects.filter(ec2_instance=self).count() > 0
@@ -415,9 +415,9 @@ class ElasticIP(models.Model):
 
     vpc = models.ForeignKey(VPC, on_delete = models.CASCADE)
 
-    allocation_id = models.CharField(max_length=20, verbose_name='The allocation ID for the IP address')
+    allocation_id = models.CharField(max_length=50, verbose_name='The allocation ID for the IP address')
 
-    association_id = models.CharField(max_length=20, verbose_name='The instance association ID for the address')
+    association_id = models.CharField(max_length=50, verbose_name='The instance association ID for the address')
 
     class Meta:
         app_label = 'web_interface'

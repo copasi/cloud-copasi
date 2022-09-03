@@ -133,40 +133,40 @@ def create_vpc(key, vpc_connection, ec2_connection):
     slog.debug('security groups created')
     if not ALLOW_ALL_TRAFFIC:
         #Set up the master security group
-        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
             {'IpProtocol':'TCP', 'FromPort':22, 'ToPort':22, 'IpRanges':[{'CidrIp':'0.0.0.0/0'}]}
             ])
-        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
             {"IpProtocol":'TCP', "FromPort":9600, "ToPort":9700, 'IpRanges':[{"CidrIp":VPC_CIDR_BLOCK}]}
             ])
-        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
         ])
         time.sleep(5)
         #Set up the worker security group
-        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'TCP', "FromPort":22, "ToPort":22, 'IpRanges':[{"CidrIp":VPC_CIDR_BLOCK}]}
         ])
-        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'TCP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
         ])
-        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":9600, "ToPort":9700, "IpRanges":[{"CidrIp":VPC_CIDR_BLOCK}]}
         ])
     else:
         #Set up the master security group and worker group to allow all traffic
-        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
         {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
-        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
         time.sleep(5)
         #Set up the worker security group
-        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
-        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
     slog.debug('security authorized')
