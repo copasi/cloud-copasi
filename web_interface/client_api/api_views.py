@@ -493,19 +493,19 @@ class CurrentSpotInstancePrice(APIView):
 
             #Get the history from boto
 
-            history = ec2_connection.get_spot_price_history(start_time=prev_time_str, end_time=now_time_str, instance_type=instance_type)
+            history = ec2_connection.describe_spot_price_history(StartTime=prev_time_str, EndTime=now_time_str, InstanceTypes=[instance_type])['SpotPriceHistory']
 
             #And the most recent history price point
-            price = history[0].price
+            price = history[0]['SpotPrice']
 
             output = {'price' : price}
 
         else:
             #Get the full price history. Don't specify start and end times
-            history = ec2_connection.get_spot_price_history(instance_type=instance_type)
+            history = ec2_connection.describe_spot_price_history(InstanceTypes=[instance_type])['SpotPriceHistory']
 
             output = {'price':[]}
             for item in history:
-                output['price'].append((item.timestamp, item.price))
-        json_response = json.dumps(output)
+                output['price'].append((item['Timestamp'], item['SpotPrice']))
+        json_response = json.dumps(output, default=str)
         return HttpResponse(json_response, content_type="application/json", status=200)

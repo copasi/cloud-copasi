@@ -104,12 +104,12 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
     output = run_bosco_command(command, error=True, shell=True)
 
-    log.debug(output)
+    slog.debug(output)
 
     #added by HB
-    log.debug("============ slurm inputs received: ")
-    log.debug(slurm_partition)
-    log.debug(slurm_qos)
+    slog.debug("============ slurm inputs received: ")
+    slog.debug(slurm_partition)
+    slog.debug(slurm_qos)
 
     transfer_file(slurm_partition, slurm_qos, address)
     return output
@@ -158,7 +158,7 @@ def add_ec2_pool(ec2_pool):
     pool_type = 'condor' #Condor scheduler
     keypair = ec2_pool.key_pair.path
 
-    log.debug('Adding EC2 pool to bosco')
+    slog.debug('Adding EC2 pool to bosco')
 
     output = add_bosco_pool(platform, address, keypair, pool_type)
     return output

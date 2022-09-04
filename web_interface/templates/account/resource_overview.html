@@ -1,5 +1,6 @@
-{% extends "left_sidebar.html" %}
-
+<!DOCTYPE html>
+{% extends "baseN.html" %}
+{% load static %}
 
 {% comment %}
 Cloud-COPASI
@@ -10,13 +11,19 @@ which accompanies this distribution, and is available at
 http://www.gnu.org/licenses/gpl.html
 {% endcomment %}
 
-{% block sidebar %}
-{% include "account/sidebar.html" %}
+
+{% block header_content %}
 {% endblock %}
 
-
-{% block content %}
-<article>
+{% block main_content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-3 col-md-3 col-lg-3 col-xl-3 col-xs-3">
+      {% include "account/sidebarN.html" %}
+    </div>
+<div class="col-sm-9 col-md-9 col-lg-9 col-xl-9 col-xs-9">
+    <div class="information">
+    <article>
     <header class="major">
         <h2>AWS Resource Overview</h2>
         <span class="byline">A summary of all resources running on your AWS accounts</span>
@@ -53,7 +60,13 @@ http://www.gnu.org/licenses/gpl.html
         </table>
     </div>
     {% endfor %}
+    </article>
+
+    </div>
+    </div>
+
+  </div>
 
 
-</article>
+</div>
 {% endblock %}

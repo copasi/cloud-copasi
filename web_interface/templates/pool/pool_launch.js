@@ -71,15 +71,15 @@ function updateSpotPriceHistory(){
 
             for (var i=0; i<price.length; i++)
             {
-                data.addRows([
-                    [new Date(price[i][0]), price[i][1]]
-                ])
+                console.log([price[i][0], parseFloat(price[i][1])])
+                data.addRow([new Date(price[i][0]), parseFloat(price[i][1])])
             }
             var options = {
+                //height:500,
                 title: 'Price history',
                 displayExactValues: true,
-                displayZoomButtons: false,
-                scaleType : 'maximized',
+                displayZoomButtons: true,
+                //scaleType : 'maximized',
                 
                 
             };
@@ -87,7 +87,8 @@ function updateSpotPriceHistory(){
             var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('spotprice_history'));
             chart.draw(data, options);
         }
-      
+        $('#spotprice_history').height(300);
+        $('#spotprice_history').width(600); 
         drawChart();
         
         //$('#spotprice_history').fadeIn();

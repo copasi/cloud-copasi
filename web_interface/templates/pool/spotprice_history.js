@@ -15,12 +15,11 @@ function updateSpotPrice(){
     $('#spotprice_history').html('');
     $('#spotprice_history').html('<div style="height:300px; line-height:300px"><span style="line-height:normal; vertical-align: middle">Loading price history...</span></div>');
     $('#spotprice_history').fadeIn();
-
-     $.getJSON("{% url 'api_spot_price' %}", {'key_id': "{{key_id}}", 'instance_type':instance_type, 'history':true}, function(data){
+    console.log("hello")
+    $.getJSON("{% url 'api_spot_price' %}", {'key_id': "{{key_id}}", 'instance_type':instance_type, 'history':true}, function(data){
         price = data['price'];
 
         function drawChart() {
-            //var data = google.visualization.arrayToDataTable(price);
             var data = new google.visualization.DataTable();
             data.addColumn('datetime', 'Date');
             data.addColumn('number', 'Price $');
@@ -28,9 +27,10 @@ function updateSpotPrice(){
             for (var i=0; i<price.length; i++)
             {
                 data.addRows([
-                    [new Date(price[i][0]), price[i][1]]
+                    [new Date(price[i][0]),{f:price[i][1]}]
                 ])
             }
+            
             var options = {
                 title: 'Price history',
                 displayExactValues: true,
@@ -42,9 +42,9 @@ function updateSpotPrice(){
 
             var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('spotprice_history'));
             chart.draw(data, options);
-        }
-      
-        drawChart();
+        }*/
+        //console.log(price)    
+        //drawChart();
         
     });
 }

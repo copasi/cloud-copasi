@@ -6,9 +6,6 @@
 # which accompanies this distribution, and is available at
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
-from boto.vpc import VPCConnection
-from boto.ec2 import EC2Connection
-from boto.ec2.instance import Instance
 from web_interface import models
 from web_interface.aws import aws_tools, ec2_config, ec2_tools
 from web_interface.models import EC2Instance, VPC, EC2KeyPair, EC2Pool, ElasticIP,\
@@ -21,6 +18,7 @@ from boto import sqs
 import logging
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger('special')
 #Extra resources are those which we have no record of launching
 
 class ResourceOverview():
@@ -79,25 +77,27 @@ def get_remote_resources(user, key=None):
             vpc_connection, ec2_connection =aws_tools.create_connections(key)
 
             #Get ec2 count
-            instance_reservations=ec2_connection.get_all_instances()
+            instance_reservations=ec2_connection.describe_instances()['Reservations']
             for reservation in instance_reservations:
-                for instance in reservation.instances:
-                    if instance.state == 'pending' or instance.state=='running':
-                        overview.add_ec2_instance(key, instance.id)
+                for instance in reservation['Instances']:
+                    if instance['State']['Name'] == 'pending' or instance['State']['Name']=='running':
+                        overview.add_ec2_instance(key, instance['InstanceId'])
 
         except Exception as e:
             log.exception(e)
+            slog.exception(e)
 
         try:
-            addresses = ec2_connection.get_all_addresses()
+            addresses = ec2_connection.describe_addresses()['Addresses']
             for address in addresses:
-                if address.allocation_id == None:
-                    overview.add_elastic_ip(key, None, None, address.public_ip)
+                if address["AllocationId"] == None:
+                    overview.add_elastic_ip(key, None, None, address["PublicIp"])
                 else:
-                    overview.add_elastic_ip(key, address.allocation_id, address.association_id, None)
+                    overview.add_elastic_ip(key, address["AllocationId"], address["AssociationId"], None)
 
         except Exception as e:
             log.exception(e)
+            slog.exception(e)
 
 
 
@@ -186,6 +186,7 @@ def terminate_resources(user, resources):
     for key in elastic_ips:
         for allocation_id, association_id, public_ip in elastic_ips[key]:
             log.debug('Releasing IP address with allocation ID %s'%allocation_id)
+            slog.debug('Releasing IP address with allocation ID %s'%allocation_id)
             try:
                 if public_ip:
                     ec2_tools.release_ip_address(key, None, None, public_ip)
@@ -200,9 +201,9 @@ def terminate_resources(user, resources):
         log.debug('Terminating %d instances for key %s' %(len(ec2_instances[key]), key.name))
         try:
             vpc_connection, ec2_connection = aws_tools.create_connections(key)
-            ec2_connection.terminate_instances(ec2_instances[key])
+            ec2_connection.terminate_instances(InstanceIds=[ec2_instances[key]])
         except Exception as e:
-            log.exception(e)
+            slog.exception(e)
 
 
 

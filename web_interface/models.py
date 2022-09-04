@@ -248,7 +248,7 @@ class EC2Pool(CondorPool):
 
     key_pair = models.ForeignKey('EC2KeyPair', null=True, on_delete = models.CASCADE)
 
-    initial_instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES, blank=False, default='t1.micro', help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
+    initial_instance_type = models.CharField(max_length=20, choices=ec2_config.EC2_TYPE_CHOICES, blank=False, default='t2.micro', help_text='The instance type to launch. The price per hour will vary depending on the instance type. For more information on the different instance types see the <a href="">help page</a>.')
 
     secret_key = models.CharField(max_length=30, default=create_secret_key)
 
