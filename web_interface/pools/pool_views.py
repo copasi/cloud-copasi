@@ -1101,6 +1101,10 @@ class SpotPriceHistoryView(RestrictedView):
     page_title = 'Spot price history'
     def dispatch(self, request, *args, **kwargs):
         kwargs['form'] = SpotPriceHistoryForm()
+        user = request.user
+        keys = AWSAccessKey.objects.filter(user=user)
+        if keys.count() > 0:
+            kwargs['key_id'] = keys[0].id
 
 
         return super(SpotPriceHistoryView, self).dispatch(request, *args, **kwargs)

@@ -7,6 +7,7 @@ function updateSpotPrice(){
     spotprice_current.fadeIn();
     $.getJSON("{% url 'api_spot_price' %}", {'key_id': "{{key_id}}", 'instance_type':instance_type }, function(data){
         spotprice_current.hide();
+        console.log(data["price"])
         spotprice_current.html('$' + data['price'] + '  (' + instance_type + ')');
         spotprice_current.fadeIn();
     });
@@ -27,7 +28,7 @@ function updateSpotPrice(){
             for (var i=0; i<price.length; i++)
             {
                 data.addRows([
-                    [new Date(price[i][0]),{f:price[i][1]}]
+                    [new Date(price[i][0]),parseFloat(price[i][1])]
                 ])
             }
             
@@ -42,9 +43,9 @@ function updateSpotPrice(){
 
             var chart = new google.visualization.AnnotatedTimeLine(document.getElementById('spotprice_history'));
             chart.draw(data, options);
-        }*/
+        }
         //console.log(price)    
-        //drawChart();
+        drawChart();
         
     });
 }
