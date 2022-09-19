@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 #EC2 machine image details
-AMI_IMAGE_ID = 'ami-0ae2ae4fb7cd587c4'
+AMI_IMAGE_ID = 'ami-0a8f98012c7e55a96'
 
 MASTER_LAUNCH_STRING = """#!/bin/bash
 /opt/condor_config/master_config.sh"""

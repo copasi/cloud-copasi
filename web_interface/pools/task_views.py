@@ -43,6 +43,8 @@ import json
 
 
 log = logging.getLogger(__name__)
+slog = logging.getLogger('special')
+
 
 class NewTaskView(RestrictedFormView):
     template_name = 'tasks/task_newN.html'
@@ -91,7 +93,7 @@ class NewTaskView(RestrictedFormView):
         assert isinstance(compute_pool, CondorPool)
         assert compute_pool.user == request.user
 
-        log.debug('@ 6a. Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
+        slog.debug('@ 6a. Submitting task to compute pool %s (%s)' % (compute_pool.name, compute_pool.get_pool_type()))
 
         ########################################################################
         #Process the uploaded copasi file (and other files?)
@@ -100,7 +102,7 @@ class NewTaskView(RestrictedFormView):
         #Handle uploaded files...
         #Ensure the directory we're adding the file to exists
         if not os.path.exists(settings.STORAGE_DIR):
-            log.debug("directory did not exist... creating one now...")
+            slog.debug("directory did not exist... creating one now...")
             os.mkdir(settings.STORAGE_DIR)
 
         #And the directory for the user
@@ -113,7 +115,7 @@ class NewTaskView(RestrictedFormView):
 
         task = Task()
         task.name = form.cleaned_data['name']
-        log.debug("task.name: %s"%task.name)
+        slog.debug("task.name: %s"%task.name)
         task.condor_pool = form.cleaned_data['compute_pool']
         task.user = request.user
         task.task_type = form.cleaned_data['task_type']
@@ -148,11 +150,11 @@ class NewTaskView(RestrictedFormView):
                         os.rename(task_dir_path, task_dir_path + '.old.' + str(datetime.now()))
 
                     #added by HB for debugging raw-mode task failure
-                    log.debug("********** TRYing to Create a directory")
+                    slog.debug("********** TRYing to Create a directory")
                     os.mkdir(task_dir_path)
                     directory_created = True
 
-                    log.debug("********** Directory Created ***********")
+                    slog.debug("********** Directory Created ***********")
 
                     data_file = request.FILES[field_name]
                     filename = data_file.name
@@ -177,8 +179,8 @@ class NewTaskView(RestrictedFormView):
                         data_files_list.append(filename)
                     task.set_custom_field('data_files', data_files_list)
                 except Exception as e:
-                    log.debug("******** ERROR OCCURRED ********")
-                    log.exception(e)
+                    slog.debug("******** ERROR OCCURRED ********")
+                    slog.exception(e)
                     error_messages = ['An error occured while preparing the task data files',
                                        str(e),]
                     form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
@@ -204,7 +206,7 @@ class NewTaskView(RestrictedFormView):
             if not directory_created:
                 #Create a directory to store the files for the task
                 #This will just be the id of the task
-                log.debug("******** Directory was not previously created")
+                slog.debug("******** Directory was not previously created")
                 task_dir = str(task.id)
                 task_dir_path = os.path.join(user_dir_path, task_dir)
 
@@ -213,10 +215,10 @@ class NewTaskView(RestrictedFormView):
 
                 os.mkdir(task_dir_path)
                 #added by HB
-                log.debug('******** directory now created: %s' %task_dir_path)
+                slog.debug('******** directory now created: %s' %task_dir_path)
 
             task.directory = task_dir_path
-            log.debug("******** CONFIRMATION The task.directory is: %s *********" %task.directory)
+            slog.debug("******** CONFIRMATION The task.directory is: %s *********" %task.directory)
             task.save()
                     #Next we need to create the directory to store the files for the task
 
@@ -230,16 +232,16 @@ class NewTaskView(RestrictedFormView):
 
 
             TaskClass = tools.get_task_class(form.cleaned_data['task_type'])
-            log.debug("---------> TaskClass:")
-            log.debug(TaskClass)
+            slog.debug("---------> TaskClass:")
+            slog.debug(TaskClass)
 
-            log.debug("---------> task_instance")
+            slog.debug("---------> task_instance")
             task_instance = TaskClass(task)
-            log.debug(task_instance)
+            slog.debug(task_instance)
 
 
         except Exception as e:
-            log.exception(e)
+            slog.exception(e)
             error_messages = ['An error occured while preparing the task model file',
                                str(e),]
             form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
@@ -271,16 +273,16 @@ class NewTaskView(RestrictedFormView):
 
         try:
             #added by HB
-            log.debug("calling initialize_subtasks() method ")
+            slog.debug("calling initialize_subtasks() method ")
             task_instance.initialize_subtasks()
             subtask = task_instance.prepare_subtask(1)
             condor_tools.submit_task(subtask)
-            log.debug("------> (task_views.py) condor job submitted")
+            slog.debug("------> (task_views.py) condor job submitted")
 
             task.status = 'running'
             task.save()
         except Exception as e:
-            log.exception(e)
+            slog.exception(e)
             error_messages = ['An error occured while preparing the subtask',
                                str(e),]
             form._errors[NON_FIELD_ERRORS] = forms.forms.ErrorList(error_messages)
