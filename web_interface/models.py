@@ -244,6 +244,7 @@ class EC2Pool(CondorPool):
     """
     vpc = models.ForeignKey(VPC, verbose_name='Keypair', on_delete = models.CASCADE)
     master=models.ForeignKey('EC2Instance', null=True, on_delete = models.CASCADE)
+    submit=models.ForeignKey('EC2Instance', null=True, on_delete = models.CASCADE, related_name='submit')
     size=models.PositiveIntegerField(verbose_name='Initial number of nodes', help_text='The number of compute nodes to launch. In addition, a master node will also be launched.')
 
     key_pair = models.ForeignKey('EC2KeyPair', null=True, on_delete = models.CASCADE)
@@ -305,7 +306,8 @@ class EC2Instance(models.Model):
     instance_role = models.CharField(max_length=20,
                                      choices=(
                                               ('master', 'Master'),
-                                              ('worker', 'Worker')
+                                              ('worker', 'Worker'),
+                                              ('submit', 'Submit')
                                               )
                                      )
 

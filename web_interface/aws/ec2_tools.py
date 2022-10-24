@@ -27,6 +27,7 @@ from django.urls import reverse_lazy
 import subprocess
 from boto.exception import BotoServerError, EC2ResponseError
 import botocore
+import spur
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger('special')
@@ -214,7 +215,7 @@ def launch_pool(ec2_pool):
     slog.debug("AMI Obtained")
     #Launch the master instance
     #Add the pool details to the launch string
-    master_launch_string = ec2_config.MASTER_LAUNCH_STRING
+    #master_launch_string = ec2_config.MASTER_LAUNCH_STRING
     #And launch
     slog.debug('Launching Master node')
     try:
@@ -223,7 +224,6 @@ def launch_pool(ec2_pool):
                                                    InstanceType=settings.MASTER_NODE_TYPE,
                                                    SubnetId=ec2_pool.vpc.subnet_id,
                                                    SecurityGroupIds=[ec2_pool.vpc.master_group_id],
-                                                   UserData=master_launch_string,
                                                    MinCount=1,#Only 1 instance needed
                                                    MaxCount=1,
                                                    )
@@ -249,10 +249,7 @@ def launch_pool(ec2_pool):
     ec2_instances.append(master_ec2_instance)
 
     ec2_pool.master = master_ec2_instance
-    # line below being problematic
-    ec2_pool.last_update_time = now()
-    ec2_pool.save()
-
+    
     #wait until the master has a private ip address
     #sleep in beween
     log.debug('Waiting for private IP to be assigned to master node')
@@ -265,6 +262,57 @@ def launch_pool(ec2_pool):
         current_try+=1
     sleep(2)
     slog.debug("IPs assigned")
+    slog.debug('Launching Submit node')
+    try:
+        submit_reservation = ec2_connection.run_instances(ImageId=ami['ImageId'],
+                                                   KeyName=ec2_pool.key_pair.name,
+                                                   InstanceType=settings.MASTER_NODE_TYPE,
+                                                   SubnetId=ec2_pool.vpc.subnet_id,
+                                                   SecurityGroupIds=[ec2_pool.vpc.master_group_id],
+                                                   MinCount=1,#Only 1 instance needed
+                                                   MaxCount=1,
+                                                   )
+    except botocore.exceptions.ClientError as error:
+        slog.debug(error)
+
+    #
+    sleep(2)
+    slog.debug("Submit reserved")
+
+    ec2_instances = []
+
+    submit_instance = submit_reservation['Instances'][0]
+    slog.debug(submit_instance)
+    submit_ec2_instance = EC2Instance()
+    submit_ec2_instance.ec2_pool = ec2_pool
+    submit_ec2_instance.instance_id = submit_instance['InstanceId']
+    submit_ec2_instance.instance_type = settings.MASTER_NODE_TYPE
+    submit_ec2_instance.instance_role = 'submit'
+
+
+    submit_ec2_instance.save()
+    ec2_instances.append(submit_ec2_instance)
+
+    ec2_pool.submit = submit_ec2_instance
+    # line below being problematic
+    ec2_pool.last_update_time = now()
+    ec2_pool.save()
+
+    #wait until the master has a private ip address
+    #sleep in beween
+    log.debug('Waiting for private IP to be assigned to submit node')
+    slog.debug('Waiting for private IP to be assigned to submit node')
+    sleep_time=5
+    max_retrys=20
+    current_try=0
+    while submit_ec2_instance.get_private_ip() == None and current_try<max_retrys:
+        sleep(sleep_time)    
+        current_try+=1
+    sleep(2)
+    slog.debug("IPs assigned")
+
+
+
     if ec2_pool.size > 0:
         slog.debug('Launching worker nodes')
 
@@ -277,7 +325,6 @@ def launch_pool(ec2_pool):
                                                            InstanceType=ec2_pool.initial_instance_type,
                                                            SubnetId=ec2_pool.vpc.subnet_id,
                                                            SecurityGroupIds=[ec2_pool.vpc.worker_group_id],
-                                                           UserData=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
                                                            MinCount=ec2_pool.size,
                                                            MaxCount=ec2_pool.size,
                                                            )
@@ -306,7 +353,6 @@ def launch_pool(ec2_pool):
                                                                         InstanceType=ec2_pool.initial_instance_type,
                                                                         SubnetId=ec2_pool.vpc.subnet_id,
                                                                         SecurityGroupIds=[ec2_pool.vpc.worker_group_id],
-                                                                        UserData=ec2_config.WORKER_LAUNCH_STRING % ec2_pool.master.get_private_ip(),
                                                                         )["SpotInstanceRequests"]
                 for request in worker_requests:
                     spot_request = SpotRequest(ec2_pool=ec2_pool,
@@ -324,7 +370,8 @@ def launch_pool(ec2_pool):
             however a master instance was launched successfully. Check your AWS usage limit to ensure you \
             are not trying to exceed it. You should either try again to scale the pool up, or terminate it.'))
             errors.append(e)
-
+    os.chmod(ec2_pool.key_pair.path, 0o400)
+    slog.debug("permission altering attempted")
     #Create an sqs queue
     slog.debug('Creating SQS for pool')
     sqs_connection = aws_tools.create_sqs_connection(ec2_pool.vpc.access_key)
@@ -369,21 +416,47 @@ def launch_pool(ec2_pool):
     #Try up to 5 times
     slog.debug('Assigning elastic IP to master node')
     try:
-        elastic_ip = assign_ip_address(master_ec2_instance)
-        slog.debug('Assigned elastic IP address to instance %s' % master_ec2_instance.instance_id)
+        elastic_ip_master = assign_ip_address(master_ec2_instance)
+        slog.debug('Assigned elastic IP address to master instance %s' % master_ec2_instance.instance_id )
+        sleep(10)
+        shell = spur.SshShell(hostname=elastic_ip_master.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+        result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --central-manager '+elastic_ip_master.public_ip])
+        slog.debug(result)
     except Exception as  e:
         slog.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
-        slog.exception(e)
+        slog.exception(str(e))
         raise e
-
-    ec2_pool.address = 'ubuntu@' + str(elastic_ip.public_ip)
-    slog.debug(ec2_pool.address)
+    slog.debug('Assigning elastic IP to submit node')
+    try:
+        elastic_ip_submit = assign_ip_address(submit_ec2_instance)
+        slog.debug('Assigned elastic IP address to submit instance %s' % submit_ec2_instance.instance_id)
+        sleep(10)
+        shell = spur.SshShell(hostname=elastic_ip_submit.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+        result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --submit '+elastic_ip_master.public_ip])
+        slog.debug(result)
+        ec2_pool.address = 'ubuntu@' + str(elastic_ip_submit.public_ip)
+    except Exception as  e:
+        slog.error('Error assigning elastic ip to submit instance %s' % submit_ec2_instance.instance_id)
+        slog.exception(str(e))
+        raise e
+    for ins in ec2_instances:
+        sleep(3)
+        if ins.instance_role=='worker':
+            try:
+                elastic_ip_worker = assign_ip_address(ins)
+                slog.debug('Assigned elastic IP address to worker instance %s' % ins.instance_id)
+                sleep(10)
+                shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+                result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
+                slog.debug(result)
+            except Exception as  e:
+                slog.error('Error assigning elastic ip to worker instance %s' % ins.instance_id)
+                slog.exception(e)
+                raise e
 
     #Check to see if we can ssh in
     #Try a couple of times
     tries = 15
-    os.chmod(ec2_pool.key_pair.path, 0o400)
-    slog.debug("permission altering attempted")
     for i in range(tries):
         slog.debug('Testing SSH credentials')
         command = ['ssh', '-o', 'StrictHostKeyChecking=no', '-i', ec2_pool.key_pair.path, ec2_pool.address, 'pwd']

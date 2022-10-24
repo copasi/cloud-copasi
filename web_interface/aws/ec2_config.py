@@ -7,7 +7,20 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 #EC2 machine image details
-AMI_IMAGE_ID = 'ami-0a8f98012c7e55a96'
+AMI_IMAGE_ID = 'ami-0149b2da6ceec4bb0' # This is Ubuntu 20 HVM global aws image
+
+CENTRAL_MANAGER_LAUNCH_STRING = """#!/bin/bash
+curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="%s" /bin/bash -s -- --no-dry-run --central-manager %s
+sudo systemctl start condor"""
+
+SUBMIT_LAUNCH_STRING = """#!/bin/bash
+curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="%s" /bin/bash -s -- --no-dry-run --submit %s
+sudo systemctl start condor"""
+
+EXEC_LAUNCH_STRING = """#!/bin/bash
+curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="%s" /bin/bash -s -- --no-dry-run --execute %s
+sudo systemctl start condor"""
+
 
 MASTER_LAUNCH_STRING = """#!/bin/bash
 /opt/condor_config/master_config.sh"""

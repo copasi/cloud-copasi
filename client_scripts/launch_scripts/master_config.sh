@@ -15,6 +15,9 @@
 #Kill any running Condor
 service condor stop
 
+# Added for debugging
+touch ~/testfile.txt
+
 #Add an entry for the current hostname
 IP="$(ifconfig eth0 | sed -n '/inet /{s/.*addr://;s/ .*//;p}')"
 echo "$IP $(hostname)" >> /etc/hosts

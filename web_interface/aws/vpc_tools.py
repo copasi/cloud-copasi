@@ -18,7 +18,7 @@ SUBNET_CIDR_BLOCK = IP_RANGE + '/16'
 SSH_PORT = 22
 CONDOR_FROM_PORT = 9600
 CONDOR_TO_PORT = 9700
-ALLOW_ALL_TRAFFIC = False #Allow only specific condor ports, or allow all traffic (for debuging only)
+ALLOW_ALL_TRAFFIC = True #Allow only specific condor ports, or allow all traffic (for debuging only)
 
 
 log = logging.getLogger(__name__)
@@ -161,6 +161,13 @@ def create_vpc(key, vpc_connection, ec2_connection):
         ec2_connection.authorize_security_group_ingress(GroupId=master_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
+        # Egress connections
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=master_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
         time.sleep(5)
         #Set up the worker security group
         ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
@@ -169,6 +176,14 @@ def create_vpc(key, vpc_connection, ec2_connection):
         ec2_connection.authorize_security_group_ingress(GroupId=worker_group['GroupId'], IpPermissions = [
         {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
         ])
+        # Egress connections
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'TCP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+        ec2_connection.authorize_security_group_egress(GroupId=worker_group['GroupId'], IpPermissions = [
+        {"IpProtocol":'UDP', "FromPort":0, "ToPort":65535, "IpRanges":[{"CidrIp":'0.0.0.0/0'}]}
+        ])
+
     slog.debug('security authorized')
     vpc_model = models.VPC(
                            access_key = key,

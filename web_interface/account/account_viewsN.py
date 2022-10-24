@@ -185,8 +185,11 @@ class KeysAddView(RestrictedFormView):
             #Since we are about to return form_invalid, add the errors directly to the form non field error list
             #kwargs['errors']=aws_tools.process_errors([e])
             key.delete()
-            error_list = [x[1] for x in e.errors]
-            form._errors[NON_FIELD_ERRORS] = ErrorList(error_list)
+            slog.exception(str(e))
+            #error_list = [x[1] for x in e.errors]
+            #form._errors[NON_FIELD_ERRORS] = ErrorList(error_list)
+            #error_list = [x[1] for x in e.errors]
+            #form._errors[NON_FIELD_ERRORS] = ErrorList(error_list)
             return self.form_invalid(self, *args, **kwargs)
 
         #And launch the VPC
