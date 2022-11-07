@@ -1,0 +1,7 @@
+executable  = my_first_script.sh
+universe    = vanilla
+output      = output.out
+error       = error.err
+log         = log.log
+queue
+

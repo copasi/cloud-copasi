@@ -128,7 +128,7 @@ def remove_bosco_pool(address):
 
     return output
 
-def test_bosco_pool(address):
+def test_bosco_pool(address, pool):
     log.debug('Testing bosco cluster %s', address)
 
     command = [BOSCO_CLUSTER, '--test', address]
@@ -143,7 +143,11 @@ def test_bosco_pool(address):
     log.debug(output[1])
     log.debug('Exit status')
     log.debug(output[2])
-
+    if pool.get_pool_type()=='ec2':
+        p = subprocess.Popen("condor_submit -r " + address + " /home/cloud-copasi/submit", stdout=subprocess.PIPE, shell=True)
+        output2 = p.communicate()
+        slog.debug(output2)
+        return output2
     return output
 
 

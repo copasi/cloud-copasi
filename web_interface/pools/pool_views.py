@@ -854,7 +854,7 @@ class PoolTestResultView(RestrictedView):
 
         kwargs['pool'] = pool
 
-        output, errors, exit_status = condor_tools.test_bosco_pool(pool.address)
+        output, errors, exit_status = condor_tools.test_bosco_pool(pool.address, pool)
 
         kwargs['output'] = output
         kwargs['stderr'] = errors
