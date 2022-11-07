@@ -132,29 +132,37 @@ def remove_bosco_pool(address):
 def test_bosco_pool(address, pool):
     slog.debug('Testing bosco cluster %s', address)
 
-    command = [BOSCO_CLUSTER, '--test', address]
+    # command = [BOSCO_CLUSTER, '--test', address]
 
-    #output =  run_bosco_command(command, error=True, shell=True)
-    output =  run_bosco_command(command, error=True)
+    # #output =  run_bosco_command(command, error=True, shell=True)
+    # output =  run_bosco_command(command, error=True)
 
-    slog.debug('Test response:')
-    #log.debug(output)
-    slog.debug(output[0])
-    slog.debug('Errors:')
-    slog.debug(output[1])
-    slog.debug('Exit status')
-    slog.debug(output[2])
+    # slog.debug('Test response:')
+    # #log.debug(output)
+    # slog.debug(output[0])
+    # slog.debug('Errors:')
+    # slog.debug(output[1])
+    # slog.debug('Exit status')
+    # slog.debug(output[2])
+    output = []
+    output[0] = []
+    output[1] = []
+    output[2] = []
     if pool.get_pool_type()=='ec2':
         ec2pool = EC2Pool.objects.get(id=pool.id)
         slog.debug("ec2 pool " + ec2pool.address)
         slog.debug("command: " + "scp " + '-i ' + ec2pool.key_pair.path + ' ' + settings.HOME_DIR+'/cloud-copasi/submit' + pool.address+':/home/ubuntu/')
         p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/submit', pool.address+':/home/ubuntu/' ])
-        sts = p.wait()
-        slog.debug(str(sts))
+        p.wait()
+        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/test_script.sh', pool.address+':/home/ubuntu/' ])
+        p.wait()
         slog.debug("file transferred")
-        shell = spur.SshShell(hostname=address, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-        result = shell.run(['condor_submit', '/home/ubuntu/submit'])
-        slog.debug(result)
+        try:
+            shell = spur.SshShell(hostname=address, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+            result = shell.run(['condor_submit', '/home/ubuntu/submit'])
+            slog.debug(result)
+        except Exception as e:
+            slog.error(e)
     return output
 
 
