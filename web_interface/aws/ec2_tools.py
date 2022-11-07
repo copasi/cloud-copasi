@@ -418,7 +418,7 @@ def launch_pool(ec2_pool):
     try:
         elastic_ip_master = assign_ip_address(master_ec2_instance)
         slog.debug('Assigned elastic IP address to master instance %s' % master_ec2_instance.instance_id )
-        sleep(10)
+        sleep(15)
         shell = spur.SshShell(hostname=elastic_ip_master.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
         result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --central-manager '+elastic_ip_master.public_ip])
         slog.debug(result)
@@ -430,7 +430,7 @@ def launch_pool(ec2_pool):
     try:
         elastic_ip_submit = assign_ip_address(submit_ec2_instance)
         slog.debug('Assigned elastic IP address to submit instance %s' % submit_ec2_instance.instance_id)
-        sleep(10)
+        sleep(15)
         shell = spur.SshShell(hostname=elastic_ip_submit.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
         result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --submit '+elastic_ip_master.public_ip])
         slog.debug(result)
@@ -445,7 +445,7 @@ def launch_pool(ec2_pool):
             try:
                 elastic_ip_worker = assign_ip_address(ins)
                 slog.debug('Assigned elastic IP address to worker instance %s' % ins.instance_id)
-                sleep(10)
+                sleep(15)
                 shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
                 result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
                 slog.debug(result)
