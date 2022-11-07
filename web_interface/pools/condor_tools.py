@@ -144,10 +144,12 @@ def test_bosco_pool(address, pool):
     log.debug('Exit status')
     log.debug(output[2])
     if pool.get_pool_type()=='ec2':
-        p = subprocess.Popen("condor_submit -r " + address + " /home/cloud-copasi/submit", stdout=subprocess.PIPE, shell=True)
-        output2 = p.communicate()
-        slog.debug(output2)
-        return output2
+        p = subprocess.Popen(["scp",'-i' , pool.key_pair.path, settings.HOME_DIR+'/submit', 'ubuntu@'+pool.address ])
+        sts = os.waitpid(p.pid, 0)
+        # shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+        # result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
+        # slog.debug(output2)
+        # return output2
     return output
 
 
