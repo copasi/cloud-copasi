@@ -146,10 +146,11 @@ def test_bosco_pool(address, pool):
     if pool.get_pool_type()=='ec2':
         ec2pool = EC2Pool.objects.get(id=pool.id)
         slog.debug("ec2 pool " + ec2pool.address)
-        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/submit', 'ubuntu@'+pool.address+':/home/ubuntu/' ])
+        slog.debug("command: " + "scp " + '-i ' + ec2pool.key_pair.path + ' ' + settings.HOME_DIR+'/cloud-copasi/submit' + ' ubuntu@'+pool.address+':/home/ubuntu/')
+        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/submit', 'ubuntu@'+pool.address+':/home/ubuntu/' ])
         sts = p.wait()
         slog.debug(str(sts))
-        slog.debug()
+        slog.debug("file transferred")
         # shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
         # result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
         # slog.debug(output2)
