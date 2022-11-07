@@ -153,7 +153,7 @@ def test_bosco_pool(address, pool):
         slog.debug(str(sts))
         slog.debug("file transferred")
         shell = spur.SshShell(hostname=address, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-        result = shell.run(['sh', '-c', 'condor_submit submit'])
+        result = shell.run(['condor_submit', '/home/ubuntu/submit'])
         slog.debug(result)
     return output
 
