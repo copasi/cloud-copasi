@@ -129,25 +129,27 @@ def remove_bosco_pool(address):
     return output
 
 def test_bosco_pool(address, pool):
-    log.debug('Testing bosco cluster %s', address)
+    slog.debug('Testing bosco cluster %s', address)
 
     command = [BOSCO_CLUSTER, '--test', address]
 
     #output =  run_bosco_command(command, error=True, shell=True)
     output =  run_bosco_command(command, error=True)
 
-    log.debug('Test response:')
+    slog.debug('Test response:')
     #log.debug(output)
-    log.debug(output[0])
-    log.debug('Errors:')
-    log.debug(output[1])
-    log.debug('Exit status')
-    log.debug(output[2])
+    slog.debug(output[0])
+    slog.debug('Errors:')
+    slog.debug(output[1])
+    slog.debug('Exit status')
+    slog.debug(output[2])
     if pool.get_pool_type()=='ec2':
         ec2pool = EC2Pool.objects.get(id=pool.id)
-        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/submit', 'ubuntu@'+pool.address ])
+        slog.debug("ec2 pool " + ec2pool.address)
+        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/submit', 'ubuntu@'+pool.address+':/home/ubuntu/' ])
         sts = p.wait()
         slog.debug(str(sts))
+        slog.debug()
         # shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
         # result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
         # slog.debug(output2)
