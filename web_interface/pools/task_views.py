@@ -40,6 +40,7 @@ import shutil
 from django.core.files.uploadedfile import TemporaryUploadedFile, UploadedFile
 import zipfile
 import json
+import spur
 
 
 log = logging.getLogger(__name__)

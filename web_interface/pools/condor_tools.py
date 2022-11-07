@@ -15,6 +15,7 @@ from web_interface.models import EC2Pool, Subtask, CondorJob
 from web_interface.pools import condor_log_tools
 import datetime
 import spur
+from time import sleep
 #from django.utils.timezone import now
 from django.utils import timezone   #added by HB
 
@@ -154,9 +155,13 @@ def test_bosco_pool(address, pool):
         try:
             shell = spur.SshShell(hostname=ip, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
             result = shell.run(['sh', '-c', 'condor_submit /home/ubuntu/submit'])
+            outputlines = result.output.splitlines()
             slog.debug(result.output)
             slog.debug(result.return_code)
-            output = (result.output.splitlines(), '', result.return_code)
+            sleep(4)
+            result2 = shell.run(['sh', '-c', 'cat /home/ubuntu/output.out'])
+            outputlines.extend(result2.output.splitlines())
+            output = (outputlines, '', result.return_code)
         except Exception as e:
             slog.error(e)
             output = ('', str(e).splitlines(), 1)
