@@ -434,7 +434,7 @@ def launch_pool(ec2_pool):
         shell = spur.SshShell(hostname=elastic_ip_submit.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
         result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --submit '+elastic_ip_master.public_ip])
         slog.debug(result)
-        ec2_pool.address = 'ubuntu@' + str(elastic_ip_master.public_ip)
+        ec2_pool.address = 'ubuntu@' + str(elastic_ip_submit.public_ip)
     except Exception as  e:
         slog.error('Error assigning elastic ip to submit instance %s' % submit_ec2_instance.instance_id)
         slog.exception(str(e))
