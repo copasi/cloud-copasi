@@ -132,39 +132,39 @@ def remove_bosco_pool(address):
 
 def test_bosco_pool(address, pool):
     slog.debug('Testing bosco cluster %s', address)
-    if pool.get_pool_type()!='ec2':
-        command = [BOSCO_CLUSTER, '--test', address]
-        # #output =  run_bosco_command(command, error=True, shell=True)
-        output =  run_bosco_command(command, error=True)
-        slog.debug('Test response:')
-        slog.debug(output)
-        slog.debug(output[0])
-        slog.debug('Errors:')
-        slog.debug(output[1])
-        slog.debug('Exit status')
-        slog.debug(output[2])
-    elif pool.get_pool_type()=='ec2':
-        ec2pool = EC2Pool.objects.get(id=pool.id)
-        slog.debug("ec2 pool " + ec2pool.address)
-        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/submit', pool.address+':/home/ubuntu/' ])
-        p.wait()
-        p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/test_script.sh', pool.address+':/home/ubuntu/' ])
-        p.wait()
-        slog.debug("Test files transferred")
-        ip = address[address.index('@')+1:]
-        try:
-            shell = spur.SshShell(hostname=ip, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-            result = shell.run(['sh', '-c', 'condor_submit /home/ubuntu/submit'])
-            outputlines = result.output.splitlines()
-            slog.debug(result.output)
-            slog.debug(result.return_code)
-            sleep(4)
-            result2 = shell.run(['sh', '-c', 'cat /home/ubuntu/output.out'])
-            outputlines.extend(result2.output.splitlines())
-            output = (outputlines, '', result.return_code)
-        except Exception as e:
-            slog.error(e)
-            output = ('', str(e).splitlines(), 1)
+    # if pool.get_pool_type()!='ec2':
+    command = [BOSCO_CLUSTER, '--test', address]
+    # #output =  run_bosco_command(command, error=True, shell=True)
+    output =  run_bosco_command(command, error=True)
+    slog.debug('Test response:')
+    slog.debug(output)
+    slog.debug(output[0])
+    slog.debug('Errors:')
+    slog.debug(output[1])
+    slog.debug('Exit status')
+    slog.debug(output[2])
+    # elif pool.get_pool_type()=='ec2':
+    #     ec2pool = EC2Pool.objects.get(id=pool.id)
+    #     slog.debug("ec2 pool " + ec2pool.address)
+    #     p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/submit', pool.address+':/home/ubuntu/' ])
+    #     p.wait()
+    #     p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/test_script.sh', pool.address+':/home/ubuntu/' ])
+    #     p.wait()
+    #     slog.debug("Test files transferred")
+    #     ip = address[address.index('@')+1:]
+    #     try:
+    #         shell = spur.SshShell(hostname=ip, username="ubuntu", private_key_file=ec2pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
+    #         result = shell.run(['sh', '-c', 'condor_submit /home/ubuntu/submit'])
+    #         outputlines = result.output.splitlines()
+    #         slog.debug(result.output)
+    #         slog.debug(result.return_code)
+    #         sleep(4)
+    #         result2 = shell.run(['sh', '-c', 'cat /home/ubuntu/output.out'])
+    #         outputlines.extend(result2.output.splitlines())
+    #         output = (outputlines, '', result.return_code)
+    #     except Exception as e:
+    #         slog.error(e)
+    #         output = ('', str(e).splitlines(), 1)
     return output
 
 
