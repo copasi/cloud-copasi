@@ -105,7 +105,7 @@ def add_bosco_pool(platform, address, keypair, pool_type='condor', slurm_partiti
 
 
     output = run_bosco_command(command, error=True, shell=True)
-
+    slog.debug("Attempted to add pool to bosco -  IP %s"%address)
     slog.debug(output)
 
     #added by HB
