@@ -373,6 +373,9 @@ class EC2Instance(models.Model):
     def get_private_ip(self):
         instance=self.get_instance()
         return instance['PrivateIpAddress']
+    def get_public_ip(self):
+        instance=self.get_instance()
+        return instance['PublicIpAddress']
 
     def has_spot_request(self):
         return SpotRequest.objects.filter(ec2_instance=self).count() > 0

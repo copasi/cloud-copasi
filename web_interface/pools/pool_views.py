@@ -853,8 +853,11 @@ class PoolTestResultView(RestrictedView):
         assert pool.user == request.user
 
         kwargs['pool'] = pool
-
-        output, errors, exit_status = condor_tools.test_bosco_pool(pool.address, pool)
+        if pool.pool_type=='ec2':
+            pool = EC2Pool.objects.get(id=pool.id)
+            output, errors, exit_status = condor_tools.test_bosco_pool(pool.master.get_public_ip, pool)
+        else:
+            output, errors, exit_status = condor_tools.test_bosco_pool(pool.address, pool)
 
         kwargs['output'] = output
         kwargs['stderr'] = errors
