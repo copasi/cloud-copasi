@@ -134,7 +134,7 @@ def test_bosco_pool(address, pool):
     slog.debug('Testing bosco cluster %s', address)
     if pool.get_pool_type()!='ec2':
         command = [BOSCO_CLUSTER, '--test', address]
-        # #output =  run_bosco_command(command, error=True, shell=True)
+        output =  run_bosco_command(command, error=True, shell=True)
         output =  run_bosco_command(command, error=True)
         slog.debug('Test response:')
         slog.debug(output)
@@ -145,7 +145,7 @@ def test_bosco_pool(address, pool):
         slog.debug(output[2])
     elif pool.get_pool_type()=='ec2':
         ec2pool = EC2Pool.objects.get(id=pool.id)
-        slog.debug("ec2 pool " + address)
+        slog.debug("ec2 pool submit node " + address)
         p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/submit', address+':/home/ubuntu/' ])
         p.wait()
         p = subprocess.Popen(["scp",'-i' , ec2pool.key_pair.path, settings.HOME_DIR+'/cloud-copasi/test_script.sh', address+':/home/ubuntu/' ])
