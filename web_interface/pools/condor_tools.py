@@ -51,7 +51,7 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 
 def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #added by HB: text=None.
-
+    slog.debug("Command " +  command)
     process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
     output = process.communicate()
@@ -136,7 +136,7 @@ def test_bosco_pool(address, pool):
         npool = EC2Pool.objects.get(uuid=pool.uuid)
         #pool.__class__ = EC2Pool
         npool_public_ip = 'ubuntu@'+npool.master.get_public_ip()
-        slog.debug(f"Testing an EC2 Pool with submit: {address} and master: {'ubuntu@'+npool.master.get_public_ip()}")
+        slog.debug(f"Testing an EC2 Pool with submit: {address} and master: {npool_public_ip}")
         command = [BOSCO_CLUSTER, '--test', address, npool_public_ip]
     else:
         command = [BOSCO_CLUSTER, '--test', address]
