@@ -51,7 +51,7 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 
 def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #added by HB: text=None.
-    slog.debug("Command " +  command)
+    slog.debug("Command " +  str(command))
     process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
     output = process.communicate()
