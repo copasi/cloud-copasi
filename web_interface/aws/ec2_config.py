@@ -7,7 +7,7 @@
 # http://www.gnu.org/licenses/gpl.html
 #-------------------------------------------------------------------------------
 #EC2 machine image details
-AMI_IMAGE_ID = 'ami-0149b2da6ceec4bb0' # This is Ubuntu 20 HVM global aws image
+AMI_IMAGE_ID = 'ami-0f31bbf3013cf50f2' # This is Ubuntu 20 HVM global aws image
 
 CENTRAL_MANAGER_LAUNCH_STRING = """#!/bin/bash
 curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="%s" /bin/bash -s -- --no-dry-run --central-manager %s
@@ -36,7 +36,6 @@ WORKER_LAUNCH_STRING = """#!/bin/bash
 
 
 EC2_TYPE_CHOICES =(
-          ('t1.micro','t1.micro (1 vCPUs, 0.5GB - Free tier eligible)'),
           ('t2.micro','t2.micro (1 vCPUs, 1GB - Free tier eligible)'),
           ('t2.small','t2.small (1 vCPUs, 2GB)'),
           ('t2.medium','t2.medium (2 vCPUs, 2GB)'),

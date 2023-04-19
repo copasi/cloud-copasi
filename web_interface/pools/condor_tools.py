@@ -135,9 +135,9 @@ def test_bosco_pool(address, pool):
     if pool.get_pool_type()=='ec2':
         npool = EC2Pool.objects.get(uuid=pool.uuid)
         #pool.__class__ = EC2Pool
-        npool_public_ip = 'ubuntu@'+npool.master.get_public_ip()
+        npool_public_ip = npool.master.get_public_ip()
         slog.debug(f"Testing an EC2 Pool with submit: {address} and master: {npool_public_ip}")
-        command = [BOSCO_CLUSTER, '--test', address, npool_public_ip]
+        command = [BOSCO_CLUSTER, '--test', address, 'ubuntu@'+npool_public_ip]
     else:
         command = [BOSCO_CLUSTER, '--test', address]
     # #output =  run_bosco_command(command, error=True, shell=True)
