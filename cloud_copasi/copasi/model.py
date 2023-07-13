@@ -88,20 +88,21 @@ class CopasiModel_BasiCO(object):
 
         elif job_type == 'PS':
             firstScan = self.scan_items[0]
-            item = firstScan['item']
+            # first check if type is scan or repeat
             type = firstScan['type']
-            no_of_steps = firstScan['num_steps']
-
-            if not item:
-                return 'At least one scan must have been set'
-
             if not (type == 'scan' or type == 'repeat'):
                 return 'The first item in the scan task must be either a Parameter Scan or a repeat'
 
-            if type == 'scan' and no_of_steps < 1:
+            # do we even need to check the item?
+            #item = firstScan['item']
+            #if not item:
+            #    return 'At least one scan must have been set'
+
+            no_of_steps = firstScan['num_steps']
+            if no_of_steps < 1:
                 return 'The first-level Parameter Scan must have at least one interval. If only one repeat is required, consider replacing the Parameter Scan with a Repeat'
 
-            if not get_report_dict('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values'):
+            if get_task_settings(T.SCAN)['report']['filename'] == '':
                 return 'A report must be set for the scan task'
 
             return True
