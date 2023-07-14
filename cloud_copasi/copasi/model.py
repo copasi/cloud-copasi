@@ -722,7 +722,6 @@ class CopasiModel_BasiCO(object):
             max_value = float(firstScan['max'])
             min_value = float(firstScan['min'])
             log = firstScan['log']
-            
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
             if time_per_step:
                 time_per_step = time_per_step/2
@@ -748,8 +747,8 @@ class CopasiModel_BasiCO(object):
 
         model_files = [] #Store the relative file names of the model files created here
 
-        #Set the model to update
-        set_scan_settings(update_model = True)
+        #Set the model to update and mark task for execution
+        set_scan_settings(update_model = True, scheduled = True)
         #First, deal with the easy case -- where the top-level item is a repeat.
 
         if task_type == 'repeat':
@@ -770,7 +769,7 @@ class CopasiModel_BasiCO(object):
                     assign_report(report_def,
                               task = T.SCAN,
                               filename = output_file,
-                              append = False
+                              append = False,
                               confirm_overwrite = False
                              )
 
@@ -815,11 +814,12 @@ class CopasiModel_BasiCO(object):
 
                 #Set the report output
                 output_file = 'output_%d.%d.txt' % (subtask_index, i)
-                report_def = get_task_settings(T.TIME_COURSE)['report']['report_definition']
+                report_def = get_task_settings(T.SCAN)['report']['report_definition']
                 assign_report(report_def,
                               task=T.SCAN,
                               filename= output_file,
-                              append= True
+                              append= True,
+                              confirm_overwrite = False
                              )
 
                 filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
@@ -867,7 +867,7 @@ class CopasiModel_BasiCO(object):
                              )
 
         set_task_settings(T.OPTIMIZATION,
-                          {'report': {'append': True,
+                          {'report': {'append': False,
                                       'filename': ''
                                      }
                           }
@@ -890,7 +890,7 @@ class CopasiModel_BasiCO(object):
         set_task_settings(T.SCAN,
                           {'scheduled': True,
                            'update_model': True,
-                           'report':{ 'append': True,
+                           'report':{ 'append': False,
                                       'filename': ''
                                     },
                            'problem': { 'Subtask': 4,
@@ -920,8 +920,8 @@ class CopasiModel_BasiCO(object):
 
             target = 'output_%d.%d.txt' % (subtask_index, i)
 
-            assign_report('auto_or_report', task=T.SCAN, filename=target, append=True, confirm_overwrite = False)
-            assign_report('auto_or_report', task=T.OPTIMIZATION, append=True, confirm_overwrite = False)
+            assign_report('auto_or_report', task=T.SCAN, filename=target, append=False, confirm_overwrite = False)
+            assign_report('auto_or_report', task=T.OPTIMIZATION, append=False, confirm_overwrite = False)
 
             # filename = os.path.join(os.getcwd(), 'auto_copasi_%d.%d.cps' % (subtask_index, i))
             filename = os.path.join(self.path, 'auto_copasi_%d.%d.cps' % (subtask_index, i))
