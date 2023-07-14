@@ -717,20 +717,13 @@ class CopasiModel_BasiCO(object):
         firstScan = self.scan_items[0]
         no_of_steps = int(firstScan['num_steps'])
         task_type = firstScan['type']
-        max_CP = firstScan['max']
-        min_CP = firstScan['min']
-        log = firstScan['log']
-        values = firstScan['values']
-        use_values = firstScan['use_values']
-        item = firstScan['item']
-
-        assert no_of_steps > 0
+        
         if task_type == 'scan':
-            max_value = float(max_CP)
-            min_value = float(min_CP)
-
+            max_value = float(firstScan['max'])
+            min_value = float(firstScan['min'])
+            log = firstScan['log']
+            
             no_of_steps += 1 #Parameter scans actually consider no of intervals, which is one less than the number of steps, or actual parameter values. We will work with the number of discrete parameter values, and will decrement this value when saving new files
-
             if time_per_step:
                 time_per_step = time_per_step/2
 
@@ -773,7 +766,8 @@ class CopasiModel_BasiCO(object):
                     set_scan_items(self.scan_items)
 
                     output_file = 'output_%d.%d.txt' % (subtask_index, i)
-                    assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
+                    report_def = get_task_settings(T.TIME_COURSE)['report']['report_definition']
+                    assign_report(report_def,
                               task=T.SCAN,
                               filename= output_file,
                               append= True
@@ -820,8 +814,8 @@ class CopasiModel_BasiCO(object):
 
                 #Set the report output
                 output_file = 'output_%d.%d.txt' % (subtask_index, i)
-
-                assign_report('Scan Parameters, Time, Concentrations, Volumes, and Global Quantity Values',
+                report_def = get_task_settings(T.TIME_COURSE)['report']['report_definition']
+                assign_report(report_def,
                               task=T.SCAN,
                               filename= output_file,
                               append= True
