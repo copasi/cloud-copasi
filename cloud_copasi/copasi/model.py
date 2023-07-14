@@ -766,11 +766,12 @@ class CopasiModel_BasiCO(object):
                     set_scan_items(self.scan_items)
 
                     output_file = 'output_%d.%d.txt' % (subtask_index, i)
-                    report_def = get_task_settings(T.TIME_COURSE)['report']['report_definition']
+                    report_def = get_task_settings(T.SCAN)['report']['report_definition']
                     assign_report(report_def,
-                              task=T.SCAN,
-                              filename= output_file,
-                              append= True
+                              task = T.SCAN,
+                              filename = output_file,
+                              append = False
+                              confirm_overwrite = False
                              )
 
                     filename = 'auto_copasi_%d.%d.cps' % (subtask_index, i)
