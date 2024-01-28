@@ -28,6 +28,7 @@ import subprocess
 from boto.exception import BotoServerError, EC2ResponseError
 import botocore
 import spur
+import shutil
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger('special')
@@ -150,7 +151,8 @@ def refresh_pool(ec2_pool):
                 ec2_instance.state=status["InstanceState"]["Name"]
                 ec2_instance.save()
                 instance=ec2_instance.get_instance()
-                ec2_instance.state_transition_reason=instance.state_reason
+                slog.debug("instance")
+                ec2_instance.state_transition_reason=instance["StateTransitionReason"]
 
             ec2_instance.instance_status = status["InstanceStatus"]["Status"]
             ec2_instance.system_status = status["SystemStatus"]["Status"]
@@ -418,9 +420,16 @@ def launch_pool(ec2_pool):
     try:
         elastic_ip_master = assign_ip_address(master_ec2_instance)
         slog.debug('Assigned elastic IP address to master instance %s' % master_ec2_instance.instance_id )
-        sleep(15)
+        sleep(20)
         shell = spur.SshShell(hostname=elastic_ip_master.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-        result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --central-manager '+elastic_ip_master.public_ip])
+        with open("/home/cloudcopasi/cloud-copasi/get_htcondor.sh", "r") as local_file:
+            with shell.open("/home/ubuntu/get_htcondor.sh", "w") as remote_file:
+                shutil.copyfileobj(local_file, remote_file)
+        sleep(10)
+        slog.debug(f"Inside {elastic_ip_master.public_ip} shell")
+        # result = shell.run(['chmod' ' +x /home/ubuntu/get_htcondor.sh'])
+        result = shell.run(["sh", "-c", 'bash /home/ubuntu/get_htcondor.sh | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --central-manager '+elastic_ip_master.public_ip])
+        slog.debug(f"Inside {elastic_ip_master.public_ip} shell")
         slog.debug(result)
     except Exception as  e:
         slog.error('Error assigning elastic ip to master instance %s' % master_ec2_instance.instance_id)
@@ -430,9 +439,15 @@ def launch_pool(ec2_pool):
     try:
         elastic_ip_submit = assign_ip_address(submit_ec2_instance)
         slog.debug('Assigned elastic IP address to submit instance %s' % submit_ec2_instance.instance_id)
-        sleep(15)
+        sleep(20)
         shell = spur.SshShell(hostname=elastic_ip_submit.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-        result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --submit '+elastic_ip_master.public_ip])
+        with open("/home/cloudcopasi/cloud-copasi/get_htcondor.sh", "r") as local_file:
+            with shell.open("/home/ubuntu/get_htcondor.sh", "w") as remote_file:
+                shutil.copyfileobj(local_file, remote_file)
+        sleep(10)
+        slog.debug(f"Inside {elastic_ip_submit.public_ip} shell")
+        # result = shell.run(['chmod',  ' +x /home/ubuntu/get_htcondor.sh'])
+        result = shell.run(["sh", "-c", 'bash /home/ubuntu/get_htcondor.sh | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --submit '+elastic_ip_master.public_ip])
         slog.debug(result)
         ec2_pool.address = 'ubuntu@' + str(elastic_ip_submit.public_ip)
     except Exception as  e:
@@ -445,9 +460,15 @@ def launch_pool(ec2_pool):
             try:
                 elastic_ip_worker = assign_ip_address(ins)
                 slog.debug('Assigned elastic IP address to worker instance %s' % ins.instance_id)
-                sleep(15)
+                sleep(20)
                 shell = spur.SshShell(hostname=elastic_ip_worker.public_ip, username="ubuntu", private_key_file=ec2_pool.key_pair.path, missing_host_key=spur.ssh.MissingHostKey.accept)
-                result = shell.run(['sh', '-c', 'curl -fsSL https://get.htcondor.org | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
+                with open("/home/cloudcopasi/cloud-copasi/get_htcondor.sh", "r") as local_file:
+                    with shell.open("/home/ubuntu/get_htcondor.sh", "w") as remote_file:
+                            shutil.copyfileobj(local_file, remote_file)
+                sleep(10)
+                slog.debug(f"Inside {elastic_ip_worker.public_ip} shell")
+                # result = shell.run(['chmod', ' +x /home/ubuntu/get_htcondor.sh'])
+                result = shell.run(["sh", "-c", 'bash /home/ubuntu/get_htcondor.sh | sudo GET_HTCONDOR_PASSWORD="password" /bin/bash -s -- --no-dry-run --execute '+elastic_ip_master.public_ip])
                 slog.debug(result)
             except Exception as  e:
                 slog.error('Error assigning elastic ip to worker instance %s' % ins.instance_id)
