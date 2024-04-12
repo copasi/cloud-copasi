@@ -1,26 +1,43 @@
-name: Build cloud-copasi Docker Container
+name: Docker Build and Publish cloud-copasi Docker Container
 
 on:
   push:
     tags:
-    - 'docker_build*'
+      - 'v*'
+  pull_request:
+    branches:
+      - 'dev'
+      - 'master'
 
 jobs:
-  build:
+  deploy-docker-build:
     runs-on: ubuntu-latest
     steps:
       -
-        name: Checkout repository
-        uses: actions/checkout@v2
-      -
         name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       -
         name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       -
-        name: Login to GHCR
-        uses: docker/login-action@v1
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/nssac/cloud-copasi
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      -
+        name: Login to GHCR Image Repository
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ secrets.GHCR_CLOUD_COPASI_USERNAME }}
@@ -28,13 +45,15 @@ jobs:
       -
         name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: .
-          push: true
-          no-cache: true
-          tags: ghcr.io/copasi/cloud-copasi:0.0.28, ghcr.io/copasi/cloud-copasi:latest
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: ${{ steps.meta.outputs.labels }}
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
