@@ -28,7 +28,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: |
-            ghcr.io/nssac/cloud-copasi
+            ghcr.io/copasi/cloud-copasi
           tags: |
             type=ref,event=branch
             type=ref,event=pr
