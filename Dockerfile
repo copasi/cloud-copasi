@@ -69,10 +69,12 @@ COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
 COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings.py.EXAMPLE cloud_copasi/settings.py
 
+# Test Python
+RUN venv/bin/python3 --version
+
 # Set up Django
-RUN . venv/bin/activate && \
-    python manage.py collectstatic --noinput  && \
-    python manage.py makemigrations web_interface --noinput
+RUN venv/bin/python3 manage.py collectstatic --noinput
+RUN venv/bin/python3 manage.py makemigrations web_interface --noinput
 
 # Note: The CMD override scripts are handling setting up the
 # condor env and using the venv
