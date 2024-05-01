@@ -16,6 +16,8 @@ from web_interface.pools import condor_log_tools
 import datetime
 #from django.utils.timezone import now
 from django.utils import timezone   #added by HB
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 log = logging.getLogger(__name__)
 slog = logging.getLogger("special")
@@ -48,11 +50,11 @@ if hasattr(settings, 'BOSCO_CUSTOM_ENV'):
 
 
 
-def run_bosco_command(command, error=False, cwd=None, shell=False, text=None): #added by HB: text=None.
+def run_bosco_command(command, error=False, cwd=None, shell=False, text=None, input=None): #added by HB: text=None.
 
-    process = subprocess.Popen(command, shell=shell, env=env,  stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
+    process = subprocess.Popen(command, shell=shell, env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd, text=text)
 
-    output = process.communicate()
+    output = process.communicate(input=input)
 
     if not error: return output[0].splitlines()
     else: return (output[0].splitlines(), output[1].splitlines(), process.returncode)
@@ -132,20 +134,79 @@ def remove_bosco_pool(address):
 def test_bosco_pool(address):
     log.debug('Testing bosco cluster %s', address)
 
+    def send_logs(lgr, out, err, ret):
+        """Want to use this potentially in
+        more than one place"""
+        lgr.debug(f'Test response:\n{out}')
+        lgr.debug(f'Errors:\n{err}')
+        lgr.debug(f'Exit status:\n{ret}')
+
     command = [BOSCO_CLUSTER, '--test', address]
 
     #output =  run_bosco_command(command, error=True, shell=True)
-    output =  run_bosco_command(command, error=True)
+    stdoutlist, stderrlist, returncode =  run_bosco_command(command, error=True)
 
-    slog.debug('Test response:')
-    #log.debug(output)
-    slog.debug(output[0])
-    slog.debug('Errors:')
-    slog.debug(output[1])
-    slog.debug('Exit status')
-    slog.debug(output[2])
+    send_logs(slog, stdoutlist, stderrlist, returncode)
 
-    return output
+    if returncode != 0:
+        return stdoutlist, stderrlist, returncode
+
+    # Assuming the basic cluster test worked,
+    # now try a COPASI test job submission.
+    home = Path.home()
+    root_submit_dir = home / "bosco-test"
+    root_submit_dir.mkdir(exist_ok=True, parents=True) # This should already be done by bosco_cluster --test.
+    submit_dir_copasi_test = TemporaryDirectory(prefix="copasitest.", dir=str(root_submit_dir))
+
+    # submit_dir=`mktemp -d $root_submit_dir/boscotest.XXXXXX`
+    # submit_file=$submit_dir/condor.submit
+    # log_file=$submit_dir/logfile
+    # test_stdout=$submit_dir/test.stdout
+    # test_stderr=$submit_dir/test.stderr
+    # test_id=bosco-test.$RANDOM
+    copasidir = home / 'copasi'
+    copasise = str(copasidir / 'bin' / 'CopasiSE')
+    copasi_test_model_path = copasidir / 'brusselator_scan_test.cps'
+    cps_subm_dir = Path(submit_dir_copasi_test.name)
+    log_file = str(cps_subm_dir / 'logfile')
+    test_stdout = str(cps_subm_dir / 'test.stdout')
+    test_stderr = str(cps_subm_dir / 'test.stderr')
+    # The following currently assumes the test model
+    # is in the same directory as the created work directory is in.
+    submit_file_template = f"""
+universe = grid
+grid_resource = batch {{cluster_type}} {address}
+input = {str(copasi_test_model_path)}
+output = {test_stdout}
+error = {test_stderr}
+transfer_executable=true
+executable = {copasise}
+arguments = --home . ../{copasi_test_model_path.name}
+log = {log_file}
+notification = error
+notify_user = change-me@mailinator.com
++bosco_test_id = "{submit_dir_copasi_test.name}"
+queue
+"""
+    out_cps, err_cps, ret_cps = [], [], None
+    # Hopefully this will stop at the first one
+    for ct in ('slurm', 'pbs', 'sge', 'lsf'):
+        submit_text = submit_file_template.format(cluster_type=ct)
+        command = [CONDOR_SUBMIT, '-']  # using stdin
+        out_cps, err_cps, ret_cps = run_bosco_command(command, error=True, input=submit_text, text=True)
+        send_logs(slog, out_cps, err_cps, ret_cps)
+        if ret_cps == 0:
+            break
+
+    stdoutlist.extend(out_cps)
+    stderrlist.extend(err_cps)
+    returncode = ret_cps
+
+    # Hack TemporaryDirectory to even clean up the bosco_cluster test files.
+    submit_dir_copasi_test.name = str(root_submit_dir)
+    submit_dir_copasi_test.cleanup()
+
+    return stdoutlist, stderrlist, returncode
 
 
 def add_ec2_pool(ec2_pool):

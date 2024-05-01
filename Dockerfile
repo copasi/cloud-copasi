@@ -42,6 +42,7 @@ ENV copasi_version="4.34" copasi_build="251"
 RUN curl -L https://github.com/copasi/COPASI/releases/download/Build-${copasi_build}/COPASI-${copasi_version}.${copasi_build}-AllSE.tar.gz | \
     tar -xvz --strip-components=1 && chmod +x */CopasiSE && \
     mkdir bin && ln -s ../Linux64/CopasiSE bin/CopasiSE
+COPY --chown=cloudcopasi:cloudcopasi brusselator_scan_test.cps brusselator_scan_test.cps
 
 # Get and install HTCondor
 RUN mkdir /home/cloudcopasi/condor
@@ -50,14 +51,10 @@ WORKDIR /home/cloudcopasi/condor
 ENV condor_version="9.0"
 RUN curl -L "https://research.cs.wisc.edu/htcondor/tarball/${condor_version}/current/condor-x86_64_Ubuntu20-stripped.tar.gz" | \
     tar -xzv --strip-components=1 && ./bin/make-personal-from-tarball
+RUN mkdir -p local/fs_auth && \
+    echo "FS_LOCAL_DIR=/home/cloudcopasi/condor/local/fs_auth" > local/config.d/condor_config.local
 
-WORKDIR /home/cloudcopasi
-# Make our local modifications to the condor installation.
-COPY --chown=cloudcopasi:cloudcopasi condor_overlay/bin/bosco_cluster condor/bin/bosco_cluster
-COPY --chown=cloudcopasi:cloudcopasi condor_overlay/local condor/local
-
-COPY --chown=cloudcopasi:cloudcopasi brusselator_scan_test.cps copasi/brusselator_scan_test.cps
-RUN mkdir log user-files instance_keypairs
+RUN cd && mkdir log user-files instance_keypairs
 
 # Copy over the relevant webserver stuff.
 # (placing this near the bottom, assuming these may be more likely to change 
