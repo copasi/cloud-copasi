@@ -185,7 +185,7 @@ arguments = --home . ../{copasi_test_model_path.name}
 log = {log_file}
 notification = error
 notify_user = change-me@mailinator.com
-+bosco_test_id = "{submit_dir_copasi_test.name}"
++bosco_test_id = "{cps_subm_dir.name}"
 queue
 """
     out_cps, err_cps, ret_cps = [], [], None
