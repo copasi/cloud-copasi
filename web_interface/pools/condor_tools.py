@@ -135,12 +135,14 @@ def test_bosco_pool(address):
     log.debug('Testing bosco cluster %s', address)
 
     def send_logs(lgr, out, err, ret):
-        """Want to use this potentially in
+        """Send some log info.
+        - want to use this potentially in
         more than one place"""
         lgr.debug(f'Test response:\n{out}')
         lgr.debug(f'Errors:\n{err}')
         lgr.debug(f'Exit status:\n{ret}')
 
+    # First just run the standard condor test.
     command = [BOSCO_CLUSTER, '--test', address]
 
     #output =  run_bosco_command(command, error=True, shell=True)
@@ -148,22 +150,23 @@ def test_bosco_pool(address):
 
     send_logs(slog, stdoutlist, stderrlist, returncode)
 
-    if returncode != 0:
+    if returncode != 0:  # no need to continue, if the basic test failed
         return stdoutlist, stderrlist, returncode
 
     # Assuming the basic cluster test worked,
     # now try a COPASI test job submission.
     home = Path.home()
     root_submit_dir = home / "bosco-test"
-    root_submit_dir.mkdir(exist_ok=True, parents=True) # This should already be done by bosco_cluster --test.
+    root_submit_dir.mkdir(exist_ok=True, parents=True)  # This should already be done by bosco_cluster --test.
     submit_dir_copasi_test = TemporaryDirectory(prefix="copasitest.", dir=str(root_submit_dir))
 
-    # submit_dir=`mktemp -d $root_submit_dir/boscotest.XXXXXX`
-    # submit_file=$submit_dir/condor.submit
-    # log_file=$submit_dir/logfile
-    # test_stdout=$submit_dir/test.stdout
-    # test_stderr=$submit_dir/test.stderr
-    # test_id=bosco-test.$RANDOM
+    # Find this cluster in the list and get it's cluster type.
+    clusterlist_location = home/'.bosco'/'.clusterlist'
+    address_pattern = re.compile(f".*{address}.*cluster_type=(.*)")
+    cluster_type = "slurm"  # seems a safe initial default
+    with clusterlist_location.open() as fh:
+        cluster_type = address_pattern.search(fh.read()).group(1)
+
     copasidir = home / 'copasi'
     copasise = str(copasidir / 'bin' / 'CopasiSE')
     copasi_test_model_path = copasidir / 'brusselator_scan_test.cps'
@@ -171,32 +174,31 @@ def test_bosco_pool(address):
     log_file = str(cps_subm_dir / 'logfile')
     test_stdout = str(cps_subm_dir / 'test.stdout')
     test_stderr = str(cps_subm_dir / 'test.stderr')
+    user_email = os_env.get('USER_EMAIL', 'change-me@mailinator.com')
+
     # The following currently assumes the test model
     # is in the same directory as the created work directory is in.
-    submit_file_template = f"""
+    submit_text = f"""
 universe = grid
-grid_resource = batch {{cluster_type}} {address}
+grid_resource = batch {cluster_type} {address}
 input = {str(copasi_test_model_path)}
 output = {test_stdout}
 error = {test_stderr}
-transfer_executable=true
+transfer_executable = true
 executable = {copasise}
 arguments = --home . ../{copasi_test_model_path.name}
 log = {log_file}
 notification = error
-notify_user = change-me@mailinator.com
+notify_user = {user_email}
 +bosco_test_id = "{cps_subm_dir.name}"
 queue
 """
-    out_cps, err_cps, ret_cps = [], [], None
-    # Hopefully this will stop at the first one
-    for ct in ('slurm', 'pbs', 'sge', 'lsf'):
-        submit_text = submit_file_template.format(cluster_type=ct)
-        command = [CONDOR_SUBMIT, '-']  # using stdin
-        out_cps, err_cps, ret_cps = run_bosco_command(command, error=True, input=submit_text, text=True)
-        send_logs(slog, out_cps, err_cps, ret_cps)
-        if ret_cps == 0:
-            break
+
+    # submit using explicit stdin syntax (with '-')
+    out_cps, err_cps, ret_cps = run_bosco_command(
+        [CONDOR_SUBMIT, '-'], error=True, input=submit_text, text=True
+        )
+    send_logs(slog, out_cps, err_cps, ret_cps)
 
     stdoutlist.extend(out_cps)
     stderrlist.extend(err_cps)
