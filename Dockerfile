@@ -67,7 +67,7 @@ COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py cloud-copa
 COPY --chown=cloudcopasi:cloudcopasi client_scripts client_scripts
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
 COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface
-COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings.py.EXAMPLE cloud_copasi/settings.py
+COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings_EXAMPLE.py cloud_copasi/settings.py
 
 # Test Python
 RUN venv/bin/python3 --version
