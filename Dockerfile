@@ -20,19 +20,19 @@ RUN chmod +x /tini
 RUN useradd --create-home --shell /bin/bash cloudcopasi
 USER cloudcopasi
 
-# Install the Python dependencies similar to the current Deployment guide
-# (to drop-in re-use cloud-copasi-daemon.sh for now).
+# Install the Python dependencies
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
 RUN pip install -r /home/cloudcopasi/requirements.txt
 
-# Download the CopasiSE binaries.
-RUN mkdir /home/cloudcopasi/copasi
-WORKDIR /home/cloudcopasi/copasi
+# Download the CopasiSE Linux64 binary.
+RUN mkdir -p /home/cloudcopasi/copasi/bin
+WORKDIR /home/cloudcopasi/copasi/bin
 ENV copasi_version="4.34" copasi_build="251"
 RUN curl -L https://github.com/copasi/COPASI/releases/download/Build-${copasi_build}/COPASI-${copasi_version}.${copasi_build}-AllSE.tar.gz | \
-    tar -xvz --strip-components=1 && chmod +x */CopasiSE && \
-    mkdir bin && ln -s ../Linux64/CopasiSE bin/CopasiSE
-COPY --chown=cloudcopasi:cloudcopasi brusselator_scan_test.cps brusselator_scan_test.cps
+    tar -xvz --strip-components=2 COPASI-${copasi_version}.${copasi_build}-AllSE/Linux64/CopasiSE && \
+    chmod +x CopasiSE
+# copy over the test model file
+COPY --chown=cloudcopasi:cloudcopasi brusselator_scan_test.cps ../brusselator_scan_test.cps
 
 # Get and install HTCondor
 RUN mkdir /home/cloudcopasi/condor
