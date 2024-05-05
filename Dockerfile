@@ -23,16 +23,7 @@ USER cloudcopasi
 # Install the Python dependencies similar to the current Deployment guide
 # (to drop-in re-use cloud-copasi-daemon.sh for now).
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt /home/cloudcopasi/requirements.txt
-RUN mkdir /home/cloudcopasi/cloud-copasi && \
-    cd /home/cloudcopasi/cloud-copasi && \
-    python3 -m venv venv && \
-    . venv/bin/activate && \
-    pip install --upgrade pip && \
-    pip install -r /home/cloudcopasi/requirements.txt
-   # Note: The modified PATH from that activated
-   # venv will not persist past this build stage. It
-   # is only used so the 'pip' path for the install
-   # implicitly installs things in the venv, vs. system.
+RUN pip install -r /home/cloudcopasi/requirements.txt
 
 # Download the CopasiSE binaries.
 RUN mkdir /home/cloudcopasi/copasi
@@ -58,6 +49,7 @@ RUN cd && mkdir log user-files instance_keypairs
 # Copy over the relevant webserver stuff.
 # (placing this near the bottom, assuming these may be more likely to change 
 # during development, vs. stuff above.)
+RUN mkdir -p /home/cloudcopasi/cloud-copasi
 WORKDIR /home/cloudcopasi/cloud-copasi
 COPY --chown=cloudcopasi:cloudcopasi README.txt LICENSE.txt manage.py cloud-copasi-daemon.sh start_service.sh ./
 COPY --chown=cloudcopasi:cloudcopasi client_scripts client_scripts
@@ -65,12 +57,9 @@ COPY --chown=cloudcopasi:cloudcopasi cloud_copasi cloud_copasi
 COPY --chown=cloudcopasi:cloudcopasi web_interface web_interface
 COPY --chown=cloudcopasi:cloudcopasi cloud_copasi/settings_EXAMPLE.py cloud_copasi/settings.py
 
-# Test Python
-RUN venv/bin/python3 --version
-
 # Set up Django
-RUN venv/bin/python3 manage.py collectstatic --noinput
-RUN venv/bin/python3 manage.py makemigrations web_interface --noinput
+RUN python3 manage.py collectstatic --noinput
+RUN python3 manage.py makemigrations web_interface --noinput
 
 # Note: The CMD override scripts are handling setting up the
 # condor env and using the venv
