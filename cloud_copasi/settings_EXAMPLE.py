@@ -12,21 +12,23 @@
 # Django settings for cloud_copasi project.
 
 import os
+from pathlib import Path
 #The directory where the cloud-copasi source code has been installed
-CLOUD_COPASI_DIR = '/home/cloudcopasi/cloud-copasi/'
+CLOUD_COPASI_DIR = Path(os.getenv('CLOUD_COPASI_DIR', default='/home/cloudcopasi/cloud-copasi/'))
 
-TEMPLATES_DIR = os.path.join(CLOUD_COPASI_DIR, 'web_interface/templates/')
-PLUGINS_DIR = os.path.join(CLOUD_COPASI_DIR, 'web_interface/task_plugins/plugins')
-STATIC_DIR = os.path.join(TEMPLATES_DIR, 'static')
+# TEMPLATES_DIR = os.path.join(CLOUD_COPASI_DIR, 'web_interface/templates/')
+TEMPLATES_DIR = CLOUD_COPASI_DIR/'web_interface'/'templates'
+PLUGINS_DIR = CLOUD_COPASI_DIR/'web_interface'/'task_plugins'/'plugins'
+STATIC_DIR = TEMPLATES_DIR/'static'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',                   # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.environ.get('POSTGRES_NAME', default='cloud_copasi_db'),   # Or path to database file if using sqlite3.
-        'USER': os.environ.get('POSTGRES_USER', default='cloud_copasi_user'), # Not used with sqlite3.
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', default='password'),  # Not used with sqlite3.
-        'HOST': 'db',                                                         # '127.0.0.1' or '' (empty) for localhost. Not used with sqlite3.
-        'PORT': '5432',                                                       # '5432' is the PostgrSQL default (so, also could be '', here). Not used with sqlite3.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',               # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': os.getenv('POSTGRES_NAME', default='cloud_copasi_db'),    # Or path to database file if using sqlite3.
+        'USER': os.getenv('POSTGRES_USER', default='cloud_copasi_user'),  # Not used with sqlite3.
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='password'),   # Not used with sqlite3.
+        'HOST': os.getenv('DB_HOST', default='127.0.0.1'),                # '127.0.0.1' or '' (empty) for localhost. Not used with sqlite3.
+        'PORT': os.getenv('DB_PORT', default='5432'),                     # '5432' is the PostgrSQL default (so, also could be '', here). Not used with sqlite3.
     }
 }
 # Make this unique, and don't share it with anybody.
@@ -130,7 +132,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = os.path.join(TEMPLATES_DIR, 'static-all')
+STATIC_ROOT = str(TEMPLATES_DIR/'static-all')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -141,7 +143,7 @@ STATICFILES_DIRS = [
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    STATIC_DIR,
+    str(STATIC_DIR),
 ]
 
 # List of finder classes that know how to find static files in
@@ -170,8 +172,8 @@ WSGI_APPLICATION = 'cloud_copasi.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [TEMPLATES_DIR,
-                 PLUGINS_DIR,],
+        'DIRS': [str(TEMPLATES_DIR),
+                 str(PLUGINS_DIR),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
