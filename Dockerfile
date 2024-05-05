@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM python:3.8
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 
 # just some niceties . . .
 RUN apt-get update --assume-yes && \
@@ -10,7 +9,7 @@ RUN apt-get update --assume-yes && \
     nano \
     vim \
     htop \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean --assume-yes
 
 # Add Tini to deal with any orphaned processes
 # CMD override scripts might create.
