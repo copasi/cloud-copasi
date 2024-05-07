@@ -155,7 +155,7 @@ def test_bosco_pool(address):
 
     # Assuming the basic cluster test worked,
     # now try a COPASI test job submission.
-    home = Path.home()
+    home = Path(env['HOME'])
     root_submit_dir = home / "bosco-test"
     root_submit_dir.mkdir(exist_ok=True, parents=True)  # This should already be done by bosco_cluster --test.
     submit_dir_copasi_test = TemporaryDirectory(prefix="copasitest.", dir=str(root_submit_dir))
