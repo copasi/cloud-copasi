@@ -5,6 +5,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 # just some niceties . . .
 RUN apt-get update --assume-yes && \
     apt-get install --assume-yes \
+    build-essential \
+    libpcre3-dev \
+    libssl-dev \
     less \
     nano \
     vim \
