@@ -23,6 +23,11 @@ RUN useradd --create-home --shell /bin/bash cloudcopasi
 USER cloudcopasi
 
 WORKDIR /home/cloudcopasi
+
+# Create the ssh key used to submit to remote clusters.
+RUN mkdir -p .ssh && chmod 700 .ssh && ssh-keygen -N '' -b 4096 -f .ssh/bosco_key.rsa
+
+# Create some log and condor stuff.
 RUN mkdir -p log condor && cd condor && \
     mkdir -p local/fs_auth user-files instance_keypairs
 
