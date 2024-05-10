@@ -54,7 +54,7 @@ RUN mkdir log user-files instance_keypairs
 WORKDIR /home/cloudcopasi/cloud-copasi
 # Install the Python dependencies
 COPY --chown=cloudcopasi:cloudcopasi requirements.txt cloud-copasi/requirements.txt
-RUN pip install -r cloud-copasi/requirements.txt
+RUN pip install --no-cache-dir -r cloud-copasi/requirements.txt
 # Copy over the relevant webserver stuff.
 # (placing this near the bottom, assuming these may be more likely to change 
 # during development, vs. stuff above.)
