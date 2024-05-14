@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global-info
+data:
+  db_host: 127.0.0.1
+  postgres_name: cloud_copasi_db
+  postgres_user: cloud_copasi_user
+  django_debug: "True"

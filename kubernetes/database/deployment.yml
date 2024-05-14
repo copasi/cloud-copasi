@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-container
+  template:
+    metadata:
+      labels:
+        app: postgres-container
+        tier: backend
+    spec:
+      containers:
+        - name: postgres-container
+          image: postgres
+          env:
+            - name: POSTGRES_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: global-info
+                  key: postgres_name
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: global-info
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-info
+                  key: postgres_password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-pv
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-pv
+          persistentVolumeClaim:
+            claimName: postgres-pvc
