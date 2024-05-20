@@ -24,7 +24,7 @@ STATIC_DIR = TEMPLATES_DIR/'static'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',               # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': os.getenv('POSTGRES_NAME', default='cloud_copasi_db'),    # Or path to database file if using sqlite3.
+        'NAME': os.getenv('POSTGRES_DB', default='cloud_copasi_db'),    # Or path to database file if using sqlite3.
         'USER': os.getenv('POSTGRES_USER', default='cloud_copasi_user'),  # Not used with sqlite3.
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='password'),   # Not used with sqlite3.
         'HOST': os.getenv('DB_HOST', default='127.0.0.1'),                # '127.0.0.1' or '' (empty) for localhost. Not used with sqlite3.

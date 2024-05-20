@@ -17,11 +17,11 @@ spec:
         - name: postgres-container
           image: postgres
           env:
-            - name: POSTGRES_NAME
+            - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   name: global-info
-                  key: postgres_name
+                  key: POSTGRES_DB
             - name: POSTGRES_USER
               valueFrom:
                 configMapKeyRef:

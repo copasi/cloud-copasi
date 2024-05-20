@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-db-migrate
+spec:
+  ttlSecondsAfterFinished: 100
+  activeDeadlineSeconds: 120
+  template:
+    spec:
+      containers:
+        - name: migration-container
+          image: ghcr.io/copasi/cloud-copasi:0.4
+          command: ['python3', 'manage.py', 'migrate']
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: global-info
+                  key: db_host
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: global-info
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: global-info
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-info
+                  key: postgres_password
+          ports:
+            - containerPort: 8000
+      restartPolicy: OnFailure
+  backoffLimit: 15
